@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>CSS Review | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">CSS Review</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">十月 28, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/CSS/">CSS</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="浏览器渲染"><a href="#浏览器渲染" class="headerlink" title="浏览器渲染"></a>浏览器渲染</h2><p>浏览器解析一个页面会按照以下流程：</p>
+<ol>
+<li>根据<code>HTML</code>构建<code>DOM Tree</code></li>
+<li>根据<code>CSS</code>构建<code>CSSOM Tree</code></li>
+<li><code>DOM Tree</code>和<code>CSSOM Tree</code>合并生成<code>Render Tree</code></li>
+<li>布局：计算元素的大小及位置</li>
+<li>绘制：将<code>Render Tree</code>中的每个节点转换成屏幕上的实际像素</li>
+</ol>
+<h3 id="如何从HTML到DOM-Tree？"><a href="#如何从HTML到DOM-Tree？" class="headerlink" title="如何从HTML到DOM Tree？"></a>如何从<code>HTML</code>到<code>DOM Tree</code>？</h3><p>读取HTML文档的字节(Bytes)<br>将字节转换成字符(Chars)<br>依据字符确定标签(Tokens)<br>将标签转换成节点(Nodes)<br>以节点为基准构建DOM树。</p>
+<h3 id="如何从CSS到CSSOM-Tree？"><a href="#如何从CSS到CSSOM-Tree？" class="headerlink" title="如何从CSS到CSSOM Tree？"></a>如何从<code>CSS</code>到<code>CSSOM Tree</code>？</h3><p>与DOM树的构建过程类似。</p>
+<h3 id="阻塞渲染"><a href="#阻塞渲染" class="headerlink" title="阻塞渲染"></a>阻塞渲染</h3><p>在生成<code>Dom Tree</code>的过程中，<code>script</code>标签会阻塞渲染线程工作。此时，控制权交给了<strong>JS引擎线程</strong>， JavaScript脚本执行完成之后再交由渲染引擎继续解析。</p>
+<p>为什么要阻塞？<br><code>JS</code>是能够操作DOM的。<code>JS</code>开始工作后并不确定DOM的结构（因为会变），所以暂停渲染线程工作。</p>
+<h3 id="回流和重绘"><a href="#回流和重绘" class="headerlink" title="回流和重绘"></a>回流和重绘</h3><h4 id="回流"><a href="#回流" class="headerlink" title="回流"></a>回流</h4><p>回流（重排）是指当DOM节点的<strong>几何属性</strong>（位置、大小等）发生改变后，渲染线程需要重新计算位置和形状的现象。<br>换句话说，就是DOM节点的变化导致文档流变化。</p>
+<h4 id="重绘"><a href="#重绘" class="headerlink" title="重绘"></a>重绘</h4><p>重绘是指当DOM节点的<strong>外观属性</strong>（颜色、透明度、文字等），渲染线程需要重新绘制的现象。<br>换句话说，就是DOM节点的变化不会导致文档流变化。<br>回流一定导致重绘，重绘不一定导致回流。<br>尽可能的避免回流的发生。当需要改变元素位置时，使用<code>transform</code>代替<code>top bottom left right</code>。前者只会引发图层重绘，还会间接启动GPU加速。</p>
+<h2 id="习惯：CSS属性排序书写"><a href="#习惯：CSS属性排序书写" class="headerlink" title="习惯：CSS属性排序书写"></a>习惯：CSS属性排序书写</h2><p>比较好的书写顺序是按照类型排序。</p>
+<p>按照<code>布局</code> → <code>尺寸</code> → <code>界面</code> → <code>文字</code> → <code>交互</code>的方式顺序书写CSS属性</p>
+<h3 id="布局属性"><a href="#布局属性" class="headerlink" title="布局属性"></a>布局属性</h3><ul>
+<li>显示：<code>display</code> <code>visibility</code></li>
+<li>溢出：<code>overflow</code> <code>overflow-x</code> <code>overflow-y</code></li>
+<li>浮动：<code>float</code> <code>clear</code></li>
+<li>定位：<code>position</code> <code>left</code> <code>right</code> <code>top</code> <code>bottom</code> <code>z-index</code></li>
+<li>列表：<code>list-style</code> <code>list-style-type</code> <code>list-style-position</code> <code>list-style-image</code></li>
+<li>表格：<code>table-layout</code> <code>border-collapse</code> <code>border-spacing</code> <code>caption-side</code> <code>empty-cells</code></li>
+<li>弹性：<code>flex-flow</code> <code>flex-direction</code> <code>flex-wrap</code> <code>justify-content</code> <code>align-content</code> <code>align-items</code> <code>align-self</code> <code>flex</code> <code>flex-grow</code> <code>flex-shrink</code> <code>flex-basis</code> <code>order</code></li>
+<li>多列：<code>columns</code> <code>column-width</code> <code>column-count</code> <code>column-gap</code> <code>column-rule</code> <code>column-rule-width</code> <code>column-rule-style</code> <code>column-rule-color</code> <code>column-span</code> <code>column-fill</code> <code>column-break-before</code> <code>column-break-after</code> <code>column-break-inside</code></li>
+<li>格栅：<code>grid-columns</code> <code>grid-rows</code></li>
+</ul>
+<h3 id="尺寸属性"><a href="#尺寸属性" class="headerlink" title="尺寸属性"></a>尺寸属性</h3><ul>
+<li>模型：<code>box-sizing</code></li>
+<li>边距：<code>margin</code> <code>margin-left</code> <code>margin-right</code> <code>margin-top</code> <code>margin-bottom</code></li>
+<li>填充：<code>padding</code> <code>padding-left</code> <code>padding-right</code> <code>padding-top</code> <code>padding-bottom</code></li>
+<li>边框：<code>border</code> <code>border-width</code> <code>border-style</code> <code>border-color</code> <code>border-colors</code> <code>border-[direction]-&lt;param&gt;</code></li>
+<li>圆角：<code>border-radius</code> <code>border-top-left-radius</code> <code>border-top-right-radius</code> <code>border-bottom-left-radius</code> <code>border-bottom-right-radius</code></li>
+<li>框图：<code>border-image</code> <code>border-image-source</code> <code>border-image-slice</code> <code>border-image-width</code> <code>border-image-outset</code> <code>border-image-repeat</code></li>
+<li>大小：<code>width</code> <code>min-width</code> <code>max-width</code> <code>height</code> <code>min-height</code> <code>max-height</code></li>
+</ul>
+<h3 id="界面属性"><a href="#界面属性" class="headerlink" title="界面属性"></a>界面属性</h3><ul>
+<li>外观：<code>appearance</code></li>
+<li>轮廓：<code>outline</code> <code>outline-width</code> <code>outline-style</code> <code>outline-color</code> <code>outline-offset</code> <code>outline-radius</code> <code>outline-radius-[direction]</code></li>
+<li>背景：<code>background</code> <code>background-color</code> <code>background-image</code> <code>background-repeat</code> <code>background-repeat-x</code> <code>background-repeat-y</code> <code>background-position</code> <code>background-position-x</code> <code>background-position-y</code> <code>background-size</code> <code>background-origin</code> <code>background-clip</code> <code>background-attachment</code> <code>bakground-composite</code></li>
+<li>遮罩：<code>mask</code> <code>mask-mode</code> <code>mask-image</code> <code>mask-repeat</code> <code>mask-repeat-x</code> <code>mask-repeat-y</code> <code>mask-position</code> <code>mask-position-x</code> <code>mask-position-y</code> <code>mask-size</code> <code>mask-origin</code> <code>mask-clip</code> <code>mask-attachment</code> <code>mask-composite</code> <code>mask-box-image</code> <code>mask-box-image-source</code> <code>mask-box-image-width</code> <code>mask-box-image-outset</code> <code>mask-box-image-repeat</code> <code>mask-box-image-slice</code></li>
+<li>滤镜：<code>box-shadow</code> <code>box-reflect</code> <code>filter</code> <code>mix-blend-mode</code> <code>opacity</code>,</li>
+<li>裁剪：<code>object-fit</code> <code>clip</code></li>
+<li>事件：<code>resize</code> <code>zoom</code> <code>cursor</code> <code>pointer-events</code> <code>touch-callout</code> <code>user-modify</code> <code>user-focus</code> <code>user-input</code> <code>user-select</code> <code>user-drag</code></li>
+</ul>
+<h3 id="文字属性"><a href="#文字属性" class="headerlink" title="文字属性"></a>文字属性</h3><ul>
+<li>模式：<code>line-height</code> <code>line-clamp</code> <code>vertical-align</code> <code>direction</code> <code>unicode-bidi</code> <code>writing-mode</code> <code>ime-mode</code></li>
+<li>文本：<code>text-overflow</code> <code>text-decoration</code> <code>text-decoration-line</code> <code>text-decoration-style</code> <code>text-decoration-color</code> <code>text-decoration-skip</code> <code>text-underline-position</code> <code>text-align</code> <code>text-align-last</code> <code>text-justify</code> <code>text-indent</code> <code>text-stroke</code> <code>text-stroke-width</code> <code>text-stroke-color</code> <code>text-shadow</code> <code>text-transform</code> <code>text-size-adjust</code></li>
+<li>字体：<code>src</code> <code>font</code> <code>font-family</code> <code>font-style</code> <code>font-stretch</code> <code>font-weight</code> <code>font-variant</code> <code>font-size</code> <code>font-size-adjust</code> <code>color</code></li>
+<li>内容：<code>overflow-wrap</code> <code>word-wrap</code> <code>word-break</code> <code>word-spacing</code> <code>letter-spacing</code> <code>white-space</code> <code>caret-color</code> <code>tab-size</code> <code>content</code> <code>counter-increment</code> <code>counter-reset</code> <code>quotes</code> <code>page</code> <code>page-break-before</code> <code>page-break-after</code> <code>page-break-inside</code></li>
+</ul>
+<h3 id="交互属性"><a href="#交互属性" class="headerlink" title="交互属性"></a>交互属性</h3><ul>
+<li>模式：<code>will-change</code> <code>perspective</code> <code>perspective-origin</code> <code>backface-visibility</code></li>
+<li>变换：<code>transform</code> <code>transform-origin</code> <code>transform-style</code></li>
+<li>过渡：<code>transition</code> <code>transition-property</code> <code>transition-duration</code> <code>transition-timing-function</code> <code>transition-delay</code></li>
+<li>动画：<code>animation</code> <code>animation-name</code> <code>animation-duration</code> <code>animation-timing-function</code> <code>animation-delay</code> <code>animation-iteration-count</code> <code>animation-direction</code> <code>animation-play-state</code> <code>animation-fill-mode</code></li>
+</ul>
+<h2 id="盒模型"><a href="#盒模型" class="headerlink" title="盒模型"></a>盒模型</h2><p>老生常谈——盒模型</p>
+<h3 id="盒模型-1"><a href="#盒模型-1" class="headerlink" title="盒模型"></a>盒模型</h3><p>标准盒模型 （<code>box-sizing</code>为<code>content-box</code>）<br>怪异（IE）盒模型（<code>box-sizing</code>为<code>border-box</code>）</p>
+<p><img src="../../images/%E6%A0%87%E5%87%86%E7%9B%92%E6%A8%A1%E5%9E%8B%E5%92%8C%E6%80%AA%E5%BC%82%E7%9B%92%E6%A8%A1%E5%9E%8B.png" alt="标准盒模型和怪异盒模型"></p>
+<h3 id="视觉格式化模型"><a href="#视觉格式化模型" class="headerlink" title="视觉格式化模型"></a>视觉格式化模型</h3><p>块级元素：<code>display</code>声明为<code>block</code>、<code>list-item</code>、<code>table</code>、<code>flex</code>或<code>grid</code>时<br>行内元素：<code>display</code>声明为<code>inline</code>、<code>inline-block</code>、<code>inline-table</code>、<code>inline-flex</code>或<code>inline-grid</code>时</p>
+<h3 id="格式化上下文"><a href="#格式化上下文" class="headerlink" title="格式化上下文"></a>格式化上下文</h3><table>
+<thead>
+<tr>
+<th>上下文</th>
+<th>缩写</th>
+<th>版本</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>块格式化上下文</td>
+<td><code>BFC</code></td>
+<td>2</td>
+<td>块级盒子容器</td>
+</tr>
+<tr>
+<td>行内格式化上下文</td>
+<td><code>IFC</code></td>
+<td>2</td>
+<td>行内盒子容器</td>
+</tr>
+<tr>
+<td>弹性格式化上下文</td>
+<td><code>FFC</code></td>
+<td>3</td>
+<td>弹性盒子容器</td>
+</tr>
+<tr>
+<td>格栅格式化上下文</td>
+<td><code>GFC</code></td>
+<td>3</td>
+<td>格栅盒子容器</td>
+</tr>
+</tbody></table>
+<p><code>BFC</code>——块级格式上下文通常由一个父元素和若干子元素组成。<br>同一个BFC的子元素以及相邻的父子元素会发生<strong>margin重叠</strong>现象，不同BFC的元素不会发生重叠。<br>BFC可以自动撑开元素（包含浮动元素）</p>
+<h2 id="属性优先级"><a href="#属性优先级" class="headerlink" title="属性优先级"></a>属性优先级</h2><p>!important： <code>10000</code><br>内联样式、外联样式：<code>1000</code><br>ID选择器：<code>100</code><br>类选择器、伪类选择器、属性选择器：<code>10</code><br>元素选择器、伪元素选择器：<code>1</code><br>通配选择器、后代选择器、兄弟选择器：<code>0</code></p>
+<h2 id="布局"><a href="#布局" class="headerlink" title="布局"></a>布局</h2><h3 id="普通布局"><a href="#普通布局" class="headerlink" title="普通布局"></a>普通布局</h3><p>符合默认布局规则。块级元素占满一行。不够一行自动换行</p>
+<h3 id="浮动布局"><a href="#浮动布局" class="headerlink" title="浮动布局"></a>浮动布局</h3><p>使用<code>float: left | right</code>使元素浮动（会脱离正常文档流）。</p>
+<h3 id="定位布局"><a href="#定位布局" class="headerlink" title="定位布局"></a>定位布局</h3><p>使用<code>position: relative | absolute | fixed</code>设置相对/绝对定位。<br><code>top | left | right | bottom</code>设置位置</p>
+<h3 id="表格布局（不要使用）"><a href="#表格布局（不要使用）" class="headerlink" title="表格布局（不要使用）"></a>表格布局（不要使用）</h3><p>使用<code>table</code>特性来布局<br>很小的改动就会导致<code>table</code>发生回流。</p>
+<h3 id="弹性布局"><a href="#弹性布局" class="headerlink" title="弹性布局"></a>弹性布局</h3><p>使用<code>display: flex | inline-flex</code>设置弹性盒子容器</p>
+<h3 id="多列布局"><a href="#多列布局" class="headerlink" title="多列布局"></a>多列布局</h3><p>使用<code>column-width</code>和<code>column-count</code>来设置列宽和列数（兼容IE10）<br>可以使用<code>columns: column-width column-count</code>简写形式</p>
+<p><code>column-rule</code>属性规定了列与列之间的直线<br><code>column-rule: column-rule-width column-rule-style column-rule-color</code>与<code>border</code>属性类似</p>
+<p><code>column-span: none | all</code>，<code>all</code>表示跨越所有列。</p>
+<h3 id="栅格布局"><a href="#栅格布局" class="headerlink" title="栅格布局"></a>栅格布局</h3><p>使用<code>display: grid | inline-grid</code>来设置栅格容器</p>
+<h3 id="响应式布局"><a href="#响应式布局" class="headerlink" title="响应式布局"></a>响应式布局</h3><p>使用响应式单位：<code>vw</code>、<code>vh</code>、<code>rem</code>等<br>使用媒体查询</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">@media</span> screen <span class="keyword">and</span> (<span class="attribute">max-width:</span> <span class="number">300px</span>) &#123;</span><br><span class="line">    <span class="selector-tag">body</span> &#123;</span><br><span class="line">        <span class="attribute">background-color</span>: red;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="内置函数Function"><a href="#内置函数Function" class="headerlink" title="内置函数Function"></a>内置函数Function</h2><h3 id="颜色函数"><a href="#颜色函数" class="headerlink" title="颜色函数"></a>颜色函数</h3><p><code>rgb()</code>：RGB颜色函数，<strong>红绿蓝</strong><br><code>rgba()</code>：RGBA颜色函数，<strong>A：透明度</strong></p>
+<p><code>hsl()</code>：HSL颜色函数。<br>H：色相（0-360deg），<code>0deg</code>和<code>360deg</code>为红色，<code>120deg</code>为绿色，<code>240deg</code>为蓝色。<br>S：饱和度（0-100%），<code>0%</code>为灰色，<code>100%</code>为全色。<br>L：亮度（0-100%），<code>0%</code>为最暗，<code>100%</code>为最亮。</p>
+<p><code>hsla()</code>：HSLA颜色函数</p>
+<h3 id="属性函数"><a href="#属性函数" class="headerlink" title="属性函数"></a>属性函数</h3><p><code>attr</code>：获取节点属性，目前只能配合伪元素的<code>content</code>属性使用<br><code>var</code>：获取变量</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">--font-color</span>: <span class="selector-tag">red</span>;</span><br><span class="line"></span><br><span class="line"><span class="selector-class">.warn-tip</span> &#123;</span><br><span class="line">    <span class="attribute">font-color</span>: <span class="built_in">var</span>(--font-color);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="数学函数"><a href="#数学函数" class="headerlink" title="数学函数"></a>数学函数</h3><p><code>min()</code>：最小值<br><code>max()</code>：最大值</p>
+<p><code>clamp()</code>：计算区间范围<br><code>clamp(MIN, VAL, MAX)</code>，最小值、首选值、最大值。相当于<code>max</code>(MIN, <code>min</code>(VAL, MAX))</p>
+<p><code>calc()</code>：计算。<code>数值</code>、<code>长度</code>、<code>角度</code>、<code>时间</code>和<code>百分比</code>都能作为参数</p>
+<p><code>counter()/counters()</code>：计数器，只能用于伪元素的<code>content</code>属性。<br>需要结合<code>counter-reset</code>和<code>counter-increment</code>两个属性使用</p>
+<ul>
+<li><code>counter-reset</code>：重置计数器名称与初始值，编写形式为<code>counter-reset:name val</code></li>
+<li><code>counter-increment</code>：对指定计数器累计其计数值，编写形式为<code>counter-increment:name</code>，在使用到的地方声明就会累加</li>
+</ul>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">counter-reset</span>: <span class="selector-tag">times</span> 1; <span class="comment">/* 初始化times */</span></span><br><span class="line"></span><br><span class="line"><span class="selector-tag">counter-increment</span>: <span class="selector-tag">times</span> 1; <span class="comment">/* time 加1 */</span></span><br><span class="line"></span><br><span class="line"><span class="selector-class">.count</span><span class="selector-pseudo">::after</span> &#123;</span><br><span class="line">    <span class="attribute">content</span>: <span class="built_in">counter</span>(times);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="背景函数"><a href="#背景函数" class="headerlink" title="背景函数"></a>背景函数</h3><p><code>url()</code>：图像路径<br><code>element()</code>（only Firfox）：可以将网站中的某部分当作图片渲染，返回一个图像。结合background等属性使用<br><code>image-set()</code>：图像集合，根据屏幕分辨率匹配合适图像<br>渐变：</p>
+<ul>
+<li><code>linear-gradient()</code>：线性渐变</li>
+<li><code>radial-gradient()</code>：径向渐变</li>
+<li><code>conic-gradient()</code>：锥形渐变</li>
+<li><code>repeat-linear-gradient()</code></li>
+<li><code>repeat-radial-gradient()</code></li>
+<li><code>repeat-conic-gradient()</code></li>
+</ul>
+<h3 id="滤镜函数"><a href="#滤镜函数" class="headerlink" title="滤镜函数"></a>滤镜函数</h3><p>结合<code>filter</code>属性使用</p>
+<p><code>blur(100)</code>：模糊，具体值默认0<br><code>brightness(%)</code>：亮度<br><code>contrast(%)</code>：对比度<br><code>drop-shadow(h-shadow v-shadow blur spread color)</code>：阴影<br><code>grayscale(%)</code>：灰度<br><code>hue-rotate(deg)</code>：色相旋转<br><code>invert(%)</code>：反转<br><code>opacity(%)</code>：透明度<br><code>saturate(%)</code>：饱和度<br><code>sepia(%)</code>：褐色</p>
+<h3 id="图形函数"><a href="#图形函数" class="headerlink" title="图形函数"></a>图形函数</h3><p>结合<code>clip-path</code>使用，用来裁剪区域</p>
+<p><code>circle(30% at 50% 50%)</code>：圆形裁剪，<strong>半径 at 圆心</strong><br><code>ellipse(20px 10px at 50% 50%)</code>：椭圆形裁剪，<strong>横轴 纵轴 at 圆心</strong><br><code>inset(100px 50px)</code>：矩形，长宽<br><code>path()</code>：按照路径裁剪<br><code>polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)</code>：按照多边形裁剪（顺时针）</p>
+<h3 id="变换函数"><a href="#变换函数" class="headerlink" title="变换函数"></a>变换函数</h3><p>结合<code>transform</code>属性使用</p>
+<p><code>rotate(deg | turn)</code><br><code>translate(x, y)</code><br><code>scale(x y)</code><br><code>skew(x, y)</code><br><code>perspective()</code>：设置透视试图</p>
+<h3 id="缓动函数"><a href="#缓动函数" class="headerlink" title="缓动函数"></a>缓动函数</h3><p><code>cubic-bezier()</code>：贝塞尔曲线<br><code>steps()</code>：逐帧</p>
+<h2 id="变量Variable"><a href="#变量Variable" class="headerlink" title="变量Variable"></a>变量Variable</h2><p><code>CSS</code>有自己的一套变量系统。兼容性如下：</p>
+<p>![css var](../../images/css var.jpg)</p>
+<h3 id="认识"><a href="#认识" class="headerlink" title="认识"></a>认识</h3><ul>
+<li>声明：<code>--变量名</code></li>
+<li>读取：<code>var(--变量名, 默认值)</code></li>
+<li>类型<ul>
+<li>普通：只能用作<code>属性值</code>不能用作<code>属性名</code></li>
+<li>字符：与字符串拼接 <code>&quot;Hello, &quot;var(--name)</code></li>
+<li>数值：使用<code>calc()</code>与数值单位连用 <code>var(--width) * 10px</code></li>
+</ul>
+</li>
+<li>作用域<ul>
+<li>范围：在<code>当前节点块作用域</code>及其<code>子节点块作用域</code>下有效</li>
+<li>优先级别：<code>内联样式 = 外联样式 &gt; ID选择器 &gt; 类选择器 = 伪类选择器 = 属性选择器 &gt; 元素选择器 = 伪元素选择器 &gt; 通配选择器 = 后代选择器 = 兄弟选择器</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="使用技巧"><a href="#使用技巧" class="headerlink" title="使用技巧"></a>使用技巧</h3><h4 id="主题换肤"><a href="#主题换肤" class="headerlink" title="主题换肤"></a>主题换肤</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">	&lt;div ref&#x3D;&quot;container&quot; style&#x3D;&quot;--theme-color: white&quot;&gt;&lt;&#x2F;div&gt;</span><br><span class="line">	&lt;button @click&#x3D;&quot;switchTheme&quot;&gt;换肤&lt;&#x2F;button&gt;</span><br><span class="line">&lt;&#x2F;template&gt;	</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">export default &#123;</span><br><span class="line">    methods: &#123;</span><br><span class="line">        switchTheme() &#123;</span><br><span class="line">            this.$refs.container.style.setProperty(&quot;--theme-color&quot;, &quot;red&quot;)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">&lt;&#x2F;script&gt;</span><br><span class="line"></span><br><span class="line">&lt;style lang&#x3D;&quot;scss&quot;&gt;</span><br><span class="line">    .container &#123;</span><br><span class="line">        --bg-color: var(--theme-color);</span><br><span class="line">        background-color: var(--bg-color);</span><br><span class="line">    &#125;</span><br><span class="line">&lt;&#x2F;style&gt;</span><br></pre></td></tr></table></figure>
+
+<p>可见，<code>css</code>变量可以与<code>JS</code>进行交互。<code>scss</code>的变量做不到。</p>
+<h4 id="悬浮视差"><a href="#悬浮视差" class="headerlink" title="悬浮视差"></a>悬浮视差</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;div ref&#x3D;&quot;bg&quot; class&#x3D;&quot;bruce flex-ct-x&quot; data-title&#x3D;&quot;悬浮视差按钮&quot;&gt;</span><br><span class="line">    &lt;a</span><br><span class="line">      ref&#x3D;&quot;btn&quot;</span><br><span class="line">      class&#x3D;&quot;parallax-btn&quot;</span><br><span class="line">      data-name&#x3D;&quot;妙用CSS变量，让你的CSS变得更心动&quot;</span><br><span class="line">      @mousemove&#x3D;&quot;move&quot;</span><br><span class="line">      @mouseup&#x3D;&quot;up&quot;</span><br><span class="line">      @mousedown&#x3D;&quot;down&quot;</span><br><span class="line">      @mouseleave&#x3D;&quot;leave&quot;</span><br><span class="line">    &gt;&lt;&#x2F;a&gt;</span><br><span class="line">  &lt;&#x2F;div&gt;</span><br><span class="line">&lt;&#x2F;template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">export default &#123;</span><br><span class="line">  mounted() &#123;</span><br><span class="line">    this.bgStyle &#x3D; this.$refs.bg.style;</span><br><span class="line">    this.btnRect &#x3D; this.$refs.btn.getBoundingClientRect();</span><br><span class="line">  &#125;,</span><br><span class="line">  methods: &#123;</span><br><span class="line">    down(e) &#123;</span><br><span class="line">      this.bgStyle.setProperty(&quot;--tz&quot;, &quot;-25px&quot;);</span><br><span class="line">    &#125;,</span><br><span class="line">    leave(e) &#123;</span><br><span class="line">      this.bgStyle.setProperty(&quot;--ty&quot;, &quot;0&quot;);</span><br><span class="line">      this.bgStyle.setProperty(&quot;--rx&quot;, &quot;0&quot;);</span><br><span class="line">      this.bgStyle.setProperty(&quot;--ry&quot;, &quot;0&quot;);</span><br><span class="line">    &#125;,</span><br><span class="line">    move(e) &#123;</span><br><span class="line">      const dx &#x3D; e.offsetX - this.btnRect.width &#x2F; 2;</span><br><span class="line">      const dy &#x3D; e.offsetY - this.btnRect.height &#x2F; 2;</span><br><span class="line">      this.bgStyle.setProperty(&quot;--rx&quot;, &#96;$&#123;dy &#x2F; -1&#125;deg&#96;);</span><br><span class="line">      this.bgStyle.setProperty(&quot;--ry&quot;, &#96;$&#123;dx &#x2F; 10&#125;deg&#96;);</span><br><span class="line">    &#125;,</span><br><span class="line">    up() &#123;</span><br><span class="line">      this.bgStyle.setProperty(&quot;--tz&quot;, &quot;-12px&quot;);</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line">&lt;&#x2F;script&gt;</span><br><span class="line"></span><br><span class="line">&lt;style lang&#x3D;&quot;scss&quot; scoped&gt;</span><br><span class="line">.bruce &#123;</span><br><span class="line">  transform: perspective(800px);</span><br><span class="line">  transform-style: preserve-3d;</span><br><span class="line"></span><br><span class="line">  height: 100vh;</span><br><span class="line"></span><br><span class="line">  display: flex;</span><br><span class="line">  justify-content: center;</span><br><span class="line">  align-items: center;</span><br><span class="line">&#125;</span><br><span class="line">.parallax-btn &#123;</span><br><span class="line">  position: relative;</span><br><span class="line">  width: 400px;</span><br><span class="line">  height: 50px;</span><br><span class="line">  cursor: pointer;</span><br><span class="line">  user-select: none;</span><br><span class="line">  line-height: 50px;</span><br><span class="line">  text-align: center;</span><br><span class="line">  font-size: 18px;</span><br><span class="line">  color: #fff;</span><br><span class="line">  &amp;::before &#123;</span><br><span class="line">    position: absolute;</span><br><span class="line">    left: 0;</span><br><span class="line">    right: 0;</span><br><span class="line">    top: 0;</span><br><span class="line">    bottom: 0;</span><br><span class="line">    border-radius: 4px;</span><br><span class="line">    background: linear-gradient(135deg, #6e8efb, #a777e3);</span><br><span class="line">    box-shadow: 0 2px 5px rgba(#000, 0.2);</span><br><span class="line">    content: &quot;&quot;;</span><br><span class="line">    will-change: transform;</span><br><span class="line">    transform: translateY(var(--ty, 0)) rotateX(var(--rx, 0))</span><br><span class="line">      rotateY(var(--ry, 0)) translateZ(var(--tz, -12px));</span><br><span class="line">    transition: box-shadow 500ms ease, transform 200ms ease;</span><br><span class="line">  &#125;</span><br><span class="line">  &amp;::after &#123;</span><br><span class="line">    display: inline-block;</span><br><span class="line">    position: relative;</span><br><span class="line">    font-weight: bold;</span><br><span class="line">    content: attr(data-name);</span><br><span class="line">    will-change: transform;</span><br><span class="line">    transform: translateY(var(--ty, 0)) rotateX(var(--rx, 0))</span><br><span class="line">      rotateY(var(--ry, 0));</span><br><span class="line">    transition: transform 200ms ease;</span><br><span class="line">  &#125;</span><br><span class="line">  &amp;:hover::before &#123;</span><br><span class="line">    box-shadow: 0 5px 15px rgba(#000, 0.3);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">&lt;&#x2F;style&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="选择器Selector"><a href="#选择器Selector" class="headerlink" title="选择器Selector"></a>选择器Selector</h2><h3 id="基础选择器"><a href="#基础选择器" class="headerlink" title="基础选择器"></a>基础选择器</h3><table>
+<thead>
+<tr>
+<th>选择器</th>
+<th>别名</th>
+<th>说明</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tag</code></td>
+<td>标签选择器</td>
+<td>指定类型的<code>标签</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>#id</code></td>
+<td>ID选择器</td>
+<td>指定身份的<code>标签</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>.class</code></td>
+<td>类选择器</td>
+<td>指定类名的<code>标签</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>*</code></td>
+<td>通配选择器</td>
+<td>所有类型的<code>标签</code></td>
+<td>2</td>
+</tr>
+</tbody></table>
+<h3 id="层次选择器"><a href="#层次选择器" class="headerlink" title="层次选择器"></a>层次选择器</h3><table>
+<thead>
+<tr>
+<th>选择器</th>
+<th>别名</th>
+<th>说明</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>a b</code></td>
+<td><code>后代选择器</code></td>
+<td>元素的<code>后代元素</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>a &gt; b</code></td>
+<td><code>子代选择器</code></td>
+<td>元素的<code>子代元素</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>a + b</code></td>
+<td><code>相邻同胞选择器</code></td>
+<td>元素相邻的<code>同胞元素</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>a ~ b</code></td>
+<td><code>通用同胞选择器</code></td>
+<td>元素后面的<code>同胞元素</code></td>
+<td>3</td>
+</tr>
+</tbody></table>
+<h3 id="集合选择器"><a href="#集合选择器" class="headerlink" title="集合选择器"></a>集合选择器</h3><table>
+<thead>
+<tr>
+<th>选择器</th>
+<th>别名</th>
+<th>说明</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>a, b</code></td>
+<td><code>并集选择器</code></td>
+<td>多个指定的<code>元素</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>a.class</code></td>
+<td><code>交集选择器</code></td>
+<td>指定类名的<code>元素</code></td>
+<td>1</td>
+</tr>
+</tbody></table>
+<h3 id="条件选择器"><a href="#条件选择器" class="headerlink" title="条件选择器"></a>条件选择器</h3><table>
+<thead>
+<tr>
+<th>选择器</th>
+<th>说明</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>:lang</code></td>
+<td>指定标记语言的<code>元素</code>，例：<code>p:lang(en)</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>:dir()</code></td>
+<td>指定编写方向的<code>元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:has</code></td>
+<td>包含指定元素的<code>元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:is</code></td>
+<td>指定条件的<code>元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:not</code></td>
+<td>非指定条件的<code>元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:where</code></td>
+<td>指定条件的<code>元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:scope</code></td>
+<td>指定<code>元素</code>作为参考点</td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:any-link</code></td>
+<td>所有包含<code>href</code>的<code>链接元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:local-link</code></td>
+<td>所有包含<code>href</code>且属于绝对地址的<code>链接元素</code></td>
+<td>4</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>上面许多选择器，目前主流浏览器都未实现</p>
+</blockquote>
+<h3 id="行为选择器"><a href="#行为选择器" class="headerlink" title="行为选择器"></a>行为选择器</h3><table>
+<thead>
+<tr>
+<th>选择器</th>
+<th>说明</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>:active</code></td>
+<td>鼠标激活的<code>元素</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>:hover</code></td>
+<td>鼠标悬浮的<code>元素</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>::selection</code></td>
+<td>鼠标选中的<code>元素</code></td>
+<td>3</td>
+</tr>
+</tbody></table>
+<h3 id="状态选择器"><a href="#状态选择器" class="headerlink" title="状态选择器"></a>状态选择器</h3><table>
+<thead>
+<tr>
+<th>选择器</th>
+<th>说明</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>:target</code></td>
+<td>当前锚点的<code>元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:link</code></td>
+<td>未访问的<code>链接元素</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>:visited</code></td>
+<td>已访问的<code>链接元素</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>:focus</code></td>
+<td>输入聚焦的<code>表单元素</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>:required</code></td>
+<td>输入必填的<code>表单元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:valid</code></td>
+<td>输入合法的<code>表单元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:invalid</code></td>
+<td>输入非法的<code>表单元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:in-range</code></td>
+<td>输入范围以内的<code>表单元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:out-of-range</code></td>
+<td>输入范围以外的<code>表单元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:checked</code></td>
+<td>选项选中的<code>表单元素</code><br />搭配<code>appearance</code>，可以自定义默认的单选、复选框</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:optional</code></td>
+<td>选项可选的<code>表单元素</code>，没有<code>required</code>的都是</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:enabled</code></td>
+<td>事件启用的<code>表单元素</code>，与<code>disabled</code>相对应</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:disabled</code></td>
+<td>事件禁用的<code>表单元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:read-only</code></td>
+<td>只读的<code>表单元素</code>，与<code>read-write</code>相对应</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:read-write</code></td>
+<td>可读可写的<code>表单元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:target-within</code></td>
+<td>内部锚点元素处于激活状态的<code>元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:focus-within</code></td>
+<td>内部表单元素处于聚焦状态的<code>元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:focus-visible</code></td>
+<td>输入聚焦的<code>表单元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:blank</code></td>
+<td>输入为空的<code>表单元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:user-invalid</code></td>
+<td>输入合法的<code>表单元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:indeterminate</code></td>
+<td>选项未定的<code>表单元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:placeholder-shown</code></td>
+<td>占位显示placeholder的<code>表单元素</code>(input)</td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:current()</code></td>
+<td>浏览中的<code>元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:past()</code></td>
+<td>已浏览的<code>元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:future()</code></td>
+<td>未浏览的<code>元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:playing</code></td>
+<td>开始播放的<code>媒体元素</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>:paused</code></td>
+<td>暂停播放的<code>媒体元素</code></td>
+<td>4</td>
+</tr>
+</tbody></table>
+<h3 id="结构选择器"><a href="#结构选择器" class="headerlink" title="结构选择器"></a>结构选择器</h3><table>
+<thead>
+<tr>
+<th>选择器</th>
+<th>说明</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>:root</code></td>
+<td>文档的<code>根元素</code>，即<code>html</code><br />通常在这声明全局变量</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:empty</code></td>
+<td>无子元素的<code>元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:first-letter</code></td>
+<td>元素的<code>首字母</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>:first-line</code></td>
+<td>元素的<code>首行</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>:nth-child(n)</code></td>
+<td>指定元素的父元素的第n个<strong>子元素</strong></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:nth-last-child(n)</code></td>
+<td>指定元素的父元素的倒数第n个子元素</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:first-child</code></td>
+<td>指定元素的父元素的第一个<strong>子元素</strong></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>:last-child</code></td>
+<td>指定元素的父元素的最后一个<strong>子元素</strong></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:only-child</code></td>
+<td>父元素仅有该元素的<code>元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:nth-of-type(n)</code></td>
+<td>指定元素的父元素的第n个与指定元素相同标签的<strong>子元素</strong></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:nth-last-of-type(n)</code></td>
+<td>指定元素的父元素的倒数第n个与指定元素相同标签的<strong>子元素</strong></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:first-of-type</code></td>
+<td>指定元素的父元素的第一个与指定元素相同标签的<strong>子元素</strong></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:last-of-type</code></td>
+<td>指定元素的父元素的最后一个与指定元素相同标签的<strong>子元素</strong></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>:only-of-type</code></td>
+<td>父元素仅有该标签的<code>标签</code></td>
+<td>3</td>
+</tr>
+</tbody></table>
+<h3 id="属性选择器"><a href="#属性选择器" class="headerlink" title="属性选择器"></a>属性选择器</h3><table>
+<thead>
+<tr>
+<th>选择器</th>
+<th>说明</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>[attr]</code></td>
+<td>指定属性的<code>元素</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>[attr=val]</code></td>
+<td>属性等于指定值的<code>元素</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>[attr*=val]</code></td>
+<td>属性包含指定值的<code>元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>[attr^=val]</code></td>
+<td>属性以指定值开头的<code>元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>[attr$=val]</code></td>
+<td>属性以指定值结尾的<code>元素</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>[attr~=val]</code></td>
+<td>属性包含指定值(完整单词)的<code>元素</code>(不推荐使用)</td>
+<td>2</td>
+</tr>
+<tr>
+<td>`[attr</td>
+<td>=val]`</td>
+<td>属性以指定值(完整单词)开头的<code>元素</code>(不推荐使用)</td>
+</tr>
+</tbody></table>
+<h3 id="伪元素"><a href="#伪元素" class="headerlink" title="伪元素"></a>伪元素</h3><table>
+<thead>
+<tr>
+<th>选择器</th>
+<th>说明</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>::before</code></td>
+<td>在指定元素所有子元素前插入的内容</td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>::after</code></td>
+<td>在指定元素所有子元素后插入的内容</td>
+<td>2</td>
+</tr>
+</tbody></table>
+<h2 id="背景Background"><a href="#背景Background" class="headerlink" title="背景Background"></a>背景Background</h2><h3 id="所有属性"><a href="#所有属性" class="headerlink" title="所有属性"></a>所有属性</h3><p><code>background</code>子属性众多，其属性取值也很多。</p>
+<p>background-color：颜色</p>
+<ul>
+<li><code>transparent</code>：透明(<code>默认</code>)</li>
+<li><code>Keyword</code>：颜色关键字</li>
+<li><code>HEX</code>：十六进制色彩模式</li>
+<li><code>RGB</code>或<code>RGBA</code>：RGB/A色彩模式</li>
+<li><code>HSL</code>或<code>HSLA</code>：HSL/A色彩模式</li>
+<li><code>Color1/Color2</code>：覆盖颜色，背景颜色可能是<code>Color1</code>，若背景图像无效则使用<code>Color2</code>代替<code>Color1</code></li>
+</ul>
+<p>background-image：图像</p>
+<ul>
+<li><code>none</code>：无图像(<code>默认</code>)</li>
+<li><code>url()</code>：图像路径</li>
+</ul>
+<p>background-repeat：图像平铺方式</p>
+<ul>
+<li><code>repeat</code>：图像在水平方向和垂直方向重复(<code>默认</code>)</li>
+<li><code>repeat-x</code>：图像在水平方向重复</li>
+<li><code>repeat-y</code>：图像在垂直方向重复</li>
+<li><code>no-repeat</code>：图像仅重复一次</li>
+<li><code>space</code>：图像以相同间距平铺且填充整个节点</li>
+<li><code>round</code>：图像自动缩放直到适应且填充整个节点</li>
+</ul>
+<p>background-attachment：图像依附方式</p>
+<ul>
+<li><code>scroll</code>：图像随页面滚动而移动(<code>默认</code>)</li>
+<li><code>fixed</code>：图像不会随页面滚动而移动</li>
+</ul>
+<p>background-position：图像起始位置</p>
+<ul>
+<li><code>Position</code>：位置，可用任何长度单位，第二个位置(Y轴)不声明默认是<code>50%</code>(默认<code>0% 0%</code>)</li>
+<li><code>Keyword</code>：位置关键字<code>left、right、top、bottom、center</code>，可单双使用，第二个关键字不声明默认是<code>center</code></li>
+</ul>
+<p>background-size：图像尺寸模式</p>
+<ul>
+<li><code>auto</code>：自动设置尺寸(<code>默认</code>)</li>
+<li><code>cover</code>：图像扩展至足够大，使其完全覆盖整个区域，图像某些部分也许无法显示在区域中</li>
+<li><code>contain</code>：图像扩展至最大尺寸，使其宽度和高度完全适应整个区域</li>
+<li><code>Size</code>：尺寸，可用任何长度单位，第二个尺寸(高)不声明默认是<code>auto</code></li>
+</ul>
+<p>background-origin：定位区域(与background-position结合使用)</p>
+<ul>
+<li><code>padding-box</code>：图像相对填充定位(<code>默认</code>)</li>
+<li><code>border-box</code>：图像相对边框定位</li>
+<li><code>content-box</code>：图像相对内容定位</li>
+</ul>
+<p>background-clip：绘制区域</p>
+<ul>
+<li><code>border-box</code>：图像被裁剪到边框与边距的交界处(<code>默认</code>)</li>
+<li><code>padding-box</code>：图像被裁剪到填充与边框的的交界处</li>
+<li><code>content-box</code>：图像被裁剪到内容与填充的交界处</li>
+</ul>
+<p>background-blend-mode：混合模式</p>
+<ul>
+<li><code>normal</code>：正常(<code>默认</code>)</li>
+<li><code>color-burn</code>：颜色加深</li>
+<li><code>color-dodge</code>：颜色减淡</li>
+<li><code>color</code>：颜色</li>
+<li><code>darken</code>：变暗</li>
+<li><code>difference</code>：差值</li>
+<li><code>exclusion</code>：排除</li>
+<li><code>hard-light</code>：强光</li>
+<li><code>hue</code>：色相</li>
+<li><code>lighten</code>：变亮</li>
+<li><code>luminosity</code>：亮度</li>
+<li><code>multiply</code>：正片叠底</li>
+<li><code>overlay</code>：叠加</li>
+<li><code>saturation</code>：饱和度</li>
+<li><code>screen</code>：滤色</li>
+<li><code>soft-light</code>：柔光</li>
+</ul>
+<blockquote>
+<p><code>background</code>属性可以连写。</p>
+<ul>
+<li><code>background: color image repeat attachment position/size</code></li>
+<li>支持多重背景：<code>background-image: url($bg-4), url($bg-3);</code></li>
+</ul>
+</blockquote>
+<h3 id="背景渐变"><a href="#背景渐变" class="headerlink" title="背景渐变"></a>背景渐变</h3><p><code>CSS</code>渐变分为3种：</p>
+<ul>
+<li><strong>线性渐变</strong>：沿着指定方向从起点到终点逐渐改变颜色，渐变形状是一条<code>直线</code></li>
+<li><strong>径向渐变</strong>：沿着任意方向从圆心往外面逐渐改变颜色，渐变形状是一个<code>圆形</code>或<code>椭圆形</code></li>
+<li><strong>锥形渐变</strong>：沿着顺时针方向从圆心往外面逐渐改变颜色，渐变形状是一个<code>圆锥体</code></li>
+</ul>
+<p>相关属性有<strong>6个</strong></p>
+<ul>
+<li><strong>linear-gradient()</strong>：线性渐变</li>
+<li><strong>radial-gradient()</strong>：径向渐变</li>
+<li><strong>conic-gradient()</strong>：锥形渐变</li>
+<li><strong>repeating-linear-gradient()</strong>：重复线性渐变</li>
+<li><strong>repeating-radial-gradient()</strong>：重复径向渐变</li>
+<li><strong>repeating-conic-gradient()</strong>：重复锥形渐变</li>
+</ul>
+<h4 id="线性渐变"><a href="#线性渐变" class="headerlink" title="线性渐变"></a>线性渐变</h4><p><code>background-image: linear-gradient(direction, color-stop)</code></p>
+<ul>
+<li><code>direction</code>：方向<ul>
+<li><code>Keyword</code>：方向关键字<code>to left/right/top/bottom/top left/top right/bottom left/bottom right</code>(默认<code>to bottom</code>)</li>
+<li><code>Angle</code>：角度，以顺时针方向的垂直线和渐变线的夹角计算，超出N圈则计算剩余角度</li>
+</ul>
+</li>
+<li><code>color-stop</code>：色标<ul>
+<li><code>Color</code>：颜色，可参考<code>background-color</code>取值，在指定位置产生渐变效果所使用的颜色</li>
+<li><code>Position</code>：位置，可参考<code>background-position</code>的<code>Position</code>取值，在指定位置产生渐变效果</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.elem</span> &#123;</span><br><span class="line">    <span class="attribute">width</span>: <span class="number">400px</span>;</span><br><span class="line">    <span class="attribute">height</span>: <span class="number">200px</span>;</span><br><span class="line">    <span class="attribute">background-image</span>: <span class="built_in">linear-gradient</span>(to bottom, #f66, #<span class="number">66</span>f);</span><br><span class="line">    <span class="comment">/* 等价于 */</span></span><br><span class="line">    <span class="attribute">background-image</span>: <span class="built_in">linear-gradient</span>(to bottom, #f66 <span class="number">0</span>, #<span class="number">66</span>f <span class="number">100%</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* color start end  */</span></span><br><span class="line">    <span class="comment">/* background-image: linear-gradient(to bottom, #f66 0 50%, #66f 100%); */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>css</code>的角度跟直角坐标系不同，正上方为0度，类似表盘</p>
+<p>![css degree](../../images/css degree.jpg)</p>
+<h4 id="径向渐变"><a href="#径向渐变" class="headerlink" title="径向渐变"></a>径向渐变</h4><p><code>background-image: radial-gradient(shape size at position, color-stop)</code></p>
+<p>径向渐变可以用来话饼图。</p>
+<ul>
+<li>Shape：形状<ul>
+<li><code>ellipse</code>：椭圆形(<code>默认</code>)</li>
+<li><code>circle</code>：圆形</li>
+</ul>
+</li>
+<li>Size：尺寸<ul>
+<li><code>farthest-corner</code>：从圆心到离圆心最远的角为半径(<code>默认</code>)</li>
+<li><code>farthest-side</code>：从圆心到离圆心最远的边为半径</li>
+<li><code>closest-corner</code>：从圆心到离圆心最近的角为半径</li>
+<li><code>closest-side</code>：从圆心到离圆心最近的边为半径</li>
+<li><code>Size</code>：尺寸，可用任何长度单位，宽和高必须同时声明</li>
+</ul>
+</li>
+<li>Position：位置<ul>
+<li><code>Keyword</code>：位置关键字<code>left、right、top、bottom、center</code>(默认<code>center</code>)</li>
+<li><code>Position</code>：位置，可用任何长度单位</li>
+</ul>
+</li>
+<li>color-stop：色标<ul>
+<li><code>Color</code>：颜色，可参考<code>background-color</code>取值，在指定位置产生渐变效果所使用的颜色</li>
+<li><code>Position</code>：位置，可参考<code>background-position</code>的<code>Position</code>取值，在指定位置产生渐变效果</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.elem</span> &#123;</span><br><span class="line">    <span class="attribute">width</span>: <span class="number">400px</span>;</span><br><span class="line">    <span class="attribute">height</span>: <span class="number">200px</span>;</span><br><span class="line">    <span class="attribute">background-image</span>: <span class="built_in">radial-gradient</span>(<span class="number">100px</span> <span class="number">100px</span>, #f66, #<span class="number">66</span>f);</span><br><span class="line">    <span class="comment">/* 等价于 */</span></span><br><span class="line">    <span class="attribute">background-image</span>: <span class="built_in">radial-gradient</span>(ellipse <span class="number">100px</span> <span class="number">100px</span> at center, #f66, #<span class="number">66</span>f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="锥形渐变"><a href="#锥形渐变" class="headerlink" title="锥形渐变"></a>锥形渐变</h4><p><code>background-image: conic-gradient(color-stop)</code></p>
+<p><strong>color-stop</strong>：色标</p>
+<ul>
+<li><code>Color</code>：颜色，可参考<code>background-color</code>取值，在指定位置产生渐变效果所使用的颜色</li>
+<li><code>Position</code>：位置，可参考<code>background-position</code>的<code>Position</code>取值，在指定位置产生渐变效果</li>
+</ul>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.elem</span> &#123;</span><br><span class="line">    <span class="attribute">width</span>: <span class="number">400px</span>;</span><br><span class="line">    <span class="attribute">height</span>: <span class="number">200px</span>;</span><br><span class="line">    <span class="attribute">background-image</span>: <span class="built_in">conic-gradient</span>(#f66, #<span class="number">66</span>f);</span><br><span class="line">    <span class="comment">/* 等价于 */</span></span><br><span class="line">    <span class="attribute">background-image</span>: <span class="built_in">conic-gradient</span>(#f66 <span class="number">0</span>, #<span class="number">66</span>f <span class="number">100%</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="实现网格图层"><a href="#实现网格图层" class="headerlink" title="实现网格图层"></a>实现网格图层</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">	&lt;div class&#x3D;&quot;grid-box&quot;&gt;&lt;&#x2F;div&gt;</span><br><span class="line">&lt;&#x2F;template&gt;</span><br><span class="line"></span><br><span class="line">&lt;style&gt;</span><br><span class="line">    background-image: linear-gradient(</span><br><span class="line">        to top right,</span><br><span class="line">        #eee 25%,</span><br><span class="line">        transparent 25%,</span><br><span class="line">        transparent 75%,</span><br><span class="line">        #eee 75%,</span><br><span class="line">        #eee 100%</span><br><span class="line">    ),</span><br><span class="line">      linear-gradient(</span><br><span class="line">        to top right,</span><br><span class="line">        #eee 25%,</span><br><span class="line">        transparent 25%,</span><br><span class="line">        transparent 75%,</span><br><span class="line">        #eee 75%,</span><br><span class="line">        #eee 100%</span><br><span class="line">    );</span><br><span class="line">    background-position: 0 0, 10px 10px;</span><br><span class="line">    background-size: 20px 20px;</span><br><span class="line">&lt;&#x2F;style&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="遮罩"><a href="#遮罩" class="headerlink" title="遮罩"></a>遮罩</h3><p>遮罩或者说蒙版，就是在背景上再加一层。它可以实现诸如裁剪背景的效果。</p>
+<p><code>mask</code>子属性比<code>background</code>子属性差不多。</p>
+<p>mask-mode：模式</p>
+<ul>
+<li><code>match-source</code>：根据图像类型采用合适的遮罩模式(<code>默认</code>)</li>
+<li><code>alpha</code>：根据图像透明度采用合适的遮罩模式</li>
+<li><code>luminance</code>：根据图像亮度采用合适的遮罩模式</li>
+</ul>
+<p>mask-image：图像</p>
+<ul>
+<li><code>none</code>：无图像(<code>默认</code>)</li>
+<li><code>url()</code>：图像路径</li>
+</ul>
+<p>mask-repeat：图像平铺方式</p>
+<ul>
+<li><code>repeat</code>：图像在水平方向和垂直方向重复(<code>默认</code>)</li>
+<li><code>repeat-x</code>：图像在水平方向重复</li>
+<li><code>repeat-y</code>：图像在垂直方向重复</li>
+<li><code>no-repeat</code>：图像仅重复一次</li>
+<li><code>space</code>：图像以相同间距平铺且填充整个节点</li>
+<li><code>round</code>：图像自动缩放直到适应且填充整个节点</li>
+</ul>
+<p>mask-position：图像起始位置</p>
+<ul>
+<li><code>Position</code>：位置，可用任何长度单位，第二个位置(Y轴)不声明默认是<code>50%</code>(默认<code>0% 0%</code>)</li>
+<li><code>Keyword</code>：位置关键字<code>left、right、top、bottom、center</code>，可单双使用，第二个关键字不声明默认是<code>center</code></li>
+</ul>
+<p>mask-size：图像尺寸模式</p>
+<ul>
+<li><code>auto</code>：自动设置尺寸(<code>默认</code>)</li>
+<li><code>cover</code>：图像扩展至足够大，使其完全覆盖整个区域，图像某些部分也许无法显示在区域中</li>
+<li><code>contain</code>：图像扩展至最大尺寸，使其宽度和高度完全适应整个区域</li>
+<li><code>Size</code>：尺寸，可用任何长度单位，第二个尺寸(高)不声明默认是<code>auto</code></li>
+</ul>
+<p>mask-origin：定位区域(与mask-position结合使用)</p>
+<ul>
+<li><code>padding-box</code>：图像相对填充定位(<code>默认</code>)</li>
+<li><code>border-box</code>：图像相对边框定位</li>
+<li><code>content-box</code>：图像相对内容定位</li>
+</ul>
+<p>mask-clip：绘制区域</p>
+<ul>
+<li><code>border-box</code>：图像被裁剪到边框与边距的交界处(<code>默认</code>)</li>
+<li><code>padding-box</code>：图像被裁剪到填充与边框的的交界处</li>
+<li><code>content-box</code>：图像被裁剪到内容与填充的交界处</li>
+</ul>
+<p>mask-composite：混合模式</p>
+<ul>
+<li><code>source-over</code>：叠加，显示遮罩图像合并处</li>
+<li><code>subtract</code>：相减，不显示遮罩图像重合处</li>
+<li><code>intersect</code>：相交，显示遮罩图像重合处</li>
+<li><code>exclude</code>：排除，显示遮罩图像合并处但不显示重合处</li>
+</ul>
+<h2 id="阴影Shadow"><a href="#阴影Shadow" class="headerlink" title="阴影Shadow"></a>阴影Shadow</h2><p>阴影三剑客——<code>box-shadow</code>、<code>text-shadow</code>、<code>drop-shadow()</code></p>
+<ul>
+<li>想要盒子轮廓产生阴影效果，使用<code>box-shadow</code></li>
+<li>想要文本轮廓产生阴影效果，使用<code>text-shadow</code></li>
+<li>想要透明图像的非透明部分轮廓产生阴影效果，使用<code>fliter:drop-shadow()</code></li>
+</ul>
+<p>三个方法参数类似：</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">box-shadow</span>: <span class="selector-tag">offset-x</span> <span class="selector-tag">offset-y</span> <span class="selector-tag">blur</span> <span class="selector-tag">spread</span> <span class="selector-tag">color</span> <span class="selector-tag">position</span></span><br><span class="line"><span class="selector-tag">text-shadow</span>: <span class="selector-tag">offset-x</span> <span class="selector-tag">offset-y</span> <span class="selector-tag">blur</span> <span class="selector-tag">color</span></span><br><span class="line"><span class="selector-tag">filter</span>: <span class="selector-tag">drop-shadow</span>(<span class="selector-tag">offset-x</span>, <span class="selector-tag">offset-y</span>, <span class="selector-tag">blur</span>, <span class="selector-tag">color</span>)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>OffsetX：水平偏移，阴影的水平位置(必选)<ul>
+<li><code>Offset</code>：偏移，可用任何长度单位，允许负值，正值向右负值向左(默认<code>0</code>)</li>
+</ul>
+</li>
+<li>OffsetY：垂直偏移，阴影的垂直位置(必选)<ul>
+<li><code>Offset</code>：偏移，可用任何长度单位，允许负值，正值向下负值向上(默认<code>0</code>)</li>
+</ul>
+</li>
+<li>Blur：模糊半径，阴影的清晰程度(虚色)<ul>
+<li><code>Length</code>：长度，可用任何长度单位，值越大边缘越模糊(默认<code>0</code>)</li>
+</ul>
+</li>
+<li>Spread：扩展距离，阴影的实体尺寸(实色)<ul>
+<li><code>Length</code>：长度，可用任何长度单位，允许负值，正值扩大负值缩小(默认<code>0</code>)</li>
+</ul>
+</li>
+<li>Color：投影颜色<ul>
+<li><code>transparent</code>：透明(<code>默认</code>)</li>
+<li><code>Keyword</code>：颜色关键字</li>
+<li><code>HEX</code>：十六进制色彩模式</li>
+<li><code>RGB</code>或<code>RGBA</code>：RGB/A色彩模式</li>
+<li><code>HSL</code>或<code>HSLA</code>：HSL/A色彩模式</li>
+</ul>
+</li>
+<li>Position：投影位置<ul>
+<li><code>outset</code>：阴影显示在外部(<code>默认</code>)</li>
+<li><code>inset</code>：阴影显示在内部</li>
+</ul>
+</li>
+</ul>
+<h2 id="滤镜Filter"><a href="#滤镜Filter" class="headerlink" title="滤镜Filter"></a>滤镜Filter</h2><p><code>css</code>的<code>filter</code>属性提供了众多的图片处理效果。</p>
+<p>blur()：模糊</p>
+<ul>
+<li><code>Length</code>：长度，可用任何长度单位，值为<code>0</code>显示原图，值越大越模糊</li>
+</ul>
+<p>brightness()：亮度</p>
+<ul>
+<li><code>Percentage</code>：百分比，可用<code>0~1</code>代替，值为<code>0</code>显示全黑，值为<code>100%</code>显示原图 </li>
+</ul>
+<p>contrast()：对比度</p>
+<ul>
+<li><code>Percentage</code>：百分比，可用<code>0~1</code>代替，值为<code>0</code>显示全黑，值为<code>100%</code>显示原图 </li>
+</ul>
+<p>drop-shadow()：阴影</p>
+<ul>
+<li>参考上述阴影</li>
+</ul>
+<p>grayscale()：灰度</p>
+<ul>
+<li><code>Percentage</code>：百分比，可用<code>0~1</code>代替，值为<code>0</code>显示原图，值为<code>100%</code>显示全灰 </li>
+</ul>
+<p>hue-rotate()：色相旋转</p>
+<ul>
+<li><code>Angle</code>：角度，值为<code>0</code>显示原图，值为<code>0~360deg</code>减弱原图色彩，值超过<code>360deg</code>则相当绕N圈再计算剩余的值</li>
+</ul>
+<p>invert()：反相</p>
+<ul>
+<li><code>Percentage</code>：百分比，可用<code>0~1</code>代替，值为<code>0</code>显示原图，值为<code>100%</code>完全反转原图色彩 </li>
+</ul>
+<p>opacity()：透明度</p>
+<ul>
+<li><code>Percentage</code>：百分比，可用<code>0~1</code>代替，值为<code>0</code>显示透明，值为<code>100%</code>显示原图 </li>
+</ul>
+<p>saturate()：饱和度</p>
+<ul>
+<li><code>Percentage</code>：百分比，可用<code>0~1</code>代替，值为<code>0</code>完全不饱和原图，值为<code>100%</code>显示原图</li>
+</ul>
+<p>sepia()：褐色</p>
+<ul>
+<li><code>Percentage</code>：百分比，可用<code>0~1</code>代替，值为<code>0</code>显示原图，值为<code>100%</code>显示褐色</li>
+</ul>
+<blockquote>
+<p>当节点声明不为<code>none</code>的<code>filter</code>时，若其子节点有<code>position: absolute/fixed</code>的元素。它会相对于<code>filter</code>节点进行定位</p>
+</blockquote>
+<h2 id="变换Transform"><a href="#变换Transform" class="headerlink" title="变换Transform"></a>变换Transform</h2><p>变换分为2D和3D变换，通过<code>transform-style</code>属性来声明</p>
+<ul>
+<li><strong>flat</strong>：所有变换效果在平面上呈现(<code>默认</code>)</li>
+<li><strong>preserve-3d</strong>：所有变换效果在空间上呈现</li>
+</ul>
+<p>变换效果通过<code>transform</code>属性来声明：</p>
+<p>translate()：位移</p>
+<ul>
+<li><strong>translate(x,y)</strong>：2D位移</li>
+<li><strong>translate3d(x,y,z)</strong>：3D位移</li>
+<li><strong>translateX(x)</strong>：X轴位移，等同于<code>translate(x,0)</code>或<code>translate3d(x,0,0)</code></li>
+<li><strong>translateY(y)</strong>：Y轴位移，等同于<code>translate(0,y)</code>或<code>translate3d(0,y,0)</code></li>
+<li><strong>translateZ(z)</strong>：Z轴位移，等同于<code>translate3d(0,0,z)</code></li>
+<li>描述<ul>
+<li>单位：<code>Length</code>长度，可用任何长度单位，允许负值</li>
+<li>默认：XYZ轴不声明默认是<code>0</code></li>
+<li>正值：沿X轴向右位移/沿Y轴向上位移/沿Z轴向外位移</li>
+<li>负值：沿X轴向左位移/沿Y轴向下位移/沿Z轴向内位移</li>
+</ul>
+</li>
+</ul>
+<p>scale()：缩放</p>
+<ul>
+<li><strong>scale(x,y)</strong>：2D缩放</li>
+<li><strong>scale3d(x,y,z)</strong>：3D缩放</li>
+<li><strong>scaleX(x)</strong>：X轴缩放，等同于<code>scale(x,1)</code>或<code>scale3d(x,1,1)</code></li>
+<li><strong>scaleY(y)</strong>：Y轴缩放，等同于<code>scale(1,y)</code>或<code>scale3d(1,y,1)</code></li>
+<li><strong>scaleZ(z)</strong>：Z轴缩放，等同于<code>scale3d(1,1,z)</code></li>
+<li>描述<ul>
+<li>单位：<code>Number</code>数值或<code>Percentage</code>百分比，允许负值</li>
+<li>默认：XYZ轴不声明默认是<code>1</code>或<code>100%</code></li>
+<li>正值：<code>0&lt;(x,y,z)&lt;1</code>沿X轴缩小/沿Y轴缩小/沿Z轴变厚，<code>(x,y,z)&gt;1</code>沿X轴放大/沿Y轴放大/沿Z轴变薄</li>
+<li>负值：<code>-1&lt;(x,y,z)&lt;0</code>翻转沿X轴缩小/沿Y轴缩小/沿Z轴变厚，<code>(x,y,z)&lt;-1</code>翻转沿X轴放大/沿Y轴放大/沿Z轴变薄</li>
+</ul>
+</li>
+</ul>
+<p>skew()：扭曲</p>
+<ul>
+<li><strong>skew(x,y)</strong>：2D扭曲</li>
+<li><strong>skewX(x)</strong>：X轴扭曲，等同于<code>skew(x,0)</code></li>
+<li><strong>skewY(y)</strong>：Y轴扭曲，等同于<code>skew(0,y)</code></li>
+<li>描述<ul>
+<li>单位：<code>Angle</code>角度或<code>Turn</code>周</li>
+<li>默认：XY轴不声明默认是<code>0</code></li>
+<li>正值：沿X轴向左扭曲/沿Y轴向下扭曲</li>
+<li>负值：沿X轴向右扭曲/沿Y轴向上扭曲</li>
+</ul>
+</li>
+</ul>
+<p>rotate()：旋转</p>
+<ul>
+<li><strong>rotate()</strong>：2D旋转</li>
+<li><strong>rotate3d(x,y,z,a)</strong>：3D旋转，<code>[x,y,z]</code>是一个向量，数值都是<code>0~1</code></li>
+<li><strong>rotateX(a)</strong>：X轴旋转，等同于<code>rotate(1,0,0,a)</code>，正值时沿X轴向上逆时针旋转，负值时沿X轴向下顺时针旋转</li>
+<li><strong>rotateY(a)</strong>：3D Y轴旋转，等同于<code>rotate(0,1,0,a)</code>，正值时沿Y轴向右逆时针旋转，负值时沿Y轴向左顺时针旋转</li>
+<li><strong>rotateZ(a)</strong>：3D Z轴旋转，等同于<code>rotate(0,0,1,a)</code>，正值时沿Z轴顺时针旋转，负值时沿Z轴逆时针旋转</li>
+<li>描述<ul>
+<li>单位：<code>Angle</code>角度或<code>Turn</code>周</li>
+<li>正值：2D旋转时顺时针旋转</li>
+<li>负值：2D旋转时逆时针旋转</li>
+</ul>
+</li>
+</ul>
+<p>matrix()：矩阵(太过复杂，可放弃)</p>
+<ul>
+<li><strong>matrix(a,b,c,d,e,f)</strong>：2D矩阵(位移、缩放、扭曲、旋转的综合函数)</li>
+<li><strong>matrix(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p)</strong>：3D矩阵(位移、缩放、扭曲、旋转的综合函数)</li>
+</ul>
+<p>perspective()：视距</p>
+<ul>
+<li><code>Length</code>：长度，可用任何长度单位<ul>
+<li>值越小，用户与空间Z轴距离越近，视觉效果越强</li>
+<li>值越大，用户与空间Z轴距离越远，视觉效果越弱</li>
+</ul>
+</li>
+</ul>
+<p>使用Transform默认会使浏览器开启GPU加速，因此性能更好</p>
+<h2 id="过渡Transition"><a href="#过渡Transition" class="headerlink" title="过渡Transition"></a>过渡Transition</h2><h3 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h3><p>transition-property：属性</p>
+<ul>
+<li><code>all</code>：全部属性过渡(<code>默认</code>)</li>
+<li><code>none</code>：无属性过渡</li>
+<li><code>String</code>：某个属性过渡</li>
+</ul>
+<p>transition-duration：时间</p>
+<ul>
+<li><code>Time</code>：秒或毫秒(默认<code>0</code>)</li>
+</ul>
+<p>transition-timing-function：缓动函数</p>
+<ul>
+<li><code>ease</code>：逐渐变慢，等同于<code>cubic-bezier(.25,.1,.25,1)</code>(<code>默认</code>)</li>
+<li><code>linear</code>：匀速，等同于<code>cubic-bezier(0,0,1,1)</code></li>
+<li><code>ease-in</code>：加速，等同于<code>cubic-bezier(.42,0,1,1)</code></li>
+<li><code>ease-out</code>：减速，等同于<code>cubic-bezier(0,0,.58,1)</code></li>
+<li><code>ease-in-out</code>：先加速后减速，等同于<code>cubic-bezier(.42,0,.58,1)</code></li>
+<li><code>cubic-bezier</code>：贝塞尔曲线，<code>(x1,y1,x2,y2)</code>四个值特定于曲线上的点<code>P1</code>和<code>P2</code>，所有值需在<code>[0,1]</code>区域内</li>
+</ul>
+<p>transition-delay：时延</p>
+<ul>
+<li><code>Time</code>：秒或毫秒(默认<code>0</code>)</li>
+</ul>
+<p>由于<code>duration</code>和<code>delay</code>的取值都是时间，所以可能会发生混淆。</p>
+<ul>
+<li><code>duration</code>和<code>delay</code>作用于所有节点，包括自身的<code>::before</code>和<code>::after</code></li>
+<li><code>transition</code>中出现两个时间值时，第一个解析为<code>duration</code>，第二个解析为<code>delay</code></li>
+<li><code>transition</code>中出现一个时间值时，解析为<code>duration</code></li>
+</ul>
+<h3 id="贝塞尔曲线"><a href="#贝塞尔曲线" class="headerlink" title="贝塞尔曲线"></a>贝塞尔曲线</h3><p>通过<code>cubic-bezier()</code>来设置一个贝塞尔曲线值。<code>transform-timing-function</code>的值都是预设好的贝塞尔曲线值。</p>
+<p><a href="https://cubic-bezier.com/" target="_blank" rel="noopener">CubicBezier</a>上可以查看具体效果</p>
+<p><img src="../../images/transform-timing-function.jpg" alt="transform-timing-function"></p>
+<h2 id="动画Animation"><a href="#动画Animation" class="headerlink" title="动画Animation"></a>动画Animation</h2><h3 id="属性-1"><a href="#属性-1" class="headerlink" title="属性"></a>属性</h3><p><code>animation</code>可声明的两种动画：</p>
+<ul>
+<li><strong>关键帧动画</strong>：<ul>
+<li>在时间轴的关键帧上绘制关键状态并使之有效过渡组成动画</li>
+<li>通过<code>@keyframe</code>声明</li>
+</ul>
+</li>
+<li><strong>逐帧动画</strong>：<ul>
+<li>在时间轴的每一帧上绘制不同内容并使之连续播放组成动画</li>
+<li>准备一张<code>逐帧长图</code>，在<code>steps()</code>里声明逐帧长图及其展示方式</li>
+</ul>
+</li>
+</ul>
+<p>animation-name：名称</p>
+<ul>
+<li><code>none</code>：无动画(<code>默认</code>)</li>
+<li><code>String</code>：动画名称</li>
+</ul>
+<p>animation-duration：时间</p>
+<ul>
+<li><code>Time</code>：秒或毫秒(默认<code>0</code>)</li>
+</ul>
+<p>animation-timing-function：缓动函数</p>
+<ul>
+<li><code>ease</code>：逐渐变慢，等同于<code>cubic-bezier(.25,.1,.25,1)</code>(<code>默认</code>)</li>
+<li><code>linear</code>：匀速，等同于<code>cubic-bezier(0,0,1,1)</code></li>
+<li><code>ease-in</code>：加速，等同于<code>cubic-bezier(.42,0,1,1)</code></li>
+<li><code>ease-out</code>：减速，等同于<code>cubic-bezier(0,0,.58,1)</code></li>
+<li><code>ease-in-out</code>：先加速后减速，等同于<code>cubic-bezier(.42,0,.58,1)</code></li>
+<li><code>cubic-bezier</code>：贝塞尔曲线，<code>(x1,y1,x2,y2)</code>四个值特定于曲线上的点<code>P1</code>和<code>P2</code>，所有值需在<code>[0,1]</code>区域内</li>
+<li><code>steps([,[start|end]]?)</code>：把动画平均划分成<code>n等分</code>，直到平均走完该动画</li>
+<li><code>step-start</code>：等同于<code>steps(1,start)</code>，把动画分成一步，动画执行时以左侧端点<code>0%</code>为开始</li>
+<li><code>step-end</code>：等同于<code>steps(1,end)</code>，把动画分成一步，动画执行时以右侧端点<code>100%</code>为开始</li>
+</ul>
+<p>animation-delay：时延</p>
+<ul>
+<li><code>Time</code>：秒或毫秒(默认<code>0</code>)</li>
+</ul>
+<p>animation-iteration-count：播放次数</p>
+<ul>
+<li><code>Number</code>：数值(默认<code>1</code>)</li>
+<li><code>infinite</code>：无限次</li>
+</ul>
+<p>animation-direction：轮流反向播放(播放次数为一次则该属性无效果)</p>
+<ul>
+<li><code>normal</code>：正常播放(<code>默认</code>)</li>
+<li><code>alternate</code>：轮流反向播放，奇数次数正常播放，偶数次数反向播放</li>
+</ul>
+<p>animation-play-state：播放状态</p>
+<ul>
+<li><code>running</code>：正在播放(<code>默认</code>)</li>
+<li><code>paused</code>：暂停播放</li>
+</ul>
+<p>animation-fill-mode：播放前后其效果是否可见</p>
+<ul>
+<li><code>none</code>：不改变默认行为(<code>默认</code>)</li>
+<li><code>backwards</code>：在时延所指定时间内或在动画开始前应用开始属性(<code>在第一个关键帧中定义</code>)</li>
+<li><code>forwards</code>：在动画结束后保持最后一个属性(<code>在最后一个关键帧中定义</code>)</li>
+<li><code>both</code>：向前和向后填充模式都被应用</li>
+</ul>
+<h3 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h3><h4 id="打字机"><a href="#打字机" class="headerlink" title="打字机"></a>打字机</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">	&lt;div class&#x3D;&quot;auto-typing&quot;&gt;Do You Want To Know More About CSS Development Skill&lt;&#x2F;div&gt;</span><br><span class="line">&lt;&#x2F;template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">export default &#123;&#125;</span><br><span class="line">&lt;&#x2F;script&gt;</span><br><span class="line"></span><br><span class="line">&lt;style&gt;</span><br><span class="line">@mixin typing($count: 0, $duration: 0, $delay: 0) &#123;</span><br><span class="line">    overflow: hidden;</span><br><span class="line">    border-right: 1px solid transparent;</span><br><span class="line">    width: #&#123;$count + 1&#125;ch;</span><br><span class="line">    font-family: Consolas, Monaco, monospace;</span><br><span class="line">    white-space: nowrap;</span><br><span class="line">    animation: typing #&#123;$duration&#125;s steps($count + 1) #&#123;$delay&#125;s infinite backwards,</span><br><span class="line">        caret 500ms steps(1) #&#123;$delay&#125;s infinite forwards;</span><br><span class="line">&#125;</span><br><span class="line">.auto-typing &#123;</span><br><span class="line">    font-weight: bold;</span><br><span class="line">    font-size: 30px;</span><br><span class="line">    color: #09f;</span><br><span class="line">    @include typing(52, 5);</span><br><span class="line">&#125;</span><br><span class="line">@keyframes caret &#123;</span><br><span class="line">    50% &#123;</span><br><span class="line">        border-right-color: currentColor;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">@keyframes typing &#123;</span><br><span class="line">    from &#123;</span><br><span class="line">        width: 0;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">&lt;&#x2F;style&gt;</span><br></pre></td></tr></table></figure>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/6e1418c.html">https://zxffan.github.io/posts/6e1418c.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/css/"># css</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/4e5b3a92.html">Web网络基础</a>
+            
+            
+            <a class="next" rel="next" href="/posts/91c0fa71.html">认识RPC</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

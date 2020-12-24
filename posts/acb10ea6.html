@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>Electron-项目打包 | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Electron-项目打包</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">七月 26, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Electron/">Electron</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="打包分为几步？"><a href="#打包分为几步？" class="headerlink" title="打包分为几步？"></a>打包分为几步？</h2><ol>
+<li><p>下载二进制文件 ：</p>
+</li>
+<li><p>添加业务代码：构建好的前端资源添加到resources app，electron壳子与业务代码结合</p>
+</li>
+<li><p>修改文件信息：修改 应用名称，设置图标等</p>
+</li>
+<li><p>制作镜像：压缩文件，制作镜像（dmg-builder、nsis）</p>
+</li>
+</ol>
+<h2 id="打包工具"><a href="#打包工具" class="headerlink" title="打包工具"></a>打包工具</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>electron-builder</th>
+<th>electron-forge</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>签名</td>
+<td>***</td>
+<td>***</td>
+</tr>
+<tr>
+<td>安装包类型</td>
+<td>***</td>
+<td>***</td>
+</tr>
+<tr>
+<td>原生模块编译</td>
+<td>***</td>
+<td>***</td>
+</tr>
+<tr>
+<td>定制化</td>
+<td>***</td>
+<td>*</td>
+</tr>
+<tr>
+<td>上手成本</td>
+<td>**</td>
+<td>*</td>
+</tr>
+<tr>
+<td>boilerplate</td>
+<td>x</td>
+<td>***</td>
+</tr>
+<tr>
+<td>跨平台构建</td>
+<td>Linux、windows</td>
+<td>x</td>
+</tr>
+<tr>
+<td>社区活跃度</td>
+<td>***</td>
+<td>**</td>
+</tr>
+<tr>
+<td>场景</td>
+<td>打包和发布的完成解决方案，基本适用于所有场景</td>
+<td>创建到发布的一体化解决方案，适合从0到1的项目</td>
+</tr>
+</tbody></table>
+<p>推荐使用<code>electron-builder</code></p>
+<h2 id="打包准备"><a href="#打包准备" class="headerlink" title="打包准备"></a>打包准备</h2><ol>
+<li>证书<ol>
+<li>mac: 开发者证书</li>
+<li>window：赛门铁克(Symantec)、WoSign</li>
+</ol>
+</li>
+<li>对于系统的机器（mac打macos的包，windows打win的包，linux打linux的包）</li>
+<li>软件所需图片<ol>
+<li>mac： <ol>
+<li>软件图标、icns格式，通过 <a href="http://www.img2icnsapp.com/" target="_blank" rel="noopener">image2icon</a> 或者 <a href="https://www.npmjs.com/package/iconutil" target="_blank" rel="noopener">iconutil</a> 生成</li>
+<li>dmg 背景图</li>
+<li>安装包图标</li>
+</ol>
+</li>
+<li>Windows<ol>
+<li>ico</li>
+<li>installerIcon-安装图标</li>
+<li>unInstallerIcon-卸载图标</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="使用electron-builder来打包"><a href="#使用electron-builder来打包" class="headerlink" title="使用electron-builder来打包"></a>使用electron-builder来打包</h2><h3 id="安装相关依赖"><a href="#安装相关依赖" class="headerlink" title="安装相关依赖"></a>安装相关依赖</h3><ul>
+<li><code>npm i -g --production window-build-tool</code>（用管理员权限安装，window必备）</li>
+<li>项目目录下执行<code>npm i electron-builder -S</code></li>
+<li>在<code>package.json</code>中，添加<code>&quot;postinstall&quot;: &quot;electron-builder install-app-deps&quot;</code>。每当使用<code>npm install</code>或者<code>yarn add</code>时，会自动安装匹配当前electron版本的依赖。</li>
+</ul>
+<h3 id="配置方式"><a href="#配置方式" class="headerlink" title="配置方式"></a>配置方式</h3><p>在<code>package.json</code>中加入build属性</p>
+<p>使用<code>electron-builder.yml</code></p>
+<p>通过编程时API</p>
+<h3 id="配置项"><a href="#配置项" class="headerlink" title="配置项"></a>配置项</h3><p>在<code>package.json</code>文件中添加如下</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">"build"： &#123;</span><br><span class="line">    "appId": "com.xxx.xxx",</span><br><span class="line">    "productName": "应用名称",</span><br><span class="line">    "directories": &#123;  // 目录配置</span><br><span class="line">        "app": "dist", // 打包的代码目录</span><br><span class="line">        "buildResources": "resource", // 构建包的资源目录</span><br><span class="line">        "output": "release" // 存放产包的目录</span><br><span class="line">    &#125;,</span><br><span class="line">    "asar": true, // asar加密，保护源代码</span><br><span class="line">    "copyright": "Copyright xxxx",</span><br><span class="line">    </span><br><span class="line">    "mac": &#123;</span><br><span class="line">       "target": ["dmg", "zip"],  // 包格式，zip用于自动更新</span><br><span class="line">		"icon": "resources/icon.icns" // logo地址</span><br><span class="line">    &#125;,</span><br><span class="line">    "dmg": &#123;</span><br><span class="line">        "background": "resources/background.png", // 背景图</span><br><span class="line">        "window": &#123; "width": 540,  "height": 380&#125;, // 安装窗口大小</span><br><span class="line">        "contents": [ // dmg内容坐标</span><br><span class="line">          &#123;"x": 410, "y": 190,  "type": "link", "path": "/Applications"&#125;,</span><br><span class="line">          &#123;<span class="attr">"x"</span>: <span class="number">130</span>,<span class="attr">"y"</span>: <span class="number">190</span>,<span class="attr">"type"</span>: <span class="string">"ﬁle"</span>&#125;</span><br><span class="line">        ],</span><br><span class="line">        "iconSize": 128, // logo大小</span><br><span class="line">   &#125;,</span><br><span class="line">   "win": &#123;</span><br><span class="line">       "icon": "resources/icon.ico", // logo地址</span><br><span class="line">       "target": [ "nsis", "squirrel"] // nsis包，squirrel是一件安装包</span><br><span class="line">   &#125;,</span><br><span class="line">   "nsis": &#123;</span><br><span class="line">       "oneClick": false,  // 一键安装</span><br><span class="line">       "language": "2052", // 2052代表中文</span><br><span class="line">       "perMachine": true, // 是否为机器上所有用户安装</span><br><span class="line">       "allowToChangeInstallationDirectory": true // 允许改变安装目录</span><br><span class="line">   &#125;,</span><br><span class="line">   "squirrelWindows": &#123;</span><br><span class="line">       "loadingGif": "resources/loading.gif", // 安装动态图</span><br><span class="line">       "iconUrl": "https://xxxxx.com/icon.ico" // 必须是远程的</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>nsis时windows下的包安装器，可以做到很细致的定制。</p>
+<p>如果使用squirrel来打包，需要安装<code>electron-builder-squirrel-windows</code></p>
+</blockquote>
+<p>在<code>scripts</code>中加上<code>&quot;pack&quot;: &quot;electron-builder&quot;</code></p>
+<p>如果使用编程时API，则新建一个js或ts文件</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// js</span></span><br><span class="line"><span class="keyword">const</span> &#123; build &#125; = <span class="built_in">require</span>(<span class="string">"electron-builder"</span>);</span><br><span class="line"></span><br><span class="line">build(&#123;</span><br><span class="line">    config: &#123;</span><br><span class="line">        appId: <span class="string">"com.xxx.xxx"</span>,</span><br><span class="line">        productName: <span class="string">"应用名称"</span>,</span><br><span class="line">        <span class="comment">// ...以下省略</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// build函数返回一个promise</span></span><br><span class="line"><span class="comment">// 可以 借助 electron-builder的类型声明文件来查看它有哪些方法和参数类型</span></span><br></pre></td></tr></table></figure>
+
+<p>然后用node执行这个js文件。如果是ts文件，可以使用ts-node，或者先用tsc编译再用node执行。</p>
+<p><code>electron-builder</code>更详细的配置请查阅<a href="https://www.electron.build/configuration/configuration" target="_blank" rel="noopener">官网</a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li><p>发布产品注意版本号的升级</p>
+<ol>
+<li><code>npm version patch</code>：自动升级patch</li>
+<li><code>npm version minor</code>：自动升级minor，path会清0</li>
+<li><code>npm version major</code>：自动升级major，minor和patch会清0</li>
+</ol>
+</li>
+<li><p>证书</p>
+<ol>
+<li>windows下没有证书，可能会被杀软误杀</li>
+<li>mac下没有证书，无法实现自动更新</li>
+<li>windows下打包可以通过修改nsis来自定义安装逻辑</li>
+<li>开源软件可以基于 Travis, AppVeyor 持续集成</li>
+</ol>
+</li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/acb10ea6.html">https://zxffan.github.io/posts/acb10ea6.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/Electron/"># Electron</a>
+                    
+                        <a href="/tags/%E6%A1%8C%E9%9D%A2%E7%AB%AF/"># 桌面端</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/60bc3abb.html">Electron-体验优化</a>
+            
+            
+            <a class="next" rel="next" href="/posts/34a04fbb.html">Electron-质量监控</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

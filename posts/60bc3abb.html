@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>Electron-体验优化 | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Electron-体验优化</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">七月 30, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Electron/">Electron</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>Electron内置了<code>Chromium</code>浏览器。在原生体验上，一直被诟病。在开发Electron程序时，要格外关注体验优化。</p>
+<h2 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h2><h3 id="核心模块优先加载"><a href="#核心模块优先加载" class="headerlink" title="核心模块优先加载"></a>核心模块优先加载</h3><p>不再在入口文件把所有内容都加载进来，只需要加载程序的核心功能，其它部分按需加载</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">compute</span>(<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> calculator = <span class="built_in">require</span>(<span class="string">'./calculator'</span>)</span><br><span class="line">    <span class="keyword">return</span> calculator.complex(a, b)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行核心内容</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行非核心内容</span></span><br><span class="line">compute(<span class="number">0x12f2</span>, <span class="number">0xff21</span>)</span><br></pre></td></tr></table></figure>
+
+<p>在<code>Typescript</code>通过<code>dynamic import</code>实现</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">compute</span>(<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> calculator = <span class="keyword">await</span> <span class="keyword">import</span>(<span class="string">'./calculator'</span>)</span><br><span class="line">    <span class="keyword">return</span> calculator.complex(a, b)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行核心内容</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行非核心内容</span></span><br><span class="line">compute(<span class="number">0x12f2</span>, <span class="number">0xff21</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="Web性能优化"><a href="#Web性能优化" class="headerlink" title="Web性能优化"></a>Web性能优化</h3><p>毕竟本质上还是Web，所以Web性能的优化技巧都可以应用得到<code>Electron</code>。如果使用<code>SPA</code>，要格外注意打包优化。</p>
+<h3 id="窗口预热-与-窗口池、窗口常驻"><a href="#窗口预热-与-窗口池、窗口常驻" class="headerlink" title="窗口预热 与 窗口池、窗口常驻"></a>窗口预热 与 窗口池、窗口常驻</h3><ul>
+<li>窗口预热：提前创建窗口，加载必要的资源（不显示），等需要时直接显示即可。这样的做法是以空间换时间。</li>
+<li>窗口池：不要频繁创建和销毁窗口，当需要加载新页面时从当前的窗口池中选择窗口</li>
+<li>窗口常驻：对于业务无关的、通用的窗口，也可以采用<strong>常驻模式</strong>，例如通知，图片查看器。这些窗口一旦创建就不会释放，打开效果会更好。</li>
+</ul>
+<h3 id="网络资源缓存"><a href="#网络资源缓存" class="headerlink" title="网络资源缓存"></a>网络资源缓存</h3><p>PWA</p>
+<h3 id="主进程保持轻量"><a href="#主进程保持轻量" class="headerlink" title="主进程保持轻量"></a>主进程保持轻量</h3><p><code>Electron</code>程序中，主进程和渲染进程有着<code>Sync IPC</code>（同步IPC）操作。如果主进程中有密集计算，会导致渲染进程UI阻塞。</p>
+<p>可以使用多进程，参考node的<a href="http://nodejs.cn/api/cluster.html" target="_blank" rel="noopener">cluster模块</a></p>
+<p>或者通过<code>web worker</code>来实现多线程，但是<code>web worker</code>只能在渲染进程中使用，所以<strong>对于密集计算，可以单独开个渲染进程(开启一个不显示的窗口)来处理</strong>。</p>
+<p>还有：<strong>不要使用remote模块！不要使用remote模块！不要使用remote模块！</strong>，<code>remote模块</code>本质上也是使用同步IPC，所以也会很容易造成阻塞</p>
+<h3 id="预加载"><a href="#预加载" class="headerlink" title="预加载"></a>预加载</h3><h4 id="Electron"><a href="#Electron" class="headerlink" title="Electron"></a>Electron</h4><p>electron中，在创建<code>BrowserWindow</code>时可以指定<code>preload</code>字段来预加载一段脚本</p>
+<h4 id="Browser"><a href="#Browser" class="headerlink" title="Browser"></a>Browser</h4><p>使用<code>requestIdleCallback</code>，让浏览器空闲时执行一些优先级较低的任务。</p>
+<p>当浏览器空闲时，会调用<code>requestIdleCallback</code>注册的回调函数，但是有可能浏览器一直很繁忙没有空闲，这是需要指定<code>timeout</code>，超过这个时间强制执行</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> handle = <span class="built_in">window</span>.requestIdleCallback(callback[, options])</span><br></pre></td></tr></table></figure>
+
+<p><strong>callback</strong>：回调，即空闲时需要执行的任务，该回调函数接收一个<code>IdleDeadline</code>对象作为入参。其中<code>IdleDeadline</code>对象包含：</p>
+<ul>
+<li><code>didTimeout</code>，布尔值，表示任务是否超时，结合 <code>timeRemaining</code> 使用。</li>
+<li><code>timeRemaining()</code>，表示当前帧剩余的时间，也可理解为留给任务的时间还有多少。</li>
+</ul>
+<p><strong>options</strong>：目前 options 只有一个参数</p>
+<ul>
+<li><code>timeout</code>。表示超过这个时间后，如果任务还没执行，则强制执行，不必等待空闲。</li>
+</ul>
+<h3 id="原生模块"><a href="#原生模块" class="headerlink" title="原生模块"></a>原生模块</h3><p><code>ndoejs</code>可以集成<code>C++</code>、<code>RUST</code>等，用来优化性能，详情见<a href="https://zxffan.github.io/posts/72ce1ec4.html">Electron-集成原生能力</a></p>
+<h2 id="启动优化"><a href="#启动优化" class="headerlink" title="启动优化"></a>启动优化</h2><h4 id="V8-snapshot"><a href="#V8-snapshot" class="headerlink" title="V8 snapshot"></a>V8 snapshot</h4><p><a href="https://blog.atom.io/2017/04/18/improving-startup-time.html" target="_blank" rel="noopener"><code>atom</code>通过<code>v8 snapshot</code>优化启动时间</a></p>
+<p><code>v8 snapshot</code>会将<code>javascript</code>输出成二进制文件，文件的内容是<code>javascript</code>代码在内存中的表现形式即数据堆</p>
+<p>这个二进制文件的执行速度时快于<code>javascript</code>代码的。</p>
+<p>在Electron中将一些启动时的核心代码进行<code>v8快照</code>，这样可以起到优化启动速度的目的</p>
+<blockquote>
+<p>说明：</p>
+<ol>
+<li><code>v8 snapshot</code>中的代码是处于一个裸露的v8上下文中，也就是说只能使用<code>plain javascript</code>而无法调用<code>Electron</code>和<code>nodejs</code>的API，Atom团队的<a href="https://github.com/atom/electron-link" target="_blank" rel="noopener">electron-link</a>可以在一定程度上<strong>规避</strong>这个问题</li>
+<li>生成<code>v8 snapshot</code>可以通过<a href="https://github.com/electron/mksnapshot" target="_blank" rel="noopener">electron-mksnapshot</a>来实现</li>
+</ol>
+</blockquote>
+<h4 id="V8-code-cache"><a href="#V8-code-cache" class="headerlink" title="V8 code cache"></a>V8 code cache</h4><p><code>nodjes v12</code>对内部模块做了<code>code cache</code>，对启动速度提升很明显。</p>
+<h2 id="白屏问题"><a href="#白屏问题" class="headerlink" title="白屏问题"></a>白屏问题</h2><h3 id="为什么会有白屏"><a href="#为什么会有白屏" class="headerlink" title="为什么会有白屏"></a>为什么会有白屏</h3><p><img src="../..//images/Electron%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png" alt="Electron生命周期"></p>
+<p>在<code>show</code>（窗口显示）到<code>ready-to-show</code>（页面加载完毕）之间还需要经历以下过程</p>
+<ol>
+<li>preload解析，创建<code>BrowserWindow</code>设置的</li>
+<li>解析HTML结构</li>
+<li>加载外部脚本（<code>script</code>）以及样式表文件（<code>link</code>）</li>
+<li>解析并执行脚本</li>
+<li><code>Dom Tree</code>构建完毕</li>
+<li>资源文件（图片、音视频）加载</li>
+<li>页面加载完成</li>
+</ol>
+<p>只有完成这些过程，窗口才能显示内容。所以这段时间窗口会一直白屏。如果使用<code>vue</code>或<code>react</code>这种<code>SPA</code>框架，也会出现首屏加载过慢的情况。</p>
+<h3 id="解决方法一——不显示窗口"><a href="#解决方法一——不显示窗口" class="headerlink" title="解决方法一——不显示窗口"></a>解决方法一——不显示窗口</h3><p>创建<code>BrowserWindow</code>时，设置<code>show:false</code>即不显示窗口</p>
+<p>等到<code>ready-to-show</code>事件触发时才显示</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> win = <span class="keyword">new</span> BrowserWindow(&#123;</span><br><span class="line">    widht: <span class="number">600</span>,</span><br><span class="line">    height: <span class="number">300</span>,</span><br><span class="line">    show: <span class="literal">false</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">win.on(<span class="string">'ready-to-show'</span>, () =&gt; &#123;</span><br><span class="line">    win.show()</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="解决方法二——骨架屏"><a href="#解决方法二——骨架屏" class="headerlink" title="解决方法二——骨架屏"></a>解决方法二——骨架屏</h3><p>最简单的方法就是直接给窗口显示个底色</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> win = <span class="keyword">new</span> BrowserWindow(&#123;</span><br><span class="line">    widht: <span class="number">600</span>,</span><br><span class="line">    height: <span class="number">300</span>,</span><br><span class="line">    show: <span class="literal">false</span>,</span><br><span class="line">    background: <span class="string">'#2e2c29'</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>比较好的方法就是专门设计一套骨架屏。利用<code>BroswerView</code>来显示骨架屏。</p>
+<p>当窗口创建时，创建<code>BrowserView</code>来加载骨架屏页面，将<code>BrowserView</code>设置到<code>BrowserWindow</code>上并遮罩住，当骨架屏页准备好后时显示骨架屏。当渲染进程发送来一个<code>stop-loading</code>消息时，移除<code>BrowserView</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> mainWindow = <span class="keyword">new</span> BrowserWindow(&#123;</span><br><span class="line">    width: <span class="number">800</span>,</span><br><span class="line">    height: <span class="number">600</span>,</span><br><span class="line">    webPreferences: &#123;</span><br><span class="line">      preload: path.join(__dirname, <span class="string">"preload.js"</span>),</span><br><span class="line">    &#125;,</span><br><span class="line">    show: <span class="literal">false</span>, <span class="comment">// 默认不显示窗口</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> view = <span class="keyword">new</span> BrowserView();</span><br><span class="line">mainWindow.setBrowserView(view);</span><br><span class="line">view.setBounds(&#123; <span class="attr">x</span>: <span class="number">0</span>, <span class="attr">y</span>: <span class="number">0</span>, <span class="attr">width</span>: <span class="number">800</span>, <span class="attr">height</span>: <span class="number">600</span> &#125;); <span class="comment">// 遮挡住窗口</span></span><br><span class="line">view.webContents.loadFile(<span class="string">"loading.html"</span>); <span class="comment">// 加载骨架屏页面</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 当骨架屏加载完成后显示窗口</span></span><br><span class="line">view.webContents.on(<span class="string">"dom-ready"</span>, () =&gt; &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"show"</span>);</span><br><span class="line">    mainWindow.show();</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 当渲染进程发来stop-loading消息时，移除骨架屏，显示真正页面</span></span><br><span class="line">ipcMain.on(<span class="string">"stop-loading"</span>, () =&gt; &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"stop"</span>);</span><br><span class="line">    mainWindow.removeBrowserView(view);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="性能检测"><a href="#性能检测" class="headerlink" title="性能检测"></a>性能检测</h2><p>Chrome DevTools Performance</p>
+<h2 id="支持快捷键"><a href="#支持快捷键" class="headerlink" title="支持快捷键"></a>支持快捷键</h2><p><a href="http://www.electronjs.org/docs/api/global-shortcut" target="_blank" rel="noopener">系统快捷键</a></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; app, globalShortcut &#125; = <span class="built_in">require</span>(<span class="string">'electron'</span>)</span><br><span class="line"></span><br><span class="line">app.on(<span class="string">'ready'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="comment">// 注册一个 'CommandOrControl+X' 的全局快捷键</span></span><br><span class="line">  <span class="keyword">const</span> ret = globalShortcut.register(<span class="string">'CommandOrControl+X'</span>, () =&gt; &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'CommandOrControl+X is pressed'</span>)</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!ret) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'registration failed'</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 检查快捷键是否注册成功</span></span><br><span class="line">  <span class="built_in">console</span>.log(globalShortcut.isRegistered(<span class="string">'CommandOrControl+X'</span>))</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.on(<span class="string">'will-quit'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="comment">// 注销快捷键</span></span><br><span class="line">  globalShortcut.unregister(<span class="string">'CommandOrControl+X'</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 注销所有快捷键</span></span><br><span class="line">  globalShortcut.unregisterAll()</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h2 id="本地化（i18n）"><a href="#本地化（i18n）" class="headerlink" title="本地化（i18n）"></a>本地化（i18n）</h2><p>Electron程序在<code>ready</code>事件后，可以通过<code>app.getLocale()</code>来获得<code>local值</code>(如<code>zh-CN</code>)，<a href="http://www.electronjs.org/docs/api/locales" target="_blank" rel="noopener">详细列表</a></p>
+<p>通过<a href="https://github.com/i18next/i18next" target="_blank" rel="noopener">i18nnext</a>来实现国际化</p>
+<p><a href="https://phrase.com/blog/posts/building-an-electron-app-with-internationalization-i18n/#Switching_Locale_from_the_Menu" target="_blank" rel="noopener">Electron使用i18nnext</a></p>
+<h2 id="开机自启"><a href="#开机自启" class="headerlink" title="开机自启"></a>开机自启</h2><p>通过<code>app.setLoginItemSettings</code>来设置开机自启</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">app.setLoginItemSettings(&#123;</span><br><span class="line">  openAtLogin: <span class="literal">true</span>, <span class="comment">// Boolean 在登录时启动应用 默认false</span></span><br><span class="line">  openAsHidden: <span class="literal">true</span>, <span class="comment">// Boolean (可选) mac 表示以隐藏的方式启动应用。~~~~</span></span><br><span class="line">  <span class="comment">// path: '', String (可选) Windows - 在登录时启动的可执行文件。默认为 process.execPath.</span></span><br><span class="line">  <span class="comment">// args: [] String Windows - 要传递给可执行文件的命令行参数。默认为空数组。注意用引号将路径换行。</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/60bc3abb.html">https://zxffan.github.io/posts/60bc3abb.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/Electron/"># Electron</a>
+                    
+                        <a href="/tags/%E6%A1%8C%E9%9D%A2%E7%AB%AF%E8%BD%AF%E4%BB%B6/"># 桌面端软件</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/72ce1ec4.html">Electron-集成原生能力</a>
+            
+            
+            <a class="next" rel="next" href="/posts/acb10ea6.html">Electron-项目打包</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

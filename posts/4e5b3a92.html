@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>Web网络基础 | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Web网络基础</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">十一月 3, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/NetWork/">NetWork</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="TCP-IP"><a href="#TCP-IP" class="headerlink" title="TCP/IP"></a>TCP/IP</h2><p><code>TCP/IP</code>是互联网相关的各类协议族的总称<br><code>TCP/IP</code>具有分层结构，分为：应用层、传输层、网络层和数据链路层</p>
+<h3 id="应用层"><a href="#应用层" class="headerlink" title="应用层"></a>应用层</h3><p>应用层决定了向用户提供应用服务时通信的活动。<br>相关协议：<code>FTP</code>、<code>DNS</code>以及<code>HTTP</code></p>
+<h3 id="传输层"><a href="#传输层" class="headerlink" title="传输层"></a>传输层</h3><p>传输层提供处于网络连接中的两台计算机之间的数据传输<br>相关协议：<code>TCP</code>和<code>UDP</code></p>
+<h3 id="网络层"><a href="#网络层" class="headerlink" title="网络层"></a>网络层</h3><p>网络层规定了数据包通过怎样的传输线路到达对方计算机<br>相关协议：<code>IP</code></p>
+<h3 id="数据链路层"><a href="#数据链路层" class="headerlink" title="数据链路层"></a>数据链路层</h3><p>数据链路是用来处理连接网络的<strong>硬件部分</strong><br>例如：<code>NIC(网卡)</code>、<code>光纤</code>等物理可见部分</p>
+<h3 id="通信传输流"><a href="#通信传输流" class="headerlink" title="通信传输流"></a>通信传输流</h3><p><img src="../../images/%E5%9B%BE%E8%A7%A3HTTP/TCPIP%E5%88%86%E5%B1%82.png" alt="TCPIP分层"></p>
+<p>发送端再每一层都会打上包含该层所属的一个首部。当接收端接收到数据时，会依次拆开首部。</p>
+<h2 id="与HTTP有关的协议"><a href="#与HTTP有关的协议" class="headerlink" title="与HTTP有关的协议"></a>与HTTP有关的协议</h2><h3 id="IP"><a href="#IP" class="headerlink" title="IP"></a>IP</h3><p><strong>网际协议(Internet Protocol, IP)</strong>位于网络层，其作用是把数据包传送给对方。具体如何规定传送呢？</p>
+<p>每个网络节点都有一个<strong>IP地址</strong>，每一台计算机的网卡都有一个固定的<strong>MAC地址</strong>。<br>IP地址又可以通过<code>ARP协议</code>转换成MAC地址</p>
+<p>数据包发送过程如下：</p>
+<ol>
+<li>网关（一般为路由器）的 IP 地址被 ARP 协议解析为 MAC 地址。根据该 MAC 地址，源主机将数据包发送到网关。</li>
+<li>网关根据数据包中的网段 ID 寻找目标网络。如果找到，将数据包发送到目标网段；如果没找到，重复步骤（1）将数据包发送到上一级网关。</li>
+<li>数据包经过网关被发送到正确的网段中。目标IP地址被ARP协议解析为 MAC 地址。根据该 MAC 地址，数据包被发送给目标地址的主机。</li>
+</ol>
+<h3 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h3><p><strong>传输控制协议( Transport Control Protocol, TCP)</strong>位于传输层，提供可靠的<strong>字节流服务</strong>即将大块数据分割成报文段为单位的数据包进行管理。</p>
+<p>三次握手</p>
+<p>发送端首先发送一个带<code>SYN</code>标志的数据包给对方。接收端收到后，会回传一个带有<code>SYN/ACK</code>标志的数据包以表示传达确认信息。最后，发送端再发送一个带有<code>ACK</code>标志的数据包，代表“握手”结束</p>
+<h3 id="DNS"><a href="#DNS" class="headerlink" title="DNS"></a>DNS</h3><p><strong>域名解析服务(Domain Name System, DNS)</strong>位于应用层，提供通过域名查找IP地址，或者逆向从IP地址查找域名的服务</p>
+<h2 id="HTTP协议与其它协议的关系"><a href="#HTTP协议与其它协议的关系" class="headerlink" title="HTTP协议与其它协议的关系"></a>HTTP协议与其它协议的关系</h2><p><img src="../../images/%E5%9B%BE%E8%A7%A3HTTP/%E6%95%B0%E6%8D%AE%E8%AF%B7%E6%B1%82%E4%B8%8E%E5%8D%8F%E8%AE%AE.png" alt="数据请求与协议"></p>
+<h2 id="URL与URI"><a href="#URL与URI" class="headerlink" title="URL与URI"></a>URL与URI</h2><h3 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h3><p>统一资源标识符（Uniform Resource Identifier, URI）<br>统一资源定位符（Uniform Resource Locator， URL）<br>统一资源名称（Uniform Resource Name， URN）</p>
+<p><code>URL</code>和<code>URN</code>都是<code>URI</code>的子集。比如说人们的身份证号码就是<code>URN</code>（能够唯一标识），一个网站<code>http://zxffan.github.io/</code>就是<code>URL</code>。它们都属于<code>URI</code></p>
+<h3 id="URI格式"><a href="#URI格式" class="headerlink" title="URI格式"></a>URI格式</h3><p><img src="../../images/%E5%9B%BE%E8%A7%A3HTTP/URI%E6%A0%BC%E5%BC%8F.png" alt="URI格式"></p>
+<h4 id="协议方案名"><a href="#协议方案名" class="headerlink" title="协议方案名"></a>协议方案名</h4><p>诸如：<code>HTTP</code>、<code>HTTPS</code></p>
+<h4 id="登录信息"><a href="#登录信息" class="headerlink" title="登录信息"></a>登录信息</h4><p>可选项，指定用户名和密码</p>
+<h4 id="服务器地址"><a href="#服务器地址" class="headerlink" title="服务器地址"></a>服务器地址</h4><p>服务器地址可以是域名，也可以是IP地址</p>
+<h4 id="服务器端口号"><a href="#服务器端口号" class="headerlink" title="服务器端口号"></a>服务器端口号</h4><p>可选，没有取默认端口号，不同协议有不同的默认端口号。<br><code>HTTP</code>是<code>80</code>；<code>HTTPS</code>是<code>443</code></p>
+<h4 id="带层次的文件路径"><a href="#带层次的文件路径" class="headerlink" title="带层次的文件路径"></a>带层次的文件路径</h4><p>指定服务器上的<strong>文件路径</strong>来定位特指的资源</p>
+<h4 id="查询字符串"><a href="#查询字符串" class="headerlink" title="查询字符串"></a>查询字符串</h4><p>可选，使用查询字符串向指定资源传入任意参数</p>
+<h4 id="片段标识符"><a href="#片段标识符" class="headerlink" title="片段标识符"></a>片段标识符</h4><p>可选，标记已获取资源的子资源</p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/4e5b3a92.html">https://zxffan.github.io/posts/4e5b3a92.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/NetWork/"># NetWork</a>
+                    
+                        <a href="/tags/HTTP/"># HTTP</a>
+                    
+                        <a href="/tags/TCP-IP/"># TCP/IP</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/3b531846.html">HTTP梳理</a>
+            
+            
+            <a class="next" rel="next" href="/posts/6e1418c.html">CSS Review</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

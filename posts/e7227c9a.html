@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>Electron-应用更新 | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Electron-应用更新</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">七月 22, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Electron/">Electron</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="软件更新方式"><a href="#软件更新方式" class="headerlink" title="软件更新方式"></a>软件更新方式</h2><h3 id="手动更新"><a href="#手动更新" class="headerlink" title="手动更新"></a>手动更新</h3><p>用户手动下载、安装新包。</p>
+<p>手动更新简单稳定，适合更新频率低，用户粘性高的场景，通常作为其它升级技术的<code>降级方案</code>。</p>
+<p>流程：</p>
+<ol>
+<li>更新服务：匹配客户端版本，用户信息</li>
+<li>检查更新器：返回包地址，更新文案</li>
+<li>提示：新功能升级</li>
+<li>手动操作：跳转浏览器，打开安装包覆盖</li>
+</ol>
+<h3 id="文件覆盖"><a href="#文件覆盖" class="headerlink" title="文件覆盖"></a>文件覆盖</h3><p>程序自动替换文件以实现更新。</p>
+<p>不稳定，可能会写入失败。适合<code>打补丁</code>的场景</p>
+<p>流程：</p>
+<ol>
+<li>更新服务：匹配客户端版本，用户信息</li>
+<li>检查更新器：返回包地址，更新文案</li>
+<li>提示：新功能升级</li>
+<li>程序操作：吊起子程序，关闭应用，将补丁复制到应用目录，重新启动</li>
+</ol>
+<h3 id="自动更新"><a href="#自动更新" class="headerlink" title="自动更新"></a>自动更新</h3><p>后台下载文件，重启即新版</p>
+<p>稳定，快，用户无感知。适合更新频率高的场景，以及对用户体验要求高的场景</p>
+<p>流程：更新服务 =&gt; 检查更新器 =&gt; 下载新包 =&gt; 重启应用加载新包</p>
+<h3 id="应用商店"><a href="#应用商店" class="headerlink" title="应用商店"></a>应用商店</h3><p>通过各平台应用商店发布，例如Microsoft store和mac app store</p>
+<p>统一、稳定</p>
+<h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><table>
+<thead>
+<tr>
+<th>更新方式</th>
+<th>手动更新</th>
+<th>文件覆盖</th>
+<th>自动更新</th>
+<th>应用商店</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>优点</td>
+<td>简单、稳定</td>
+<td>下载过程快</td>
+<td>稳定、快、打扰少</td>
+<td>统一、稳定</td>
+</tr>
+<tr>
+<td>缺点</td>
+<td>过程繁琐、慢、影响使用、</td>
+<td>实现复杂、稳定性差、文件写入可能失败</td>
+<td>实现复杂</td>
+<td>受应用商店局限</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>低频更新、用户粘性高、作为各种升级技术的降级方案</td>
+<td>打补丁</td>
+<td>高频更新、体验要求高</td>
+<td>需要上架商店的软件</td>
+</tr>
+</tbody></table>
+<h2 id="Electron更新方式"><a href="#Electron更新方式" class="headerlink" title="Electron更新方式"></a>Electron更新方式</h2><h3 id="Web化"><a href="#Web化" class="headerlink" title="Web化"></a>Web化</h3><p>将渲染进程（业务）代码，放置远程服务器。Electron通过loadURL加载</p>
+<p>这样的话，只要更新服务器的代码就能实现系统更新。</p>
+<p>缺点：无法离线使用，Electron壳子无法更新。</p>
+<h3 id="文件覆盖-1"><a href="#文件覆盖-1" class="headerlink" title="文件覆盖"></a>文件覆盖</h3><p>Electron检测服务器的release版本与本地是否一致，若有新版本提示升级。拉去服务器程序并覆盖本地，然后重启。</p>
+<p>相关实现请参考张鑫旭的<a href="https://www.zhangxinxu.com/wordpress/2017/06/how-electron-online-update-hot-fix/?replytocom=361528" target="_blank" rel="noopener">文档</a></p>
+<h3 id="Electron-Updater"><a href="#Electron-Updater" class="headerlink" title="Electron-Updater"></a>Electron-Updater</h3><p>Electron-Updater是由electron-builder提出的</p>
+<p> 优点</p>
+<ol>
+<li><p>接入简单</p>
+</li>
+<li><p>Windows 支持签名验证</p>
+</li>
+<li><p>支持进度条</p>
+</li>
+<li><p>基于 electron-builder 非常容易使用</p>
+<p>缺点</p>
+</li>
+<li><p>Windows 更新体验没有内置的好</p>
+</li>
+<li><p>Windows 存在权限问题</p>
+</li>
+</ol>
+<p>详见 <a href="https://www.electron.build/auto-update.html" target="_blank" rel="noopener">https://www.electron.build/auto-update.html</a></p>
+<h3 id="增量更新"><a href="#增量更新" class="headerlink" title="增量更新"></a>增量更新</h3><p>只更新需要更新的地方</p>
+<p>原理： 当前版本与最新版本做diff算法，将不同的地方打包成patch，更新就只更新patch部分。</p>
+<p>增量技术：</p>
+<ol>
+<li>bsdiff/bspatch：适用二进制文件、开源、免费、广泛使用（尤其移动端）</li>
+<li>Xdelta3：适用于二进制</li>
+<li>Courgette：谷歌提出的方案，是bsdiff的优化</li>
+<li>RTPatch：商业付费</li>
+</ol>
+<p>对比参考：<a href="https://www.shangyexin.com/2018/09/28/delta_algorithm/" target="_blank" rel="noopener">https://www.shangyexin.com/2018/09/28/delta_algorithm/</a></p>
+<h2 id="灰度发布"><a href="#灰度发布" class="headerlink" title="灰度发布"></a>灰度发布</h2><p>灰度发布就是让一部分用户继续使用原来的产品功能，对另一部分用户逐渐开发新功能。然后针对新功能在做完善和优化。等到灰度发布完成后，所有用户都将使用新的产品功能。</p>
+<h2 id="Electron更新实战"><a href="#Electron更新实战" class="headerlink" title="Electron更新实战"></a>Electron更新实战</h2><h3 id="更新准备"><a href="#更新准备" class="headerlink" title="更新准备"></a>更新准备</h3><p>准备证书，Mac下自动更新必须要证书。打包时候配置。</p>
+<h3 id="使用内置的autoUpdater模块"><a href="#使用内置的autoUpdater模块" class="headerlink" title="使用内置的autoUpdater模块"></a>使用内置的<a href="https://www.electronjs.org/docs/api/auto-updater" target="_blank" rel="noopener">autoUpdater</a>模块</h3><p>Electron官方更新方法是基于内置的<a href="https://github.com/Squirrel" target="_blank" rel="noopener">Squirrel</a>框架和Electron的<a href="https://www.electronjs.org/docs/api/auto-updater" target="_blank" rel="noopener">autoUpdater</a>模块。</p>
+<h4 id="autoUpdater模块简介"><a href="#autoUpdater模块简介" class="headerlink" title="autoUpdater模块简介"></a>autoUpdater模块简介</h4><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; autoUpdater: updater &#125; = <span class="built_in">require</span>(<span class="string">'electron'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置更新服务器地址</span></span><br><span class="line">updater.setFeedURL(&#123;</span><br><span class="line">    url: <span class="string">'更新服务器地址'</span>,</span><br><span class="line">    headers: <span class="string">'HTTP请求头'</span>,</span><br><span class="line">    serverType: <span class="string">'default'</span> <span class="comment">// json or default </span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取当前更新服务器地址</span></span><br><span class="line">updater.getFeedURL()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 检查更新，访问更新服务器地址</span></span><br><span class="line"><span class="comment">// 调用checkForUpdates之前必须设置setFeedURL</span></span><br><span class="line">updater.checkForUpdates()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 此方法hui关闭所有应用窗口，然后自动调用app.quit()</span></span><br><span class="line"><span class="comment">// 这个方法通常在 update-downloaded 事件触发后调用</span></span><br><span class="line">updater.quitAndInstall()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 开始检查更新时触发</span></span><br><span class="line">updater.on(<span class="string">'check-for-update'</span>, <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 检查更新后，发现有新版本后触发该事件</span></span><br><span class="line"><span class="comment">// 该事件触发后，会自动下载最新版本</span></span><br><span class="line">updater.on(<span class="string">'update-avaliable'</span>, <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 检查更新后，没有发现新版本（返回204）后触发该事件</span></span><br><span class="line">updater.on(<span class="string">'update-not-avaliable'</span>, <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 最新版下载完成后触发该事件</span></span><br><span class="line"><span class="comment">// 在 Windows 上只有 releaseName 是有效的。</span></span><br><span class="line">updater.on(<span class="string">'update-downloaded'</span>, <span class="function">(<span class="params">e, releaseNotes, releaseName, releaseDate, updateURL</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">    <span class="comment">// 显示提示框，询问用户是否自动更新</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用户调用quitAndInstall 后触发</span></span><br><span class="line">updater.on(<span class="string">'before-quit-for-update'</span>, <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更新发生错误时，触发</span></span><br><span class="line">updater.on(<span class="string">'error'</span>, <span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h4 id="更新流程"><a href="#更新流程" class="headerlink" title="更新流程"></a>更新流程</h4><h5 id="mac更新"><a href="#mac更新" class="headerlink" title="mac更新"></a>mac更新</h5><p>Electron客户端请求服务器，服务器去检查是否有最新版本。如果有，服务端需要返回<strong>相应数据</strong>，没有就返回<code>204</code>状态码</p>
+<p>mac下服务端需要返回这样的<code>json</code>结构</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="attr">"url"</span>: <span class="string">"https://mycompany.example.com/myapp/releases/myrelease"</span>, <span class="comment">// url为包下载地址</span></span><br><span class="line">	<span class="attr">"name"</span>: <span class="string">"My Release Name"</span>,</span><br><span class="line">	<span class="attr">"notes"</span>: <span class="string">"Theses are some release notes innit"</span>,</span><br><span class="line">	<span class="attr">"pub_date"</span>: <span class="string">"2013-09-18T12:29:53+01:00"</span> </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后Electron客户端就会自动请求<code>url</code>地址去下载</p>
+<h5 id="windows更新"><a href="#windows更新" class="headerlink" title="windows更新"></a>windows更新</h5><p>Electron客户端请求服务器，服务器去检查是否有最新版本。如果有，服务端需要返回<strong>相应数据</strong>，没有就返回<code>204</code>状态码</p>
+<p>window下需要返回RELEASES文件内容（使用Squirrel打包生成的），如<code>BBC6F98A5CD32C675AAB6737A5F67176248B900C appName-1.0.1-full.nupkg 62177782</code></p>
+<p>客户端收到数据发现有最新版本，又会请求<code>feedURL/*.nupkg</code>地址。所以服务端要响应相应的请求。</p>
+<p>在Electron主进程加上<code>if(require(&#39;electron-squirrel-startup&#39;)) return</code>。作用是：如果在程序安装时、更新时以及卸载时启动程序，就直接返回（或者<code>app.quit()</code>）。即不启用程序（否则会报错）</p>
+<p>window更新注意： </p>
+<ol>
+<li>安装包不能使用 NSIS，需要使用 Squirrel</li>
+<li>更新需要 Squirrel 配套的 nupkg 包</li>
+</ol>
+<h4 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h4><p>安装模块：<code>yarn add koa koa-router koa-static-server compare-versions</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Koa = <span class="built_in">require</span>(<span class="string">'koa'</span>)</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> Koa()</span><br><span class="line"><span class="keyword">const</span> Router - <span class="built_in">require</span>(<span class="string">'koa-router'</span>)</span><br><span class="line"><span class="keyword">const</span> serve = <span class="built_in">require</span>(<span class="string">'koa-static-server'</span>)</span><br><span class="line"><span class="keyword">const</span> compareVersions = <span class="built_in">require</span>(<span class="string">'compare-versions'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取最新版本通常会去查询数据库，这里就直接mock了</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getNewVersion</span>(<span class="params">version</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!version) <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line">    <span class="keyword">let</span> maxVersion = &#123;</span><br><span class="line">        name: <span class="string">'1.0.1'</span>,</span><br><span class="line">        pub_date: <span class="string">'2020-02-01T12:26:53+1:00'</span>,</span><br><span class="line">        notes: <span class="string">'新增功能AAA'</span>,</span><br><span class="line">        url: <span class="string">'http://128.0.0.1:33855/public/xxxx-1.0.1-mac.zip'</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(compareVersions.compare(maxVersion.name, version, <span class="string">'&gt;'</span>)) <span class="keyword">return</span> maxVersion</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// for mac</span></span><br><span class="line">router.get(<span class="string">'/darwin'</span>, (ctx, next) =&gt; &#123;</span><br><span class="line">    <span class="comment">// 处理Mac更新，?version=1.0&amp;uid=123</span></span><br><span class="line">    <span class="keyword">let</span> &#123;version&#125; = ctx.query</span><br><span class="line">    <span class="keyword">let</span> newVersion = getNewVersion(version)</span><br><span class="line">    <span class="keyword">if</span>(newVersion) &#123;</span><br><span class="line">        ctx.body = newVersion</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        ctx.status = <span class="number">204</span> <span class="comment">// 204代表没有数据</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// for win</span></span><br><span class="line">router.get(<span class="string">'/win32'</span>, (ctx, next) =&gt; &#123;</span><br><span class="line">    <span class="keyword">let</span> &#123;version&#125; = ctx.query</span><br><span class="line">    <span class="keyword">let</span> newVersion = getNewVersion(version)</span><br><span class="line">    <span class="keyword">if</span>(newVersion) &#123;</span><br><span class="line">        ctx.body = <span class="string">'BBC6F23A34BC123BA123C900 xxxx-1.0.1-full.nupkg 62177782'</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        ctx.status = <span class="number">204</span> <span class="comment">// 204代表没有数据</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 重定向去下载</span></span><br><span class="line">router.get(<span class="string">'/win32/*.nupkg'</span>, (ctx, next) =&gt; &#123;</span><br><span class="line">    ctx.redirect(<span class="string">`/public/<span class="subst">$&#123;ctx.params[<span class="number">0</span>].nupkg&#125;</span>`</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.use(server(rootDir: <span class="string">'public'</span>, <span class="attr">rootPath</span>: <span class="string">'/public'</span>))</span><br><span class="line"></span><br><span class="line">app.use(router.routes())</span><br><span class="line"></span><br><span class="line">app.listen(<span class="number">3385</span>)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Electron端"><a href="#Electron端" class="headerlink" title="Electron端"></a>Electron端</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// update.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> &#123; autoUpdater, app, dialog &#125; = <span class="built_in">require</span>(<span class="string">'electron'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(process.platform === <span class="string">'darwin'</span>) &#123;</span><br><span class="line">    autoUpdater.setFeedURL(<span class="string">`http://127.0.0.1:33855/darwin?version=<span class="subst">$&#123;app.getVersion()&#125;</span>`</span>)</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    autoUpdater.setFeedURL(<span class="string">`http://127.0.0.1:33855/win32?version=<span class="subst">$&#123;app.getVersion()&#125;</span>`</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定时轮调 or 服务端推送</span></span><br><span class="line">autoUpdater.checkForUpdater()</span><br><span class="line"></span><br><span class="line">autoUpdater.on(<span class="string">'update-avaliable'</span>, () =&gt; &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'update-avaliable'</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">autoUpdater.on(<span class="string">'update-downloaded'</span>, (e, notes, version) =&gt; &#123;</span><br><span class="line">    app.whenReady().then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">         <span class="comment">// 提示用户更新</span></span><br><span class="line">        <span class="keyword">let</span> clickId = dialog.showMessageBoxSync(&#123;</span><br><span class="line">            type: <span class="string">'info'</span>,</span><br><span class="line">            title: <span class="string">'升级提示'</span>,</span><br><span class="line">            message: <span class="string">'存在最新版，是否立即升级'</span>,</span><br><span class="line">            buttons: [<span class="string">'马上升级'</span>, <span class="string">'取消'</span>],</span><br><span class="line">            cancelId: <span class="number">1</span>, <span class="comment">// 手动重启 为 cancel</span></span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(clickId === <span class="number">0</span>) &#123;</span><br><span class="line">            autoUpdater.quiteAndInstall()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;) </span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">autoUpdater.on(<span class="string">'error'</span>, err =&gt; &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'error:'</span>, error)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.js</span></span><br><span class="line"><span class="keyword">const</span> isDev = <span class="built_in">require</span>(<span class="string">'electron-is-dev'</span>)</span><br><span class="line"><span class="keyword">if</span>(<span class="built_in">require</span>(<span class="string">'electron-squirrel-startup'</span>)) app.quit()</span><br><span class="line"></span><br><span class="line">app.on(<span class="string">"will-finish-launching"</span>, () =&gt; &#123;</span><br><span class="line">    !isDev &amp;&amp; <span class="built_in">require</span>(<span class="string">'./update.js'</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用Electron-Updater"><a href="#使用Electron-Updater" class="headerlink" title="使用Electron-Updater"></a>使用Electron-Updater</h3><p><code>electron-updater</code>是基于<code>electron-builder</code>的更新方案。</p>
+<h4 id="electron-updater模块简介"><a href="#electron-updater模块简介" class="headerlink" title="electron-updater模块简介"></a>electron-updater模块简介</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; <span class="attr">autoUpdater</span>: updater &#125; = <span class="built_in">require</span>(<span class="string">'electron'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置更新服务器地址</span></span><br><span class="line"><span class="comment">// options可以是一个url字符串 表示 安装包helatest.yml所在服务器地址</span></span><br><span class="line"><span class="comment">// 也可以是个对象</span></span><br><span class="line">updater.setFeedURL(options) </span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取当前更新服务器地址</span></span><br><span class="line">updater.getFeedURL()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 检查更新，访问更新服务器地址</span></span><br><span class="line"><span class="comment">// 调用checkForUpdates之前必须设置setFeedURL</span></span><br><span class="line"><span class="comment">// 若有更新不会自动下载</span></span><br><span class="line">updater.checkForUpdates()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 检查更新，若有更新自会自动下载并通知</span></span><br><span class="line">updater.checkForUpdatesAndNotify()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 手动下载</span></span><br><span class="line"><span class="comment">// 返回promise</span></span><br><span class="line">updater.downloadUpdate()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 此方法hui关闭所有应用窗口，然后自动调用app.quit()</span></span><br><span class="line"><span class="comment">// 这个方法通常在 update-downloaded 事件触发后调用</span></span><br><span class="line">updater.quitAndInstall()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更新通道</span></span><br><span class="line"><span class="comment">// alpha beta lts等</span></span><br><span class="line"><span class="comment">// 默认 latest</span></span><br><span class="line">updater.channel = <span class="string">'latest'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// checkForUpdates或 checkForUpdatesAndNotify调用后触发</span></span><br><span class="line">updater.on(<span class="string">'checking-for-update'</span>, () =&gt; &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 检查后，有最新版本时，触发</span></span><br><span class="line">updater.on(<span class="string">'update-available'</span>, (info) =&gt; &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 检查后，没有最新版本时，触发</span></span><br><span class="line">updater.on(<span class="string">'update-not-available'</span>, () =&gt; &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 下载过程中 轮调 触发</span></span><br><span class="line">updater.on(<span class="string">'download-progress'</span>, (progress, bytesPerSecond, percent, total, transferred) =&gt; &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 下载完成后触发</span></span><br><span class="line">updater.on(<span class="string">'update-downloaded'</span>, (info) =&gt; &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更新发生错误时，触发</span></span><br><span class="line">updater.on(<span class="string">'error'</span>, (error) =&gt; &#123;</span><br><span class="line">    <span class="comment">// TODO...</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><code>electro-updater</code>的<code>autoUpdater</code>和electro内置的<code>autoUpdater</code>模块很相似，但前者比后者要强大不少，前者可以显示更新进度。</p>
+<h4 id="更新流程-1"><a href="#更新流程-1" class="headerlink" title="更新流程"></a>更新流程</h4><p><img src="../../images/electron-updater%E6%9B%B4%E6%96%B0%E6%B5%81%E7%A8%8B.webp" alt="electron-upadter更新流程"></p>
+<p>几点补充：</p>
+<ol>
+<li>在electron-builder打包配置中，一定要配置<code>public</code>字段，配置好后才能生成<code>latest.yml</code>文档。</li>
+</ol>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">"publish": [</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="attr">"provider"</span>: <span class="string">"generic"</span>,</span><br><span class="line">        <span class="attr">"url"</span>: <span class="string">"http://127.0.0.1:8000/"</span>  <span class="comment">// 放置安装包和latest.yml的服务器地址</span></span><br><span class="line">    &#125;</span><br><span class="line">],</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>将打包后的<code>latest.yml</code>以及安装包。放置到服务器上，可以使用<code>nginx</code>来搭建文件服务器。Electron检查更新就是检查这个<code>latest.yml</code>文件</li>
+</ol>
+<h4 id="Electron端-1"><a href="#Electron端-1" class="headerlink" title="Electron端"></a>Electron端</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// update.js</span></span><br><span class="line"><span class="keyword">const</span> &#123; <span class="attr">autoUpdater</span>: updater &#125; = <span class="built_in">require</span>(<span class="string">'electron-updater'</span>)</span><br><span class="line"></span><br><span class="line">updater.setFeedURL(<span class="string">'http://127.0.0.1:8000'</span>)</span><br><span class="line"></span><br><span class="line">updater.checkForUpdatesAndNotify()</span><br><span class="line"></span><br><span class="line">updater.on(<span class="string">'update-available'</span>, () =&gt; &#123;</span><br><span class="line">    <span class="comment">// TODO 可以在这提醒用户更新</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">updater.on(<span class="string">'download-progress'</span>, (progress, bytesPerSecond, percent, total, transferred) =&gt; &#123;</span><br><span class="line">    <span class="comment">// TODO 显示进度条</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">updater.on(<span class="string">'update-downloaded'</span>, () =&gt; &#123;</span><br><span class="line">    updater.quitAndInstall()</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">updater.on(<span class="string">'error'</span>, error =&gt; &#123;</span><br><span class="line">    <span class="comment">// TODO handle error</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.js</span></span><br><span class="line">app.on(<span class="string">"will-finish-launching"</span>, () =&gt; &#123;</span><br><span class="line">    <span class="built_in">require</span>(<span class="string">'./update.js'</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Nginx文件服务器"><a href="#Nginx文件服务器" class="headerlink" title="Nginx文件服务器"></a>Nginx文件服务器</h4><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">autoindex</span> <span class="literal">on</span>;<span class="comment"># 显示目录</span></span><br><span class="line"><span class="attribute">autoindex_exact_size</span> <span class="literal">on</span>;<span class="comment"># 显示文件大小</span></span><br><span class="line"><span class="attribute">autoindex_localtime</span> <span class="literal">on</span>;<span class="comment"># 显示文件时间</span></span><br><span class="line"></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span>       <span class="number">8000</span> default_server;</span><br><span class="line">    <span class="attribute">listen</span>       [::]:<span class="number">8000</span> default_server;</span><br><span class="line">    <span class="attribute">server_name</span>  _;</span><br><span class="line">    <span class="attribute">root</span>         /www/update/demo;  <span class="comment"># 文件路径</span></span><br><span class="line"></span><br><span class="line">    <span class="attribute">location</span> / &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">error_page</span> <span class="number">404</span> /<span class="number">404</span>.html;</span><br><span class="line">    <span class="attribute">location</span> = /40x.html &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">error_page</span> <span class="number">500</span> <span class="number">502</span> <span class="number">503</span> <span class="number">504</span> /50x.html;</span><br><span class="line">    <span class="attribute">location</span> = /50x.html &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/e7227c9a.html">https://zxffan.github.io/posts/e7227c9a.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/Electron/"># Electron</a>
+                    
+                        <a href="/tags/%E6%A1%8C%E9%9D%A2%E7%AB%AF%E8%BD%AF%E4%BB%B6/"># 桌面端软件</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/34a04fbb.html">Electron-质量监控</a>
+            
+            
+            <a class="next" rel="next" href="/posts/4dbf3745.html">浏览器中的音视频</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

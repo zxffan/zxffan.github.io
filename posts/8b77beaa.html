@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>HTTP首部 | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">HTTP首部</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">十一月 11, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/NetWork/">NetWork</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>http首部分为四部分——<strong>请求行/状态行</strong>、<strong>请求/响应首部字段</strong>、<strong>通用首部字段</strong>、<strong>实体首部字段</strong>组成。</p>
+<p>梳理一下当作字典，以便日后查阅。</p>
+<h2 id="首部一览"><a href="#首部一览" class="headerlink" title="首部一览"></a>首部一览</h2><p>HTTP/1.1 规范定义了如下 47 种首部字段。</p>
+<table>
+<thead>
+<tr>
+<th>首部字段名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Cache-Control</code></td>
+<td>（强）缓存控制，1.0还有个<code>Expired</code></td>
+</tr>
+<tr>
+<td><code>Connection</code></td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="通用首部字段"><a href="#通用首部字段" class="headerlink" title="通用首部字段"></a>通用首部字段</h2><p>通用首部字段是指，请求报文和响应报文双方都会使用的首部。</p>
+<h3 id="Cache-Control"><a href="#Cache-Control" class="headerlink" title="Cache-Control"></a>Cache-Control</h3><p>场景：浏览器第一次请求服务器时，服务端返回资源并再<strong>response header</strong>加上<code>Cache-Control: max-age=56700000</code>。浏览器接受资源并把资源和相关头信息缓存下来。当第二次请求改资源时，先从缓存中找，计算第一次请求的时间和<code>max-age</code>来判断是否过期。若没过期则取缓存内容，若过期再向服务器请求。</p>
+<p>这个字段既可以出现在请求头中也可以出现在响应头中，但参数不太一样</p>
+<h4 id="请求头参数"><a href="#请求头参数" class="headerlink" title="请求头参数"></a>请求头参数</h4><table>
+<thead>
+<tr>
+<th>指令</th>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>no-cache</code></td>
+<td>无</td>
+<td>不使用强缓存，强制向源服务器再次验证（使用协商缓存）</td>
+</tr>
+<tr>
+<td><code>no-store</code></td>
+<td>无</td>
+<td>不使用缓存</td>
+</tr>
+<tr>
+<td><code>max-age=[ 秒]</code></td>
+<td>秒</td>
+<td>缓存的时间</td>
+</tr>
+<tr>
+<td><code>max-stale=[ 秒]</code></td>
+<td>秒</td>
+<td>可省略，可容忍的最大过期时间, 接受age+stale时间内的缓存数据</td>
+</tr>
+<tr>
+<td><code>min-fresh=[ 秒]</code></td>
+<td>秒</td>
+<td><code>min-fresh=60</code>要求（缓存）服务器返回缓存时间未过60s的资源</td>
+</tr>
+<tr>
+<td><code>no-transform</code></td>
+<td>无</td>
+<td>缓存不能改变实体主体的媒体类型</td>
+</tr>
+<tr>
+<td><code>only-if-cached</code></td>
+<td>无</td>
+<td>完全使用缓存，若未命中返回<code>504 Gateway Timeout</code></td>
+</tr>
+<tr>
+<td><code>cache-extension</code></td>
+<td>无</td>
+<td>新指令标记（token）</td>
+</tr>
+</tbody></table>
+<p><code>cache-extension</code> token可以扩展<code>Cache-Control</code>首部字段内的指令<br>例如：<code>Cache-Control: private, community=&quot;UCI&quot;</code><br>其中<code>community</code>属于扩展指令</p>
+<h4 id="响应头参数"><a href="#响应头参数" class="headerlink" title="响应头参数"></a>响应头参数</h4><table>
+<thead>
+<tr>
+<th>指令</th>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>public</code></td>
+<td>无</td>
+<td>可以被任意方缓存</td>
+</tr>
+<tr>
+<td><code>private</code></td>
+<td>无</td>
+<td>仅可被特定用户缓存</td>
+</tr>
+<tr>
+<td><code>no-cache</code></td>
+<td>无</td>
+<td>可省略，使用缓存前先向服务端验证有效性（协商）</td>
+</tr>
+<tr>
+<td><code>no-store</code></td>
+<td>无</td>
+<td>不缓存请求和响应内容</td>
+</tr>
+<tr>
+<td><code>no-transform</code></td>
+<td>无</td>
+<td>缓存不能改变实体主体的媒体类型</td>
+</tr>
+<tr>
+<td><code>must-revalidate</code></td>
+<td>无</td>
+<td>可缓存但必须再向源服务器进行确认</td>
+</tr>
+<tr>
+<td><code>proxy-revalidate</code></td>
+<td>无</td>
+<td>要求中间缓存服务器对缓存的响应有效性再进行确认</td>
+</tr>
+<tr>
+<td><code>max-age=[ 秒]</code></td>
+<td>秒</td>
+<td>缓存的时间</td>
+</tr>
+<tr>
+<td><code>s-maxage=[ 秒]</code></td>
+<td>秒</td>
+<td><strong>公共缓存服务器</strong>响应的最大Age值</td>
+</tr>
+<tr>
+<td><code>cache-extension</code></td>
+<td>无</td>
+<td>新指令标记（token）</td>
+</tr>
+</tbody></table>
+<h3 id="Connection"><a href="#Connection" class="headerlink" title="Connection"></a>Connection</h3><p><code>Connection</code>首部字段有两个作用</p>
+<ol>
+<li>控制不再转发给代理的首部字段</li>
+<li>管理持久化连接</li>
+</ol>
+<h4 id="控制不再转发给代理的首部字段"><a href="#控制不再转发给代理的首部字段" class="headerlink" title="控制不再转发给代理的首部字段"></a>控制不再转发给代理的首部字段</h4><p>使用方式：再请求头加上<code>Connection: 不再转发的首部字段名</code><br>当请求发送给代理服务器时，代理服务器会剔除指定首部字段，然后再转发给源服务器</p>
+<h4 id="持久化连接"><a href="#持久化连接" class="headerlink" title="持久化连接"></a>持久化连接</h4><p><code>HTTP/1.1</code>默认全部都是持久化连接，当服务端想断开连接时，在响应头中指定字段<code>Connection: close</code></p>
+<p><code>HTTP/1.0</code>默认是非持久化连接。若想建立持久化连接，请求双方都要在头信息中加上<code>Connection: Keep-Alive</code></p>
+<h3 id="Date"><a href="#Date" class="headerlink" title="Date"></a>Date</h3><p><code>Date</code>表示创建HTTP报文的日期和时间，格式如：<code>Date: Tue, 03 Jul 2012 04:40:59 GMT</code></p>
+<h3 id="Pragma"><a href="#Pragma" class="headerlink" title="Pragma"></a>Pragma</h3><p><code>Pragma: no-cache</code>与<code>Cache-Control: no-cache</code>作用相同。是为了兼容<code>HTTP/1.0</code>而存在的</p>
+<h3 id="Trailer"><a href="#Trailer" class="headerlink" title="Trailer"></a>Trailer</h3><p>响应首部。<code>Trailer</code>字段指明在报文主体后记录了哪些首部字段，允许发送方在分块发送的消息后面添加额外的元信息<br>使用：<code>Trailer: Expires</code></p>
+<h3 id="Transfer-Encoding"><a href="#Transfer-Encoding" class="headerlink" title="Transfer-Encoding"></a>Transfer-Encoding</h3><p>指定报文主体的传输编码，HTTP/1.1 的传输编码方式仅对分块传输编码有效。<br>使用：<code>Transfer-Encoding: chunk</code></p>
+<h3 id="Upgrade"><a href="#Upgrade" class="headerlink" title="Upgrade"></a>Upgrade</h3><p>用于检测能否升级通信协议，其参数值可以用来指定一个完全不同的通信协议。<br>使用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Upgrade: TLS&#x2F;1.0, HTTP&#x2F;1.1</span><br><span class="line">Connection: Upgrade</span><br></pre></td></tr></table></figure>
+
+<p>通常配合<code>Connection</code>使用，因为<code>Upgrade</code>字段不需要转发</p>
+<h3 id="Via"><a href="#Via" class="headerlink" title="Via"></a>Via</h3><p>用于追踪客户端和服务端之间的请求和响应报文的传输路径</p>
+<p><img src="../../images/%E5%9B%BE%E8%A7%A3HTTP/via_header.png" alt="via_header"></p>
+<h3 id="Warning"><a href="#Warning" class="headerlink" title="Warning"></a>Warning</h3><p>返回与缓存相关的警告，<br>例如：<code>Warning: 113 gw.hackr.jp:8080 &quot;Heuristic expiration&quot; Tue, 03</code><br>格式：<code>Warning: [警告码][警告的主机:端口号]“[警告内容]”([日期时间])</code></p>
+<h2 id="请求首部字段"><a href="#请求首部字段" class="headerlink" title="请求首部字段"></a>请求首部字段</h2><p>请求首部字段是从客户端往服务器端发送请求报文中所使用的字段，用于补充请求的附加信息、客户端信息、对响应内容相关的优先级等内容。</p>
+<h3 id="Accept"><a href="#Accept" class="headerlink" title="Accept"></a>Accept</h3><p>告知服务器，客户端所期望的媒体类型或媒体类型优先顺序，用q表示权重（取0~1，默认1）<br>使用：<code>Accept: text/html,application/xhtml+xml,application/xml;q=0.9</code></p>
+<p>常见媒体类型:</p>
+<ol>
+<li>文本文件<ul>
+<li><code>text/html</code>、<code>text/plain</code>、<code>text/css</code></li>
+<li><code>application/xhtml+xml</code>、<code>application/xml</code></li>
+</ul>
+</li>
+<li>图片文件<ul>
+<li><code>image/jpeg</code>、<code>image/gif</code>、<code>image/png</code></li>
+</ul>
+</li>
+<li>视频文件<ul>
+<li><code>video/mpeg</code>、<code>video/quicktime</code></li>
+</ul>
+</li>
+<li>应用程序使用的二进制文件<ul>
+<li><code>application/octet-stream</code>、<code>application/zip</code></li>
+</ul>
+</li>
+</ol>
+<h3 id="Accept-Charset"><a href="#Accept-Charset" class="headerlink" title="Accept-Charset"></a>Accept-Charset</h3><p>告知服务器，客户端所期望的字符集或字符集的优先顺序，也可以用q来表示权重<br>使用：<code>Accept-Charset: iso-8859-5, unicode-1-1;q=0.8</code></p>
+<h3 id="Accept-Encoding"><a href="#Accept-Encoding" class="headerlink" title="Accept-Encoding"></a>Accept-Encoding</h3><p>告知服务器，客户端所期望的内容编码或内容编码优先级顺序<br>使用: <code>Accept-Encoding: gzip, deflate</code></p>
+<p>常见编码方式：</p>
+<ul>
+<li>gzip<br>由文件压缩程序 gzip（GNU zip）生成的编码格式（RFC1952），采用 Lempel-Ziv 算法（LZ77）及 32 位循环冗余校验（Cyclic Redundancy Check，通称 CRC）。</li>
+<li>compress<br>由 UNIX 文件压缩程序 compress 生成的编码格式，采用 Lempel-Ziv-Welch 算法（LZW）。</li>
+<li>deflate<br>组合使用 zlib 格式（RFC1950）及由 deflate 压缩算法（RFC1951）生成的编码格式。</li>
+<li>identity<br>不执行压缩或不会变化的默认编码格式</li>
+</ul>
+<p>采用权重 q 值来表示相对优先级，这点与首部字段 Accept 相同。另外，也可使用星号（*）作为通配符，指定任意的编码格式。</p>
+<h3 id="Accept-Language"><a href="#Accept-Language" class="headerlink" title="Accept-Language"></a>Accept-Language</h3><p>告知服务器客户端所期望的自然语言集（指中文或英文等），以及自然语言集的相对优先级。</p>
+<p>使用：<code>Accept-Language: zh-cn,zh;q=0.7,en-us,en;q=0.3</code></p>
+<h3 id="Authorization"><a href="#Authorization" class="headerlink" title="Authorization"></a>Authorization</h3><p>告知服务器客户端的认证信息。<br>当客户端未携带认证信息，服务端会返回<strong>401 Unauthorized</strong><br>使用：<code>Authorization: Basic dWVub3NlbjpwYXNzd29yZA==</code></p>
+<h3 id="Expect"><a href="#Expect" class="headerlink" title="Expect"></a>Expect</h3><p>发送一个POST请求，请求头携带<code>Expect: 100-continue</code>，会先去询问Server是否愿意接受数据<br>接收到Server返回的<code>100-continue</code>应答以后，才能把数据POST给Server</p>
+<h3 id="From"><a href="#From" class="headerlink" title="From"></a>From</h3><p>该字段用来记录用户的电子邮件地址，使用：<code>From: yourname@outlook.com</code></p>
+<h3 id="Host（重要概念）"><a href="#Host（重要概念）" class="headerlink" title="Host（重要概念）"></a>Host（重要概念）</h3><p>先明确<strong>虚拟主机的概念</strong>——一台服务器对应一个公网IP地址，一个IP又可以对应多个域名，那么如何通过不同域名访问对应服务器上不同的站点呢？答案是，将服务器划分成多个虚拟主机，在请求头上加上<code>Host</code>字段指定对应虚拟主机名称，这样就能访问到对应的站点</p>
+<blockquote>
+<p><code>nginx</code> 划分虚拟主机很简单，直接设置不同的<code>server_name</code>即可</p>
+</blockquote>
+<h3 id="If-Match"><a href="#If-Match" class="headerlink" title="If-Match"></a>If-Match</h3><p>形如<code>If-*</code>的字段称之为条件请求，只有判断指定条件为真时，才会执行请求。</p>
+<p>客户端发送请求，携带<code>If-Match: &quot;123456&quot;</code>。服务端为实体资源生成实体标记<code>ETag</code>，然后判断<code>If-Match</code>和<code>ETag</code>的值。若相同，则返回实体资源；若不同，则返回<strong>412 Precondition Failed</strong></p>
+<blockquote>
+<p>If-match的取值还可以时<code>*</code>，表示让服务端忽略<code>ETag</code></p>
+</blockquote>
+<h3 id="If-Modified-Since"><a href="#If-Modified-Since" class="headerlink" title="If-Modified-Since"></a>If-Modified-Since</h3><p>这个请求头与<strong>协商缓存</strong>有关</p>
+<ul>
+<li>客户端第一次发送请求。服务端收到请求后，返回实体资源并加上响应头<code>Last-Modified</code>其值为该资源最后一次修改时间。客户端收到响应后缓存该资源和<code>Last-Modified</code></li>
+<li>客户端第二次发送请求，在请求头上携带<code>If-Modified-Since</code>，其值为上一次服务端返回的<code>Last-Modified</code>值。当服务端收到请求后，检查对应实体资源最新的<code>Last-Modified</code>并与<code>If-Modified-Since</code>对比判断是否过期。若未过期，则返回<strong>304 Not Modified</strong>表示客户端可以使用缓存；若过期，返回新的实体资源和<code>Last-Modified</code></li>
+</ul>
+<h3 id="If-None-Match"><a href="#If-None-Match" class="headerlink" title="If-None-Match"></a>If-None-Match</h3><p>这个字段与<code>If-Match</code>作用相反</p>
+<p>待续…</p>
+<h2 id="响应首部字段"><a href="#响应首部字段" class="headerlink" title="响应首部字段"></a>响应首部字段</h2><p>响应首部字段是服务器返回给客户端的响应报文中所使用的字段</p>
+<h3 id="Accept-Ranges"><a href="#Accept-Ranges" class="headerlink" title="Accept-Ranges"></a>Accept-Ranges</h3><p>用来告知客户端能否处理范围请求</p>
+<ul>
+<li>Accept-Ranges: bytes  支持</li>
+<li>Accept-Ranges: none   不支持</li>
+</ul>
+<h3 id="Age"><a href="#Age" class="headerlink" title="Age"></a>Age</h3><p>告知客户端，源服务器在多久前创建了响应</p>
+<p><code>Age: 600</code> 单位：s</p>
+<h3 id="ETag"><a href="#ETag" class="headerlink" title="ETag"></a>ETag</h3><p>ETag是响应资源的唯一性标识，当资源改变，ETag也会变化</p>
+<ul>
+<li>强ETag：不论实体发生多么细微的变化都会改变其值 <code>ETag: &quot;usagi-1234&quot;</code></li>
+<li>弱ETag：只有资源发生了根本改变，产生差异时才会改变 ETag 值 <code>ETag: W/&quot;usagi-1234&quot;</code></li>
+</ul>
+<h3 id="Location"><a href="#Location" class="headerlink" title="Location"></a>Location</h3><p><code>Location: http://www.usagidesign.jp/sample.html</code></p>
+<p>引导客户端去指定位置请求资源，配合 3XX: Redirection</p>
+<h3 id="Proxy-Authenticate"><a href="#Proxy-Authenticate" class="headerlink" title="Proxy-Authenticate"></a>Proxy-Authenticate</h3><p><code>Proxy-Authenticate: Basic realm=&quot;Usagidesign Auth&quot;</code></p>
+<p>没搞懂</p>
+<h3 id="Retry-After"><a href="#Retry-After" class="headerlink" title="Retry-After"></a>Retry-After</h3><p><code>Retry-After: 120</code>，单位s，也可以是具体时间</p>
+<p>告知客户端，在多久后再次发送请求。配合 <code>503 Service Unavailable</code>或<code>3xx Redirect</code>使用</p>
+<h3 id="Server"><a href="#Server" class="headerlink" title="Server"></a>Server</h3><p>告知客户端，服务器上安装的HTTP服务器应用程序的信息。</p>
+<ul>
+<li><code>Server: Apache/2.2.17 (Unix)</code></li>
+<li><code>Server: Apache/2.2.6 (Unix) PHP/5.2.5</code></li>
+</ul>
+<h3 id="Vary"><a href="#Vary" class="headerlink" title="Vary"></a>Vary</h3>
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/8b77beaa.html">https://zxffan.github.io/posts/8b77beaa.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/NetWork/"># NetWork</a>
+                    
+                        <a href="/tags/HTTP-Header/"># HTTP Header</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/46109b3a.html">Webpack5</a>
+            
+            
+            <a class="next" rel="next" href="/posts/3b531846.html">HTTP梳理</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

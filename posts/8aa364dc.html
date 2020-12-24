@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>云计算的发展 | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">云计算的发展</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">十二月 24, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Serverles/">Serverles</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>最近对<code>serverless</code>提起了兴趣，于是提笔写几篇学习笔记。</p>
+<h2 id="时代历程"><a href="#时代历程" class="headerlink" title="时代历程"></a>时代历程</h2><p>总的来说云计算的发展经过了<strong>物理机时代</strong>、<strong>虚拟机时代</strong>、<strong>容器时代</strong>以及当下的<strong>Serverless</strong>。</p>
+<h3 id="物理机时代"><a href="#物理机时代" class="headerlink" title="物理机时代"></a>物理机时代</h3><p>发布一个网站，需要购买一台物理机服务器。然后手动安装操作系统和许多的软件环境。那时服务器发生故障时，服务迁移是一件很痛苦的事。而且购买物理机的成本也很高。</p>
+<h3 id="虚拟机时代"><a href="#虚拟机时代" class="headerlink" title="虚拟机时代"></a>虚拟机时代</h3><p>2001年后虚拟化技术日渐成熟。<strong>虚拟化技术</strong>可以将一台<strong>物理机</strong>分割成多台<strong>虚拟机</strong>供多名用户使用，充分利用硬件资源。比如阿里云的ECS，我上学的时候就买了一台虚拟机。相对于直接购买一台物理机，虚拟机可以大大降低成本。</p>
+<h3 id="容器时代"><a href="#容器时代" class="headerlink" title="容器时代"></a>容器时代</h3><p>容器技术。目前比较流行的如<code>Docker</code>。在服务器上安装容器，将软件服务部署在容器中。这样，在做迁移的时候可以将容器内的软件环境打包成镜像。再拷贝到另一台服务器上部署。大大降低了迁移成本</p>
+<p>有了容器，在服务器上部署的就不再是应用而是一个个容器。当容器多了就比较难以管理。<code>Kubernetes(K8S)</code>是Google的用来进行容器编排的开源工具。有了K8S就可以实现网站的自动弹性伸缩。但是这一切的配置都需要专业的运维知识。</p>
+<h3 id="Serverless"><a href="#Serverless" class="headerlink" title="Serverless"></a>Serverless</h3><p><code>Serverless</code>是指构建和运行不需要服务器管理的一种模式。目前Serverless实现方式主要是基于<code>FaaS</code>和<code>BaaS</code></p>
+<ul>
+<li>FaaS(函数即服务)：将应用切割成一个个独立的函数，每个函数有自己独立的业务，这些函数再组成复杂的应用。</li>
+<li>Baas(后端即服务)：将数据库、文件存储等后端能力封装成服务，并以接口的形式提供。在FaaS中可以调用各种后端服务。</li>
+</ul>
+<p>一个Serverless的网站架构大致如下：</p>
+<p><img src="../../images/serverless/serverless%E7%BD%91%E7%AB%99%E6%9E%B6%E6%9E%84.png" alt="serverless架构"></p>
+<h2 id="XaaS"><a href="#XaaS" class="headerlink" title="XaaS"></a>XaaS</h2><p>梳理一些一些名词：IaaS、PaaS、SaaS、FaaS与BaaS</p>
+<ul>
+<li>IaaS（基础设施即服务）：虚拟化技术成熟后，出现众多云厂商和产品。例如AWS 的 EC2、阿里云 ECS。这些都属于IaaS。</li>
+<li>PaaS（平台即服务）：随着业务形态发展，云厂商发现可以抽象出一些通用的平台，比如中间件、数据库等，于是就把这些功能做成服务，也放在云上去卖，这些属于PaaS。</li>
+<li>SaaS（软件即服务）：SaaS很常见。比如邮箱服务，软件环境部署在开发者服务器中。用户只需要一个账户，打开浏览器即可使用。</li>
+<li>FaaS与BaaS上文讨论过。</li>
+</ul>
+<h2 id="Serverless-1"><a href="#Serverless-1" class="headerlink" title="Serverless"></a>Serverless</h2><h3 id="什么是Serverless"><a href="#什么是Serverless" class="headerlink" title="什么是Serverless"></a>什么是Serverless</h3><p><strong>广义的 Serverless</strong> 是指：<strong>构建和运行软件时不需要关心服务器的一种架构思想</strong></p>
+<p><strong>狭义的 Serverless</strong> 是 <strong>FaaS 和 BaaS 的组合</strong>，这是当前主流的实现</p>
+<p>Serverless的主要特点</p>
+<ul>
+<li>服务无关：开发者无需关心服务器资源（配置，磁盘大小等），只需要提供一份代码。</li>
+<li>弹性伸缩：资源的分配完全由云服务来计算，会根据请求量自动调整资源占用</li>
+<li>按量计费：在 Serverless 架构中，计费方式按实际使用量计费（比如函数调用次数、运行时长）。</li>
+</ul>
+<h3 id="PaaS、Kubernetes-、云原生等技术是不是-Serverless？"><a href="#PaaS、Kubernetes-、云原生等技术是不是-Serverless？" class="headerlink" title="PaaS、Kubernetes 、云原生等技术是不是 Serverless？"></a>PaaS、Kubernetes 、云原生等技术是不是 Serverless？</h3><p>按照<code>Serverless</code>的特点来看，它们都不是<br><code>PaaS</code>是按照服务收费并非按量收费<br><code>K8S</code>是一种容器编排技术，它可以实现弹性伸缩。但是具体的编排规则需要专业运维来设置，不符合服务无关<br>云原生是指原生为云设计的一种架构模式。<code>Serverless</code>是云原生的一种实现，<code>K8S</code>是另一种实现</p>
+<h2 id="Serverless的缺点"><a href="#Serverless的缺点" class="headerlink" title="Serverless的缺点"></a>Serverless的缺点</h2><ol>
+<li>依赖第三方：使用<code>Serverless</code>就必须使用云厂商提供的<code>Serverless</code>的产品。这样就与云厂商绑定。一旦选定一个云厂商，在想做迁移就十分复杂。这是因为当前国内<code>Serverless</code>实现没有一个公共的标准。</li>
+<li>底层硬件多样性：同一个云函数可能运行在不同硬件资源下。如果你的服务依赖于具体的硬件资源（比如只有某个CPU/GPU能够使用），这就要云厂商提供相应服务。</li>
+<li>性能瓶颈：<code>Serverless</code>的云函数不是一直运行的，只有需要的时候才会执行。每次执行前会初始化函数执行环境，这需要一定时间。而这个时间需要云厂商自己去优化。</li>
+<li>通信效率低：<code>Serverful</code>中函数掉函数都是在内存中进行的。而<code>Serverless</code>中函数都是独立的，之间调用（HTTP，RPC）肯定效率没有内存高</li>
+<li>开发调试复杂：目前<code>Serverless</code>还处于发展阶段，各厂商的标准不一，开发和调试工具不完善。</li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/8aa364dc.html">https://zxffan.github.io/posts/8aa364dc.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Serverless/"># Serverless</a>
+                    
+                        <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/"># 云计算</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/posts/82fa4d6c.html">js实现选中与复制粘贴</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

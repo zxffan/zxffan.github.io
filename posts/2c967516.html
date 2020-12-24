@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>Rust学习笔记-Ownership | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Rust学习笔记-Ownership</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">九月 16, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Rust/">Rust</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>本系列文章是笔者学习<code>Rust</code>时所做的笔记，供日后翻阅复习。</p>
+<h2 id="Ownership"><a href="#Ownership" class="headerlink" title="Ownership?"></a>Ownership?</h2><p><code>ownership</code>（所有权）是一套用来高效管理内存的方案。</p>
+<p>内存管理主要分为两种：</p>
+<ol>
+<li><code>GC(garbage collection)</code>：如<code>java</code>、<code>javascript</code>，它们都有垃圾回收机制，会不停地检查是否存在不会被使用到的内存，然后释放它</li>
+<li>手动方式：如<code>C语言</code>，需要开发者手动分配和释放内存。</li>
+</ol>
+<p><code>Rust</code>则是在编译时就能知道何时需要释放内存，而无需等到运行时，所以不会影响到程序的运行速度。</p>
+<h3 id="栈内存和堆内存"><a href="#栈内存和堆内存" class="headerlink" title="栈内存和堆内存"></a>栈内存和堆内存</h3><p>栈内存：</p>
+<ol>
+<li>按照获取值的顺序存储数据，按照相反的顺序删除值</li>
+<li>栈内存存储的数据都是定长的</li>
+</ol>
+<p>堆内存：</p>
+<ol>
+<li>无组织的</li>
+<li>存储数据时，内存分配器会找到一块足够存放的内存来存放，并将其标记为已使用，然后返回一个指针。指针是定长的并且存放在栈内存中</li>
+<li>访问堆内存比访问栈内存更耗时。栈内存是相邻的，而访问堆内存需要在内存中跳跃</li>
+</ol>
+<h3 id="Ownership规则"><a href="#Ownership规则" class="headerlink" title="Ownership规则"></a>Ownership规则</h3><ol>
+<li><code>Rust</code>中的每一个值都有且仅有一个<code>owner</code>变量</li>
+<li><code>owner</code>离开其作用域时，该值会被删除</li>
+</ol>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">  <span class="comment">// 此处：s无法访问</span></span><br><span class="line">  <span class="keyword">let</span> s = <span class="string">"hello"</span>;</span><br><span class="line">  <span class="comment">// 此处：s可以访问</span></span><br><span class="line">&#125; <span class="comment">// 此处：离开作用域，s无法访问</span></span><br></pre></td></tr></table></figure>
+
+<p><code>s</code>是字符串字面量的<code>owner</code>，离开其作用域就无法访问</p>
+<h3 id="字符串与Ownership"><a href="#字符串与Ownership" class="headerlink" title="字符串与Ownership"></a>字符串与<code>Ownership</code></h3><p>以字符串类型来说明<code>Ownership</code>。其它（存储在堆内存的）类型同理</p>
+<p>声明一个字符串类型，可以使用字面量或者<code>String</code></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">  <span class="keyword">let</span> <span class="keyword">mut</span> s = <span class="built_in">String</span>::from(<span class="string">"hello"</span>)</span><br><span class="line">  </span><br><span class="line">  s.push_str(<span class="string">", rust!"</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="built_in">println!</span>(<span class="string">"&#123;&#125;"</span>, s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>区别：字符串字面量不可修改，<code>String</code>是可以被修改的</p>
+<h4 id="内存和分配"><a href="#内存和分配" class="headerlink" title="内存和分配"></a>内存和分配</h4><p>对于字符串字面量，在编译时就已知其长度（并且不能改变）</p>
+<p>而<code>String</code>类型，为了保持其可变性，需要满足两点：</p>
+<ol>
+<li>在运行时请求内存分配：使用<code>String::from</code>就会在运行时来请求内存分配</li>
+<li>当String使用完后，需要将内存返还给内存分配器（内存回收）：<code>Rust</code>是当变量离开其作用域时就会自动调用<code>drop</code>函数，来回收其内存。</li>
+</ol>
+<h4 id="Move"><a href="#Move" class="headerlink" title="Move"></a>Move</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">  <span class="keyword">let</span> s1 = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line">  <span class="keyword">let</span> s2 = s1;</span><br><span class="line">  <span class="comment">// 此处：s2有效，s1无效</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ol>
+<li><code>String</code>是存储在堆内存中的，<code>s2 = s1</code>只会复制栈内存的数据（含指针）而不会再拷贝一份堆内存数据</li>
+<li><code>s2 = s1</code>叫做<code>s1</code>的<code>ownership</code>移动(move)到了<code>s2</code>，则<code>s1</code>会无效即无法再访问。这么做的原因是防止变量离开作用域后对同一块堆内存回收两次。</li>
+</ol>
+<h4 id="Clone"><a href="#Clone" class="headerlink" title="Clone"></a>Clone</h4><p>如果需要对堆内存进行深拷贝，就需要调用公共方法<code>clone</code></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">  <span class="keyword">let</span> s1 = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line">  <span class="keyword">let</span> s2 = s1.clone();</span><br><span class="line">  <span class="comment">// s1 s2都有效</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Copy"><a href="#Copy" class="headerlink" title="Copy"></a>Copy</h4><p>前面所说的规则适用于堆内存的数据，而对于栈内存数据则不一样</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">  <span class="keyword">let</span> x = <span class="number">5</span>;</span><br><span class="line">  <span class="keyword">let</span> y = x;</span><br><span class="line">  <span class="comment">// x y 都有效</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是因为<code>i32</code>类型具有<code>copy</code>特性</p>
+<p>具有<code>copy</code>特性的有：</p>
+<ol>
+<li>所有整型</li>
+<li>布尔类型</li>
+<li>浮点类型</li>
+<li>字符类型<code>char</code></li>
+<li>元组类型，前提：元组的成员都是具有<code>copy</code>特性的</li>
+</ol>
+<h3 id="函数与Ownership"><a href="#函数与Ownership" class="headerlink" title="函数与Ownership"></a>函数与<code>Ownership</code></h3><h4 id="传参"><a href="#传参" class="headerlink" title="传参"></a>传参</h4><p>函数传参的场景涉及到了<code>ownership</code>的<code>move</code></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">  <span class="keyword">let</span> s = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line">  takes_ownership(s);</span><br><span class="line">  <span class="comment">// s 无效，String发生move</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">let</span> x = <span class="number">10</span>;</span><br><span class="line">  makes_copy(x);</span><br><span class="line">  <span class="comment">// x 依旧有效，x具有copy特性</span></span><br><span class="line">&#125; <span class="comment">// x离开作用域 出栈；s离开作用域，由于已经无效了不会进行回收</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">takes_ownership</span></span>(some_string: <span class="built_in">String</span>) &#123;</span><br><span class="line">  <span class="built_in">println!</span>(<span class="string">"&#123;&#125;"</span>, some_string);</span><br><span class="line">&#125; <span class="comment">// some_string离开作用域，进行回收</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">makes_copy</span></span>(some_integer: <span class="built_in">i32</span>) &#123;</span><br><span class="line">  <span class="built_in">println!</span>(<span class="string">"&#123;&#125;"</span>, some_integer);</span><br><span class="line">&#125; <span class="comment">// some_integer离开作用域 出栈</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>内存回收(drop)针对堆内存，栈内存是出栈(pop off)</p>
+</blockquote>
+<h4 id="返回值和作用域"><a href="#返回值和作用域" class="headerlink" title="返回值和作用域"></a>返回值和作用域</h4><p>函数的返回值也会转移<code>ownership</code></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">  <span class="keyword">let</span> s1 = gives_ownership();         <span class="comment">// gives_ownership将返回值move给s1</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> s2 = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> s3 = takes_and_gives_back(s2);  <span class="comment">// s2 发生move</span></span><br><span class="line">                                        <span class="comment">// takes_and_gives_back将返回值move给s3</span></span><br><span class="line">&#125; </span><br><span class="line"><span class="comment">// s3离开作用域，发生drop</span></span><br><span class="line"><span class="comment">// s2离开作用域，但已经move了</span></span><br><span class="line"><span class="comment">// s1离开作用域，发生drop</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">gives_ownership</span></span>() -&gt; <span class="built_in">String</span> &#123;            </span><br><span class="line">  <span class="keyword">let</span> some_string = <span class="built_in">String</span>::from(<span class="string">"hello"</span>); </span><br><span class="line"></span><br><span class="line">  some_string <span class="comment">// some_string move给调用函数</span></span><br><span class="line">&#125; <span class="comment">// some_string，已经move了</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">takes_and_gives_back</span></span>(a_string: <span class="built_in">String</span>) -&gt; <span class="built_in">String</span> &#123; </span><br><span class="line"></span><br><span class="line">    a_string  <span class="comment">// a_string move给调用函数</span></span><br><span class="line">&#125; <span class="comment">// a_string 离开作用域，发生drop</span></span><br></pre></td></tr></table></figure>
+
+<p>由于<code>ownership</code>存在<code>move</code>，所以只有当函数将数据返回，我们才能再次使用。<code>Rust</code>支持多返回值，所以不会干扰其它返回值数据。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> s1 = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> (s2, len) = calculate_length(s1);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"The length of '&#123;&#125;' is &#123;&#125;."</span>, s2, len);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">calculate_length</span></span>(s: <span class="built_in">String</span>) -&gt; (<span class="built_in">String</span>, <span class="built_in">usize</span>) &#123; <span class="comment">// 返回类型是一个元组</span></span><br><span class="line">    <span class="keyword">let</span> length = s.len();</span><br><span class="line"></span><br><span class="line">    (s, length) <span class="comment">// 多返回值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><h3 id="Immutable-References"><a href="#Immutable-References" class="headerlink" title="Immutable References"></a>Immutable References</h3><p>在函数传参的场景下，由于<code>ownership</code>的存在，一旦<code>ownership</code>发生<code>move</code>。就无法在函数体之后的部分访问到该变量。</p>
+<p>这是<code>Rust</code>故意设计的，但<code>Rust</code>又提供了另一种函数传参方式而不会发生<code>move</code>——<code>引用(References)</code></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> s1 = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> len = calculate_length(&amp;s1); <span class="comment">// 加个 &amp;号表示 创建一个Reference 指向s1</span></span><br><span class="line">		</span><br><span class="line">  	<span class="comment">// s1 依旧有效</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// len 离开作用域，出栈</span></span><br><span class="line"><span class="comment">// s1 离开作用域 drop</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">calculate_length</span></span>(s: &amp;<span class="built_in">String</span>) -&gt; <span class="built_in">usize</span> &#123; <span class="comment">// 接受参数也是一个 Reference</span></span><br><span class="line">    s.len()</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// s离开作用域，它是Reference 不会drop</span></span><br></pre></td></tr></table></figure>
+
+<p><code>Reference</code>不会获得原数据的<code>ownership</code></p>
+<p>上例中，我们称<code>calculate_length</code>函数<code>租借(borrowing)</code>s1</p>
+<p>但是，<code>calculate_length</code>内部不能修改 s1，否则编译器会报错</p>
+<h3 id="Mutable-References"><a href="#Mutable-References" class="headerlink" title="Mutable References"></a>Mutable References</h3><p>如果需要修改<code>Reference</code>，就可以使用<code>&amp;mut s</code>的形式声明一个<code>Mutable References</code>。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut</span> s = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line"></span><br><span class="line">    change(&amp;<span class="keyword">mut</span> s);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">change</span></span>(some_string: &amp;<span class="keyword">mut</span> <span class="built_in">String</span>) &#123;</span><br><span class="line">    some_string.push_str(<span class="string">", world"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但也是又限制的</p>
+<ol>
+<li>同一作用域下，同一数据块只能有一个<code>Mutable References</code>，这是为了防止<code>Data races</code></li>
+<li>在使用<code>Immutable Reference</code>的同时，不能使用<code>Mutable References</code></li>
+</ol>
+<h3 id="Dangling-References"><a href="#Dangling-References" class="headerlink" title="Dangling References"></a>Dangling References</h3><p>悬挂引用（空指针），看个例子</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> reference_to_nothing = dangle();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">dangle</span></span>() -&gt; &amp;<span class="built_in">String</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> s = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line"></span><br><span class="line">    &amp;s</span><br><span class="line">&#125; <span class="comment">// s离开作用域 drop</span></span><br><span class="line"><span class="comment">// 函数返回 s的Reference，但s已经被drop。这个reference就是Dangling References</span></span><br></pre></td></tr></table></figure>
+
+<p>Rust是不允许这种情况发生的，所以这样写会报错。</p>
+<h2 id="Slice"><a href="#Slice" class="headerlink" title="Slice"></a>Slice</h2><h3 id="字符串切片"><a href="#字符串切片" class="headerlink" title="字符串切片"></a>字符串切片</h3><p>切片(<code>slice</code>)同样也不会发生<code>ownership</code>转移</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">  <span class="keyword">let</span> s = <span class="built_in">String</span>::from(<span class="string">"hello world!"</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">let</span> s1 = &amp;s[<span class="number">0</span>..<span class="number">3</span>];</span><br><span class="line">  <span class="keyword">let</span> s2 = &amp;s[<span class="number">3</span>..<span class="number">12</span>];</span><br><span class="line">  </span><br><span class="line">  <span class="built_in">println!</span>(<span class="string">"&#123;&#125;-&#123;&#125;"</span>, s1, s2); <span class="comment">// hel-lo world!</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>&amp;s[0..3]</code>会创建s中索引[0, 2]的<code>Reference</code>。</p>
+<p>有几种可以省略值的写法：</p>
+<ol>
+<li><p><code>[0..2]</code>和<code>[..2]</code>是等价的</p>
+</li>
+<li><p><code>[2..len]</code>和<code>[2..]</code>等价，<code>len</code>为总长度</p>
+</li>
+<li><p><code>[0..len]</code>和<code>[..]</code>等价</p>
+</li>
+</ol>
+<p>从数据结构角度看，<code>String Slice</code>会存储起始位置和长度：</p>
+<p><img src="../../images/rust-string-slice-structure.png" alt="rust-string-slice-structure"></p>
+<p>写一个查找字符串首个单词</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">  <span class="keyword">let</span> s = <span class="built_in">String</span>::from(<span class="string">"hello world!"</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">let</span> word = first_word(&amp;s); <span class="comment">// &amp;s[..]也可以</span></span><br><span class="line">  <span class="built_in">println!</span>(<span class="string">"&#123;&#125;"</span>, word); <span class="comment">// hello</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">first_word</span></span>(s: &amp;<span class="built_in">str</span>) -&gt; &amp;<span class="built_in">str</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> bytes = s.as_bytes();</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (i, &amp;item) <span class="keyword">in</span> bytes.iter().enumerate() &#123;</span><br><span class="line">    <span class="keyword">if</span> item == <span class="string">b' '</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> &amp;s[..i];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  &amp;s[..]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>字符串切片的类型是<code>&amp;str</code>，<code>&amp;str</code>类型能够兼容<code>&amp;String</code>和<code>&amp;str</code></p>
+<h3 id="字符串字面量"><a href="#字符串字面量" class="headerlink" title="字符串字面量"></a>字符串字面量</h3><p>字符串字面量本身就是<code>slice</code></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> s = <span class="string">"Hello, World!"</span></span><br></pre></td></tr></table></figure>
+
+<p><code>s</code>的类型就是<code>&amp;str</code>即一个字符串切片。<code>&amp;str</code>是一个<code>Immutable Reference</code>，所以字符串字面量不可变</p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/2c967516.html">https://zxffan.github.io/posts/2c967516.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Rust/"># Rust</a>
+                    
+                        <a href="/tags/%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0/"># 语言学习</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/d5def5e2.html">算法——数组去重</a>
+            
+            
+            <a class="next" rel="next" href="/posts/2b6933ae.html">学习路径</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>函数式编程 | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">函数式编程</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">十二月 11, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Programing/">Programing</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="函数式编程要素"><a href="#函数式编程要素" class="headerlink" title="函数式编程要素"></a>函数式编程要素</h2><ul>
+<li>声明式</li>
+<li>纯函数</li>
+<li>不可变性</li>
+</ul>
+<h3 id="声明式"><a href="#声明式" class="headerlink" title="声明式"></a>声明式</h3><p><strong>声明式</strong>是将程序的描述与求值分离开来的。它关注于如何用各种表达式来描述程序逻辑。与其相对的是<strong>命令式</strong>。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// demo：求数组的每个元素（数值类型）的平方</span></span><br><span class="line"><span class="keyword">const</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">// 命令式</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">  arr[i] = <span class="built_in">Math</span>.pow(arr[i], <span class="number">2</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 声明式</span></span><br><span class="line"><span class="keyword">const</span> square = <span class="function"><span class="params">num</span> =&gt;</span> <span class="built_in">Math</span>.pow(num, <span class="number">2</span>)</span><br><span class="line">arr.map(square)</span><br></pre></td></tr></table></figure>
+
+<h3 id="纯函数"><a href="#纯函数" class="headerlink" title="纯函数"></a>纯函数</h3><p>纯函数要求：</p>
+<ul>
+<li>对于同一组输入必然有相同的输出。</li>
+<li>不依赖于外部环境也不改变外部环境。</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 具有副作用的函数</span></span><br><span class="line"><span class="keyword">let</span> count1 = <span class="number">0</span>;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">increment1</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> ++count1 <span class="comment">// 引用了全局变量</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 纯函数</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">increment2</span>(<span class="params">count</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> count + <span class="number">1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实际上，纯函数是很难得的。我们要做的就是尽可能地把具有副作用地部分抽离出来，让逻辑结构更加清晰。</p>
+<h3 id="不可变数据"><a href="#不可变数据" class="headerlink" title="不可变数据"></a>不可变数据</h3><p>处理数据时不要修改原数据，尽可能得基于原数据来构造新数据。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// demo: 数组排序</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> arr = [<span class="number">4</span>, <span class="number">6</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">8</span>, <span class="number">5</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">// mutable</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sort1</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> arr.sort()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// immutable</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sort1</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> [].concat(arr).sort()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>函数式编程鼓励将复杂的任务分成成一个个纯函数。再将这些函数进行组合。这样使得任务流更加清晰，更易于维护</p>
+</blockquote>
+<h2 id="柯里-curry-化"><a href="#柯里-curry-化" class="headerlink" title="柯里(curry)化"></a>柯里(curry)化</h2><p>柯里化可以缩减函数参数。</p>
+<p>一个向节点插入参数的demo</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">insertText</span>(<span class="params">dom, text</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">document</span>.querySelector(dom).innerText = text</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">insertText(<span class="string">"container"</span>, <span class="string">"hello world"</span>)</span><br></pre></td></tr></table></figure>
+
+<p>经过柯里化后就变成了</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">insertText</span>(<span class="params">dom</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params">text</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">document</span>.querySelector(dom).innerText = text</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> insertToContainer = insertText(<span class="string">"container"</span>)</span><br><span class="line">insertToContainer(<span class="string">"hello world"</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="组合"><a href="#组合" class="headerlink" title="组合"></a>组合</h2><p>组合是函数式编程的一个重要概念。将一个复杂的逻辑拆分成一个个函数后，需要将这些函数组合起来执行。</p>
+<h3 id="链式组合"><a href="#链式组合" class="headerlink" title="链式组合"></a>链式组合</h3><p>在组合纯函数时，通过链式的方式比较容易被理解，例如:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">arr.filter(<span class="comment">/** .. **/</span>)</span><br><span class="line">   .map(<span class="comment">/** .. **/</span>)</span><br><span class="line">   .reduce(<span class="comment">/** .. **/</span>)</span><br><span class="line">   <span class="comment">//...</span></span><br></pre></td></tr></table></figure>
+
+<p>真的打算使用链式组合法的话，推荐<code>lodash.js</code>这个工具库。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> users = [</span><br><span class="line">  &#123; <span class="string">'user'</span>: <span class="string">'barney'</span>,  <span class="string">'age'</span>: <span class="number">36</span> &#125;,</span><br><span class="line">  &#123; <span class="string">'user'</span>: <span class="string">'fred'</span>,    <span class="string">'age'</span>: <span class="number">40</span> &#125;,</span><br><span class="line">  &#123; <span class="string">'user'</span>: <span class="string">'pebbles'</span>, <span class="string">'age'</span>: <span class="number">1</span> &#125;</span><br><span class="line">];</span><br><span class="line"> </span><br><span class="line"><span class="keyword">var</span> youngest = _</span><br><span class="line">  .chain(users)</span><br><span class="line">  .sortBy(<span class="string">'age'</span>)</span><br><span class="line">  .map(<span class="function"><span class="keyword">function</span>(<span class="params">o</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> o.user + <span class="string">' is '</span> + o.age;</span><br><span class="line">  &#125;)</span><br><span class="line">  .head()</span><br><span class="line">  .value();</span><br><span class="line"><span class="comment">// =&gt; 'pebbles is 1'</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="管道组合"><a href="#管道组合" class="headerlink" title="管道组合"></a>管道组合</h3><p>方法链的一个缺点就是：它与方法所属的对象紧紧地耦合在一起，限制链中可以使用的方法数量，也就限制了代码的表现力。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">first</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getName</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">reverse</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sort</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> task = pipe(first, getName, reverse, sort) <span class="comment">// pipe 用来组合函数</span></span><br><span class="line"></span><br><span class="line">task(params)</span><br></pre></td></tr></table></figure>
+
+<p><code>pipe</code>将函数组合起来。<code>task</code>执行后，将<code>params</code>传递给<code>first</code>。<code>first</code>函数执行完成后再将结果传递给<code>getName</code>。由此类推，将所有函数组合起来，形如一条管道。</p>
+<p>上例中，<code>pipe</code>的参数都是函数声明，如果某个函数需要提前传入一些参数可以使用<strong>柯里化</strong></p>
+<p>这里推荐一下<code>Ramda.js</code>这个工具库。它与<code>lodash</code>相似但却又不相同，它内置<code>pipe</code>方法以及其它组合方法。</p>
+<h2 id="管道组合处理程序流"><a href="#管道组合处理程序流" class="headerlink" title="管道组合处理程序流"></a>管道组合处理程序流</h2><p>上面的例子，都没有涉及到 逻辑分支。在命令式代码中，我们很容易就会写<code>if/else</code>，而函数式编程是不建议直接使用<code>if/else</code>的。</p>
+<p>在<code>Ramda.js</code>中<code>pipe</code>是用来组合函数的，叫做<strong>组合器</strong>。除了<code>pipe</code>还有其它组合器</p>
+<h3 id="R-compose"><a href="#R-compose" class="headerlink" title="R.compose"></a>R.compose</h3><p><code>compose</code>与<code>pipe</code>功能一样，只是组合的方向相反。<br><code>R.compose(f1, f2, f3)</code>, 他会先执行f3，然后执行f2，最后f1</p>
+<h3 id="R-tap"><a href="#R-tap" class="headerlink" title="R.tap"></a>R.tap</h3><p><code>compose</code>和<code>pipe</code>组合函数时，存在参数传递。每个函数的返回值都给传给管道中的下一个函数。<br>如果中间有一个函数没有返回值（比如 日志埋点）就无法构成管道。</p>
+<p><code>tap</code>能够将一个无返回值的函数插入管道中，因为tap会将参数原样返回。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> debug = R.tap(debugLog);</span><br><span class="line"><span class="keyword">const</span> cleanInput = R.compose(normalize, debug, trim);</span><br><span class="line"><span class="keyword">const</span> isValidSsn = R.compose(debug, checkLengthSsn, debug, cleanInput);</span><br></pre></td></tr></table></figure>
+
+<h3 id="alternation"><a href="#alternation" class="headerlink" title="alternation"></a>alternation</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> alt = <span class="function"><span class="keyword">function</span> (<span class="params">...fns</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params">val</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> result</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> fn <span class="keyword">of</span> fns) &#123;</span><br><span class="line">      result = fn(val);</span><br><span class="line">      <span class="keyword">if</span> (result) <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>alt(fn1, fn2, fn3, ...)</code>，如果fn1的返回值不是<code>false</code>、<code>null</code>和<code>undefined</code>则返回fn1的返回值。否则执行fn2的，再判断其返回值。<br>所以<code>alt</code>能够提供简单的逻辑条件判断</p>
+<h3 id="sequence"><a href="#sequence" class="headerlink" title="sequence"></a>sequence</h3><p>实现如下</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> seq = <span class="function"><span class="keyword">function</span>(<span class="params">...funcs</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> funcs = <span class="built_in">Array</span>.prototype.slice.call(<span class="built_in">arguments</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params">val</span>) </span>&#123;</span><br><span class="line">    funcs.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">fn</span>) </span>&#123;</span><br><span class="line">      fn(val);</span><br><span class="line">    &#125;);    </span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><code>seq(fn1, fn2, fn3, ...)</code>, 会顺序执行所有函数，这些函数在管道中时平行的，它们都接受管道中上一个函数的返回值作为参数。通常放在管道的末尾。</p>
+<h3 id="fork-join"><a href="#fork-join" class="headerlink" title="fork-join"></a>fork-join</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fork</span> (<span class="params">join, ...fns</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params">val</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> result = []</span><br><span class="line">    fns.forEach(<span class="function"><span class="params">fn</span> =&gt;</span> result.push(fn(val)));</span><br><span class="line">    join(...result)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>fork</code>相对于<code>seq</code>增加了一步，将所有函数的执行结果传递给<code>join</code>，再做一次处理。</p>
+<p>未完…</p>
+<h2 id="Functor-amp-amp"><a href="#Functor-amp-amp" class="headerlink" title="Functor &amp;&amp;"></a>Functor &amp;&amp;</h2><p>一个Functor认为是<strong>定义了fmap的任意类型</strong></p>
+<p>从本质上讲，Functor 只是一个可以将函数应用到它包裹的值上，并将结果再包裹起来的<strong>数据结构</strong>。</p>
+<p>实例：完成 2+3+2 = 7。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 柯里化</span></span><br><span class="line"><span class="keyword">const</span> plus = R.curry(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a + b);</span><br><span class="line"><span class="keyword">const</span> plus2 = plus(<span class="number">2</span>)</span><br><span class="line"><span class="keyword">const</span> plus3 = plus(<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 封装</span></span><br><span class="line"><span class="keyword">const</span> two = <span class="keyword">new</span> Wrapper(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 计算</span></span><br><span class="line"><span class="keyword">const</span> result = two.fmap(plus2).fmap(plus3)</span><br><span class="line">result.identity()</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Wrapper</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(val) &#123;</span><br><span class="line">    <span class="keyword">this</span>._val = val</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  fmap(fn) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Wrapper(fn(<span class="keyword">this</span>._val))</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  identity() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>._val</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>fmap</code>就是一个<code>functor</code>。它接受一个函数返回的仍是一个封装后的对象，</p>
+<ul>
+<li><p>封装原数据，避免修改</p>
+</li>
+<li><p>方便使用链式调用。</p>
+</li>
+</ul>
+<p><code>Array</code>的<code>map</code>, <code>reduce</code>等函数也是<code>functor</code></p>
+<h2 id="Monad"><a href="#Monad" class="headerlink" title="Monad"></a>Monad</h2><p>首先，<code>functor</code>有一种局限性，就是容易发生嵌套<code>wrapper</code>的情况</p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/1690d21b.html">https://zxffan.github.io/posts/1690d21b.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/programing/"># programing</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/82fa4d6c.html">js实现选中与复制粘贴</a>
+            
+            
+            <a class="next" rel="next" href="/posts/46109b3a.html">Webpack5</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

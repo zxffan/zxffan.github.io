@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>搞懂EventLoop | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">搞懂EventLoop</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">九月 1, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/JavaScript/">JavaScript</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="JavaScript-amp-单线程"><a href="#JavaScript-amp-单线程" class="headerlink" title="JavaScript&amp;单线程"></a>JavaScript&amp;单线程</h2><h3 id="进程与线程"><a href="#进程与线程" class="headerlink" title="进程与线程"></a>进程与线程</h3><p>进程是cpu分配资源的最小单位；线程是cpu调度的最小单位。一个进程可以包含多个线程。</p>
+<p>cpu给进程分配资源，进程再创建线程去工作。实际干活的是线程。同一进程下的线程共享该进程的资源。</p>
+<p>通常，进程之间是<strong>并行执行</strong>；线程之间是<strong>并发执行</strong></p>
+<h3 id="浏览器的多进程模型"><a href="#浏览器的多进程模型" class="headerlink" title="浏览器的多进程模型"></a>浏览器的多进程模型</h3><p>以开源的<code>Chromium</code>浏览器为例，当打开浏览器就会创建一个主进程，每打开一个<code>tab</code>就会再创建一个子进程。这个子进程管理每个页面。而在这个子进程中又有若干线程，例如：UI线程、JS引擎线程、浏览器事件线程 、http请求线程、EventLoop轮询处理线程等。</p>
+<h3 id="JavaScript单线程"><a href="#JavaScript单线程" class="headerlink" title="JavaScript单线程"></a>JavaScript单线程</h3><p>上面提到的<code>JS引擎线程</code>就是运行<code>JavaScript</code>代码的那个线程。所以说JavaScript是单线程的，其实更加准确地说，应该是<code>JavaScript</code>的<code>runtime</code>是单线程的。</p>
+<p>Why?</p>
+<p>这是由<code>JavaScript</code>的用途决定的。<code>JS</code>最初是被设计成浏览器脚本语言</p>
+<p>如果设计成多线程的话，多个线程同时访问或修改dom的话，就乱套了，这时必须引入<strong>锁</strong>了，这对脚本语言来说没有必要。</p>
+<h3 id="Web-Worker"><a href="#Web-Worker" class="headerlink" title="Web Worker"></a>Web Worker</h3><p><code>H5</code>的<code>Web Worker</code>标准可以让主线程创建子线程，但它并未违背<code>JavaScript</code>设计初衷，应为它对子线程有很多限制：</p>
+<ol>
+<li>子线程完全由主线程控制</li>
+<li>子线程不能操作DOM</li>
+</ol>
+<p>更多<code>Web Worker</code>信息，请查看<a href="http://www.ruanyifeng.com/blog/2018/07/web-worker.html" target="_blank" rel="noopener">阮一峰网络日志</a></p>
+<h2 id="同步任务和异步任务"><a href="#同步任务和异步任务" class="headerlink" title="同步任务和异步任务"></a>同步任务和异步任务</h2><h3 id="单线程的问题"><a href="#单线程的问题" class="headerlink" title="单线程的问题"></a>单线程的问题</h3><p>已经明确了<code>javascript</code>是一门单线程的语言。</p>
+<p>但是单线程会面临一个问题：</p>
+<p>我们的代码时一行一行地执行，当前面的没有执行完，后面地就需要等待。</p>
+<p>如果程序中间有个请求接口代码块，那么当接口没有返回内容，后面地代码就需要一直等待。这时整个线程是卡死的。</p>
+<p>这显然不行，<code>JavaScript</code>引入了<strong>同步任务</strong>和<strong>异步任务</strong>的概念来解决这个问题。</p>
+<h3 id="EventLoop"><a href="#EventLoop" class="headerlink" title="EventLoop"></a>EventLoop</h3><p><img src="../../images/%E5%90%8C%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%92%8C%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1.webp" alt="同步任务和异步任务"></p>
+<p>同步任务就是需要立即执行的任务，它没执行完后面的需要等待</p>
+<p>异步任务就是不需要立即执行的任务，比如ajax接口请求、<code>setTimeout</code>等。如果是异步任务就会在<code>Event Table</code>中注册，当指定的事件完成之后（例如接口返回响应了），就将其回调函数放到<code>Event Queue</code>中</p>
+<p>当主线程内的同步任务全部执行完毕后，会去读<code>Event Queue</code>中的函数，放入主线程执行。</p>
+<p>上述过程会一直重复执行，而这个过程被称为<code>Event Loop</code>。</p>
+<h2 id="宏任务和微任务"><a href="#宏任务和微任务" class="headerlink" title="宏任务和微任务"></a>宏任务和微任务</h2><p>同步任务和异步任务是广义上的划分。而宏任务(<code>macro task</code>)和微任务(<code>micro task</code>)是更为精细的划分</p>
+<h3 id="划分"><a href="#划分" class="headerlink" title="划分"></a>划分</h3><p>宏任务：</p>
+<table>
+<thead>
+<tr>
+<th align="left">#</th>
+<th align="center">浏览器</th>
+<th align="center">Node</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>main script</code></td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td align="left"><code>I/O</code></td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td align="left"><code>setTimeout</code></td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td align="left"><code>setInterval</code></td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td align="left"><code>setImmediate</code></td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td align="left"><code>requestAnimationFrame</code></td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+</tr>
+</tbody></table>
+<p>微任务：</p>
+<table>
+<thead>
+<tr>
+<th align="left">#</th>
+<th align="center">浏览器</th>
+<th align="center">Node</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>process.nextTick</code></td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td align="left"><code>MutationObserver</code></td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td align="left"><code>Promise.then catch finally</code></td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+</tbody></table>
+<p>微任务是属于宏任务的，换句话说，一个宏任务可以包含多个微任务</p>
+<h3 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h3><p>以浏览器为例，由两个任务队列，<strong>宏任务队列</strong>存放宏任务；<strong>微任务队列</strong>存放微任务</p>
+<p><code>main script</code>也就是<code>script</code>标签里的代码是第一个宏任务。存放至宏任务队列</p>
+<p>当第一次Event Loop时，检查两个队列，首先检查微任务队列（微任务的优先级比宏任务高）发现没有任务；再去检查宏任务队列，发现有任务<code>main script</code>取出执行。</p>
+<p><code>main script</code>里有可能又有宏任务和微任务，再分别放入相应队列。</p>
+<h3 id="几个API"><a href="#几个API" class="headerlink" title="几个API"></a>几个API</h3><h4 id="setImmediate"><a href="#setImmediate" class="headerlink" title="setImmediate"></a>setImmediate</h4><p>这个API是<code>nodejs</code>独有的，表示在一次<code>Event Loop</code>执行完毕后调用</p>
+<h4 id="process-nextTick"><a href="#process-nextTick" class="headerlink" title="process.nextTick"></a>process.nextTick</h4><p>这个API也是<code>nodejs</code>独有的，他会将注册的回调函数插入当前微任务队列的队首。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">process.nextTick(<span class="function"><span class="params">()</span> =&gt;</span> <span class="built_in">console</span>.log(<span class="number">1</span>));</span><br><span class="line"><span class="built_in">Promise</span>.resolve().then(<span class="function"><span class="params">()</span> =&gt;</span> <span class="built_in">console</span>.log(<span class="number">2</span>));</span><br><span class="line">process.nextTick(<span class="function"><span class="params">()</span> =&gt;</span> <span class="built_in">console</span>.log(<span class="number">3</span>));</span><br><span class="line"><span class="built_in">Promise</span>.resolve().then(<span class="function"><span class="params">()</span> =&gt;</span> <span class="built_in">console</span>.log(<span class="number">4</span>));</span><br><span class="line"><span class="built_in">console</span>.log(<span class="number">5</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// output: 5 1 3 2 4</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Promise"><a href="#Promise" class="headerlink" title="Promise"></a>Promise</h4><p><code>promise</code>是<code>es2015</code>新增的API。提供了强大的异步特性。</p>
+<p><code>promise</code>的<code>executor</code>是一个同步函数会立即执行，<code>then</code>中的回调会被注册为微任务</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="number">1</span>);</span><br><span class="line">    resolve();</span><br><span class="line">&#125;).then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="number">3</span>)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// output: 1 2 3</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="async-await"><a href="#async-await" class="headerlink" title="async/await"></a>async/await</h4><p><code>async/await</code>仅仅影响的是函数内的执行，而不会影响到函数体外的执行顺序。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">async1</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"async1 start"</span>);</span><br><span class="line">    <span class="keyword">await</span>  async2();</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"async1 end"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span>  <span class="function"><span class="keyword">function</span> <span class="title">async2</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'async2'</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">"script start"</span>);</span><br><span class="line"></span><br><span class="line">setTimeout(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"settimeout"</span>);</span><br><span class="line">&#125;,<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">async1();</span><br><span class="line"></span><br><span class="line"><span class="comment">// output: </span></span><br><span class="line"><span class="comment">// script start</span></span><br><span class="line"><span class="comment">// async1 start</span></span><br><span class="line"><span class="comment">// async2</span></span><br><span class="line"><span class="comment">// async1 end</span></span><br><span class="line"><span class="comment">// settimeout</span></span><br></pre></td></tr></table></figure>
+
+<p><code>await async2()</code>相当于执行一个<code>Promise</code>，<code>console.log(&#39;async2&#39;);</code>属于<code>executor</code>；<code>awaait</code>后面的内容相当于<code>then</code>，会被放入微任务队列。</p>
+<h2 id="综合试题"><a href="#综合试题" class="headerlink" title="综合试题"></a>综合试题</h2><p>在网上找到这么一道综合题：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">async1</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"async1 start"</span>);</span><br><span class="line">    <span class="keyword">await</span>  async2();</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"async1 end"</span>); <span class="comment">// async1 end</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">async</span>  <span class="function"><span class="keyword">function</span> <span class="title">async2</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'async2'</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">"script start"</span>);</span><br><span class="line"></span><br><span class="line">setTimeout(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="comment">// setTimeout1</span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"settimeout"</span>);</span><br><span class="line">&#125;);</span><br><span class="line">async1()</span><br><span class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span> (<span class="params">resolve</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"promise1"</span>);</span><br><span class="line">    resolve();</span><br><span class="line">&#125;).then(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;  <span class="comment">// promise then</span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"promise2"</span>);</span><br><span class="line">&#125;);</span><br><span class="line">setImmediate(<span class="function"><span class="params">()</span>=&gt;</span>&#123; <span class="comment">// setImmediate</span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"setImmediate"</span>)</span><br><span class="line">&#125;)</span><br><span class="line">process.nextTick(<span class="function"><span class="params">()</span>=&gt;</span>&#123; <span class="comment">// nextTick</span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"process"</span>)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'script end'</span>);</span><br></pre></td></tr></table></figure>
+
+<p>分析：</p>
+<ol>
+<li>输出<code>script start</code>，setTimeout1放入宏任务队列<ol>
+<li>宏任务队列：[setTimeout1]</li>
+<li>微任务队列：[]</li>
+</ol>
+</li>
+<li>执行async1，输出<code>async1 start</code>，执行async2，输出<code>async2</code>;将<code>async1 end</code>放入微任务队列<ol>
+<li>宏任务队列：[setTimeout1]</li>
+<li>微任务队列：[async1 end]</li>
+</ol>
+</li>
+<li>执行Promise的<code>executor</code>，输出<code>promise1</code>；将<code>promise then</code>放入微任务队列<ol>
+<li>宏任务队列：[setTimeout1]</li>
+<li>微任务队列：[async1 end, promise then]</li>
+</ol>
+</li>
+<li>遇到setImmediate，将<code>setImmediate</code>放入宏任务队列<ol>
+<li>宏任务队列：[setTimeout1， setImmediate]</li>
+<li>微任务队列：[async1 end, promise then]</li>
+</ol>
+</li>
+<li>遇到process.nextTick，将<code>nextTick</code>放入微任务队列队首<ol>
+<li>宏任务队列：[setImmediate, setTimeout1]</li>
+<li>微任务队列：[nextTick ,async1 end, promise then]</li>
+</ol>
+</li>
+<li>输出<code>script end</code></li>
+<li>先依次取出微任务队列的任务执行，输出：<code>process</code>、<code>async1 end</code>、<code>promise2</code></li>
+<li>然后依次取出所有宏任务执行，输出：<code>settimeout</code>、<code>setImmediate</code></li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/d0699962.html">https://zxffan.github.io/posts/d0699962.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/nodejs/"># nodejs</a>
+                    
+                        <a href="/tags/browser/"># browser</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/2b6933ae.html">学习路径</a>
+            
+            
+            <a class="next" rel="next" href="/posts/378e5729.html">Webpack-问题梳理</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

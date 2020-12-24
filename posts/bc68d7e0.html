@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>Electron-测试 | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Electron-测试</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">八月 5, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Electron/">Electron</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="测试金字塔"><a href="#测试金字塔" class="headerlink" title="测试金字塔"></a>测试金字塔</h2><p><img src="../../images/%E6%B5%8B%E8%AF%95%E9%87%91%E5%AD%97%E5%A1%94.png" alt="测试金字塔"></p>
+<p>前端软件测试可以分为三步</p>
+<h3 id="单元测试（Unit-Test）"><a href="#单元测试（Unit-Test）" class="headerlink" title="单元测试（Unit Test）"></a>单元测试（<code>Unit Test</code>）</h3><p>单元测试是用来对一个模块、一个函数、一个组件或者一个类来进行正确性检验的测试工作。</p>
+<p>单元测试应该是最多的，而且快。</p>
+<p>单元测试颗粒更细，更加具体。测试失败要返回错误原因</p>
+<h3 id="快照测试（snapshot-Test）"><a href="#快照测试（snapshot-Test）" class="headerlink" title="快照测试（snapshot Test）"></a>快照测试（<code>snapshot Test</code>）</h3><p>快照测试就是运行测试的时候，把结果保存一份，之后再来对比，比对不上测试就不通过。</p>
+<h3 id="端到端测试（E2E-Test）"><a href="#端到端测试（E2E-Test）" class="headerlink" title="端到端测试（E2E Test）"></a>端到端测试（<code>E2E Test</code>）</h3><p>端到端测试时模拟用户的整个交互过程。比如：点击按钮 =&gt; 显示表单 =&gt; 填写数据 =&gt; 点击提交按钮 =&gt; 验证数据发送。 </p>
+<h2 id="Electron-测试"><a href="#Electron-测试" class="headerlink" title="Electron 测试"></a>Electron 测试</h2><h3 id="处理Electron驱动"><a href="#处理Electron驱动" class="headerlink" title="处理Electron驱动"></a>处理Electron驱动</h3><p>可以使用官方提供的<code>spectron</code>；也可以<a href="https://www.electronjs.org/docs/tutorial/automated-testing-with-a-custom-driver" target="_blank" rel="noopener">自定义驱动</a></p>
+<h3 id="选择测试框架-工具"><a href="#选择测试框架-工具" class="headerlink" title="选择测试框架+工具"></a>选择测试框架+工具</h3><ol>
+<li>ava</li>
+<li>mocha+chai</li>
+<li>jest</li>
+<li>…</li>
+</ol>
+<h3 id="管理测试用例"><a href="#管理测试用例" class="headerlink" title="管理测试用例"></a>管理测试用例</h3><p>通常在项目建立一个<code>test</code>目录，专门存放测试用例。</p>
+<p>按模块、功能分好类</p>
+<h3 id="创建测试脚本"><a href="#创建测试脚本" class="headerlink" title="创建测试脚本"></a>创建测试脚本</h3><p>在<code>package.json</code>加入<code>test</code>命令，编写自定义脚本，test命令去执行这个脚本。</p>
+<p>脚本主要用来执行测试用例</p>
+<h2 id="自动化测试流程"><a href="#自动化测试流程" class="headerlink" title="自动化测试流程"></a>自动化测试流程</h2><h3 id="测试准备"><a href="#测试准备" class="headerlink" title="测试准备"></a>测试准备</h3><p>数据mock、准备上下文。</p>
+<h3 id="测试用例描述"><a href="#测试用例描述" class="headerlink" title="测试用例描述"></a>测试用例描述</h3><p>用来说明这个测试用例是用来做什么的</p>
+<h3 id="行为"><a href="#行为" class="headerlink" title="行为"></a>行为</h3><p>要做什么事</p>
+<h3 id="断言"><a href="#断言" class="headerlink" title="断言"></a>断言</h3><p>得到什么结果</p>
+<h3 id="测试后处理"><a href="#测试后处理" class="headerlink" title="测试后处理"></a>测试后处理</h3><p>清理mock的数据，清理上下文</p>
+<h2 id="Electron测试编码"><a href="#Electron测试编码" class="headerlink" title="Electron测试编码"></a>Electron测试编码</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Application = <span class="built_in">require</span>(<span class="string">'spectron'</span>).Application</span><br><span class="line"><span class="keyword">const</span> electronPath = <span class="built_in">require</span>(<span class="string">'electron'</span>)</span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// jest 测试工具</span></span><br><span class="line">describe(<span class="string">'Application lanuch'</span>, () =&gt; &#123;</span><br><span class="line">    <span class="keyword">let</span> app</span><br><span class="line">	beforeEach(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        app = <span class="keyword">new</span> Application(&#123;</span><br><span class="line">            path: electronPath</span><br><span class="line">            args: [path.join(__dirname, <span class="string">'../'</span>)]</span><br><span class="line">        &#125;)</span><br><span class="line">    	<span class="keyword">return</span> app.start()</span><br><span class="line">	&#125;);</span><br><span class="line">    afterEach(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span>(app &amp;&amp; app.isRunning()) <span class="keyword">return</span> app.stop()</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">	test(<span class="string">'Check if the window is visible'</span>, () =&gt; &#123;</span><br><span class="line">        expect(app.browserWindow.isVisible()).toBeTruthy()</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">	test(<span class="string">'Get the window\'s title'</span>, () =&gt; &#123;</span><br><span class="line">        expect(app.client.getTitle()).toBe(<span class="string">'My App'</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/bc68d7e0.html">https://zxffan.github.io/posts/bc68d7e0.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/Electron/"># Electron</a>
+                    
+                        <a href="/tags/%E6%A1%8C%E9%9D%A2%E7%AB%AF%E8%BD%AF%E4%BB%B6/"># 桌面端软件</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/b81ed83c.html">Electron-安全</a>
+            
+            
+            <a class="next" rel="next" href="/posts/72ce1ec4.html">Electron-集成原生能力</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>
