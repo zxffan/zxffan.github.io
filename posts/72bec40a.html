@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>JavaScript沙箱 | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">JavaScript沙箱</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">十二月 28, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/JavaScript/">JavaScript</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <blockquote>
+<p><strong>沙盒</strong>（英语：sandbox，又译为<strong>沙箱</strong>）是一种安全机制，为运行中的程序提供的隔离环境。通常是作为一些来源不可信、具破坏力或无法判定程序意图的程序提供实验之用 <strong>by wikipedia</strong></p>
+</blockquote>
+<p>简单的说，沙箱就是一个隔离的环境。沙箱里外互不影响。</p>
+<h2 id="Node的沙箱环境"><a href="#Node的沙箱环境" class="headerlink" title="Node的沙箱环境"></a>Node的沙箱环境</h2><p><code>nodejs</code>内置了一个<code>vm</code>模块，他可以让我们直接在 V8 虚拟机上下文中编译和运行代码，使用方法如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> vm = <span class="built_in">require</span>(<span class="string">"vm"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建需要运行的脚本</span></span><br><span class="line"><span class="keyword">const</span> script = <span class="keyword">new</span> vm.Script(<span class="string">"a + b"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建上下文 context</span></span><br><span class="line"><span class="keyword">const</span> context = vm.createContext(&#123;<span class="attr">a</span>: <span class="number">1</span>, <span class="attr">b</span>: <span class="number">2</span>&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在上下文context下运行脚本</span></span><br><span class="line"><span class="keyword">const</span> result = script.runInContext(context)</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(result) <span class="comment">// 输出：3</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 或者直接</span></span><br><span class="line">vm.runInContext(<span class="string">"a + b"</span>, context) <span class="comment">// 输出：3</span></span><br></pre></td></tr></table></figure>
+
+<p>在nodejs中创建一个沙箱还是挺容易的。</p>
+<p>但是值得注意的是，<code>vm</code>模块并非绝对安全，由它创建的的沙箱内部通过一些手段还是可以访问到外部环境的。所以<code>nodejs</code>官方文档明确标注： <strong><code>vm</code> 模块不是安全的机制。 不要使用它来运行不受信任的代码</strong>。</p>
+<p>也有一些社区模块：<br>比如<code>vm2</code>，它内部使用<code>vm</code>模块，并且使用Proxy来阻止沙箱脚本逃逸。</p>
+<p><a href="https://www.npmjs.com/package/safeify" target="_blank" rel="noopener"><code>Safeify</code></a>是一个基于<code>vm2</code>的第三方库，它创建了个进程池，把代码放入进程池中执行。进程间通过IPC通讯。</p>
+<h2 id="浏览器的沙箱环境"><a href="#浏览器的沙箱环境" class="headerlink" title="浏览器的沙箱环境"></a>浏览器的沙箱环境</h2><p>浏览器环境没有<code>vm</code>这个API，实现将有所不同。</p>
+<h3 id="eval"><a href="#eval" class="headerlink" title="eval"></a>eval</h3><p>这是一个令人诟病的api，<code>eval(&quot;window&quot;)</code>是能够访问到<code>window</code>对象的，所以它并不能隔离。</p>
+<h3 id="new-Function"><a href="#new-Function" class="headerlink" title="new Function()"></a>new Function()</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fn = <span class="keyword">new</span> <span class="built_in">Function</span>(...args, <span class="string">'functionBody'</span>);</span><br></pre></td></tr></table></figure>
+
+<p><code>new Function</code>依然能够访问到全局作用域。</p>
+<h3 id="with"><a href="#with" class="headerlink" title="with"></a>with</h3><p>这个冷门的API，可能大多数JS开发者都没听说过</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createRuntimeSandbox</span>(<span class="params">src</span>) </span>&#123;</span><br><span class="line">  src = <span class="string">'with (context) &#123;'</span> + src + <span class="string">'&#125;'</span></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Function</span>(<span class="string">'context'</span>, src)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> func = createRuntimeSandbox(<span class="string">"console.log(window)"</span>)</span><br><span class="line">func(&#123;<span class="attr">window</span>: <span class="number">123</span>&#125;) <span class="comment">// 输出 123</span></span><br></pre></td></tr></table></figure>
+
+<p><code>with</code>关键字会使用<code>in</code>运算符来判断是否在<code>context</code>中。如果context存在就去context取。反之去全局作用域中取。</p>
+<h3 id="Proxy"><a href="#Proxy" class="headerlink" title="Proxy"></a>Proxy</h3><p>在with的例子上做些改动</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createRuntimeSandbox</span>(<span class="params">src</span>) </span>&#123;</span><br><span class="line">  src = <span class="string">'with (context) &#123;'</span> + src + <span class="string">'&#125;'</span></span><br><span class="line">  <span class="keyword">const</span> func = <span class="keyword">new</span> <span class="built_in">Function</span>(<span class="string">'context'</span>, src)</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="params">context</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> fakeContext = &#123;&#125;</span><br><span class="line">    <span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(fakeContext, &#123;</span><br><span class="line">      has() &#123; <span class="keyword">return</span> <span class="literal">true</span> &#125;, <span class="comment">// 确保 xx in fakeContext 永远为true，不去全局作用域找</span></span><br><span class="line">      <span class="keyword">get</span>(target, param) &#123;</span><br><span class="line">        <span class="keyword">return</span> target[param] || context[param]</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">return</span> func(proxy)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> func = createRuntimeSandbox(<span class="string">"console.log(name);name='hello';console.log(name)"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> context = &#123; <span class="attr">name</span>: <span class="string">"zxffan"</span>, <span class="built_in">console</span> &#125;</span><br><span class="line">func(context) <span class="comment">// 输出：zxffan hello</span></span><br><span class="line"><span class="built_in">console</span>.log(context.name) <span class="comment">// 输出：zxffan</span></span><br></pre></td></tr></table></figure>
+
+<p>上例使用了<code>proxy</code>，将上下文（context）做了代理。在沙箱里修改context的name属性不会影响到沙箱外。</p>
+<p>还有个问题，<code>proxy</code>只代理了<code>context</code>，如果context里又包含对象，那么在沙箱里是可以修改的。写一个通用的代理方法来解决</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createProxySandbox</span>(<span class="params">context, handler = &#123;&#125;</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> fakeContext = &#123;&#125;;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Proxy</span>(fakeContext, <span class="built_in">Object</span>.assign(&#123;</span><br><span class="line">    <span class="keyword">get</span>(target, param) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Reflect</span>.get(target, param) || <span class="built_in">Reflect</span>.get(context, param)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;, handler))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createRuntimeSandbox</span>(<span class="params">src</span>) </span>&#123;</span><br><span class="line">  src = <span class="string">'with (context) &#123;'</span> + src + <span class="string">'&#125;'</span></span><br><span class="line">  <span class="keyword">const</span> func = <span class="keyword">new</span> <span class="built_in">Function</span>(<span class="string">'context'</span>, src)</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="params">context</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> proxy = createProxySandbox(context, &#123; has() &#123; <span class="keyword">return</span> <span class="literal">true</span> &#125; &#125;)</span><br><span class="line">    <span class="keyword">return</span> func(proxy)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> func = createRuntimeSandbox(<span class="string">"window.aa='zxffan';console.log(window.aa)"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> fakeWindow = createProxySandbox(<span class="built_in">window</span>)</span><br><span class="line">fakeWindow.window = fakeWindow</span><br><span class="line"></span><br><span class="line">func(fakeWindow) <span class="comment">// 输出：zxffan</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">window</span>.aa) <span class="comment">// 输出：undefined</span></span><br></pre></td></tr></table></figure>
+
+<p>这样使用，可以自定义需要暴露给沙箱的全局对象。</p>
+<p><code>createProxySandbox</code>相当于代理提供的对象，并返回一个代理后的对象。对代理后的对象的修改不影响原对象，这本身就是一个<strong>数据沙箱</strong>。</p>
+<p><code>createRuntimeSandbox</code>提供了一个指定上下文的JS执行环境。该环境确保不会直接访问和修改沙箱外的作用域的数据，这相当于一个<strong>运行时沙箱</strong>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>沙箱的作用是隔离上下文环境，保证不会造成JS污染。</p>
+<p>应用场景：</p>
+<ul>
+<li>在微前端场景下，可以利用沙箱来保证各个微应用之间以及微应用和主应用之间不会造成JS污染。</li>
+<li>通常也可以将不受信（存在安全隐患）的代码放在沙箱中运行，以阻止其破坏主程序。</li>
+</ul>
+<p>推荐使用<code>with</code>、<code>new Function</code>以及<code>Proxy</code>构成的沙箱实现</p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/72bec40a.html">https://zxffan.github.io/posts/72bec40a.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/posts/8aa364dc.html">云计算的发展</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>
