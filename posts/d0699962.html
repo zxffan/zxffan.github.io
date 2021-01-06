@@ -223,7 +223,7 @@
 <p>我们的代码时一行一行地执行，当前面的没有执行完，后面地就需要等待。</p>
 <p>如果程序中间有个请求接口代码块，那么当接口没有返回内容，后面地代码就需要一直等待。这时整个线程是卡死的。</p>
 <p>这显然不行，<code>JavaScript</code>引入了<strong>同步任务</strong>和<strong>异步任务</strong>的概念来解决这个问题。</p>
-<h3 id="EventLoop"><a href="#EventLoop" class="headerlink" title="EventLoop"></a>EventLoop</h3><p><img src="../../images/%E5%90%8C%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%92%8C%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1.webp" alt="同步任务和异步任务"></p>
+<h3 id="EventLoop"><a href="#EventLoop" class="headerlink" title="EventLoop"></a>EventLoop</h3><p><img src="../../images/JavaScript/%E5%90%8C%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%92%8C%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1.webp" alt="同步任务和异步任务"></p>
 <p>同步任务就是需要立即执行的任务，它没执行完后面的需要等待</p>
 <p>异步任务就是不需要立即执行的任务，比如ajax接口请求、<code>setTimeout</code>等。如果是异步任务就会在<code>Event Table</code>中注册，当指定的事件完成之后（例如接口返回响应了），就将其回调函数放到<code>Event Queue</code>中</p>
 <p>当主线程内的同步任务全部执行完毕后，会去读<code>Event Queue</code>中的函数，放入主线程执行。</p>
@@ -345,6 +345,8 @@
 <li>先依次取出微任务队列的任务执行，输出：<code>process</code>、<code>async1 end</code>、<code>promise2</code></li>
 <li>然后依次取出所有宏任务执行，输出：<code>settimeout</code>、<code>setImmediate</code></li>
 </ol>
+<h2 id="异步是怎么实现的"><a href="#异步是怎么实现的" class="headerlink" title="异步是怎么实现的"></a>异步是怎么实现的</h2><p>根据上文可以了解到。在浏览器中，通过线程切换来实现异步。</p>
+<p><code>nodejs</code>也是类似。它依赖于<code>libuv</code>模块。<code>libuv</code>通过线程池来实现异步操作</p>
 
         </div>
 
