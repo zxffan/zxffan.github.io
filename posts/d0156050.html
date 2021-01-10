@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>Nginx | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Nginx</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">一月 6, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Server/">Server</a>
+                            
+                                <a href="/categories/Server/Nginx/">Nginx</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <blockquote>
+<p>nginx [engine x] is an HTTP and reverse proxy server, a mail proxy server, and a generic TCP/UDP proxy server</p>
+<p>nginx是一个HTTP服务器、反向代理服务器、邮件代理服务器、通用TCP/UDP代理服务器</p>
+</blockquote>
+<p>总而言之，<code>nginx</code>能够在你的机器上跑起HTTP服务，我们可以在这个服务上部署传统的Web系统。</p>
+<h2 id="Nginx配置"><a href="#Nginx配置" class="headerlink" title="Nginx配置"></a>Nginx配置</h2><p>安装什么的就不提了。nginx的配置框架如下</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">#user  nobody;</span></span><br><span class="line"><span class="attribute">worker_processes</span>  <span class="number">1</span>; <span class="comment">#配置工作进程数目</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#配置全局错误日志及类型 [debug|info|notice|warn|error|crit(致命错误)] 默认error</span></span><br><span class="line"><span class="comment">#error_log  logs/error.log;</span></span><br><span class="line"><span class="comment">#error_log  logs/error.log  notice;</span></span><br><span class="line"><span class="comment">#error_log  logs/error.log  info;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#配置进程pid文件</span></span><br><span class="line"><span class="comment">#pid        logs/nginx.pid;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#配置工作模式和连接数</span></span><br><span class="line"><span class="section">events</span> &#123;</span><br><span class="line">  <span class="comment">#配置每个worker的最大连接数</span></span><br><span class="line">  <span class="comment">#nginx最大连接数 = worker_process * worder_connections</span></span><br><span class="line">  <span class="attribute">worker_connections</span>  <span class="number">1024</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#配置http</span></span><br><span class="line"><span class="section">http</span> &#123;</span><br><span class="line">  <span class="comment">#include 用来引入其他文件的配置</span></span><br><span class="line">  <span class="comment">#当收到静态资源请求时，会根据资源的后缀名去mime.types里找对应的mime类型，再根据mime来设置响应头中的Content-Type</span></span><br><span class="line">  <span class="attribute">include</span>       mime.types;</span><br><span class="line">  <span class="attribute">default_type</span>  application/octet-stream; <span class="comment">#设置默认响应类型</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">#设置日志格式</span></span><br><span class="line">  <span class="comment">#log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '</span></span><br><span class="line">  <span class="comment">#                  '$status $body_bytes_sent "$http_referer" '</span></span><br><span class="line">  <span class="comment">#                  '"$http_user_agent" "$http_x_forwarded_for"';</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">#access_log  logs/access.log  main;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">#sendfile 指令指定 nginx 是否调用 sendfile 函数（zero copy 方式）来输出文件，</span></span><br><span class="line">  <span class="comment">#对于普通应用，必须设为 on,</span></span><br><span class="line">  <span class="comment">#如果用来进行下载等应用磁盘IO重负载应用，可设置为 off，</span></span><br><span class="line">  <span class="comment">#以平衡磁盘与网络I/O处理速度，降低系统的uptime.</span></span><br><span class="line">  <span class="attribute">sendfile</span>        <span class="literal">on</span>;</span><br><span class="line">  <span class="comment">#tcp_nopush     on; #累计一定量的数据包一起发送</span></span><br><span class="line">  <span class="comment">#tcp_nodelay		on; #默认延后0.2s后发送整合数据包（避免频繁发送小数据包）。on则关闭这个特性</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">#连接超时时间</span></span><br><span class="line">  <span class="comment">#keepalive_timeout  0;</span></span><br><span class="line">  <span class="attribute">keepalive_timeout</span>  <span class="number">65</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">#开启gzip压缩</span></span><br><span class="line">  <span class="attribute">gzip</span>  <span class="literal">on</span>;</span><br><span class="line"></span><br><span class="line">  <span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span>       <span class="number">8080</span>; <span class="comment">#配置监听端口</span></span><br><span class="line">    <span class="attribute">server_name</span>  localhost; <span class="comment">#配置服务名</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#编码</span></span><br><span class="line">    <span class="comment">#charset koi8-r;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#设置日志存放路径，格式为 main（在http中定义的）</span></span><br><span class="line">    <span class="attribute">access_log</span>  logs/host.access.log  main;</span><br><span class="line"></span><br><span class="line">    <span class="comment">#默认的匹配规则</span></span><br><span class="line">    <span class="attribute">location</span> / &#123;</span><br><span class="line">      <span class="attribute">root</span>   html;</span><br><span class="line">      <span class="attribute">index</span>  index.html index.htm;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">#error_page  404              /404.html;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># redirect server error pages to the static page /50x.html</span></span><br><span class="line">    <span class="attribute">error_page</span>   <span class="number">500</span> <span class="number">502</span> <span class="number">503</span> <span class="number">504</span>  /50x.html;</span><br><span class="line">    <span class="attribute">location</span> = /50x.html &#123;</span><br><span class="line">      <span class="attribute">root</span>   html;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 代理所有url中含有api的请求，并转发到 http://127.0.0.1</span></span><br><span class="line">    <span class="attribute">location</span> /api/ &#123;</span><br><span class="line">      <span class="attribute">proxy_pass</span>   http://127.0.0.1:8080;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 拒接所有ht文件请求</span></span><br><span class="line">    <span class="attribute">location</span> <span class="regexp">~ /\.ht</span> &#123;</span><br><span class="line">      <span class="attribute">deny</span>  all;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="attribute">include</span> servers/*;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="虚拟主机"><a href="#虚拟主机" class="headerlink" title="虚拟主机"></a>虚拟主机</h2><p><strong>虚拟主机技术</strong>可以将一台物理服务器划分成多个<strong>虚拟主机</strong>。可以在每个虚拟主机部署网站。</p>
+<h3 id="基于端口"><a href="#基于端口" class="headerlink" title="基于端口"></a>基于端口</h3><p><code>server</code>下的<code>listen</code>字段可以设置所需监听的端口</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">  <span class="attribute">listen</span> <span class="number">8080</span>;</span><br><span class="line">  <span class="attribute">root</span> /project1/</span><br><span class="line">  </span><br><span class="line">  location / &#123;</span><br><span class="line">    <span class="attribute">index</span> index.html</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>localhost:8080</code>即可访问到虚拟主机（server）上部署的网站</p>
+<h3 id="基于虚拟主机名"><a href="#基于虚拟主机名" class="headerlink" title="基于虚拟主机名"></a>基于虚拟主机名</h3><p><code>server_name</code>：配置虚拟主机的名称。可以配置成访问的域名</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># A</span></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">  <span class="attribute">listen</span>  <span class="number">80</span>;</span><br><span class="line">  <span class="attribute">server_name</span> www.test1.com;</span><br><span class="line">  <span class="comment"># ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># B</span></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">  <span class="attribute">listen</span>  <span class="number">80</span>;</span><br><span class="line">  <span class="attribute">server_name</span> www.test2.com;</span><br><span class="line">  <span class="comment"># ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>虚拟主机A和B监听同一个端口，但是通过配置不同的<code>server_name</code>来区分</p>
+<ul>
+<li><code>http://www.test1.com/index.html</code>将访问到虚拟主机A</li>
+<li><code>http://www.test2.com/index.html</code>将访问到虚拟主机B</li>
+</ul>
+<h2 id="location匹配规则"><a href="#location匹配规则" class="headerlink" title="location匹配规则"></a>location匹配规则</h2><p><code>location [=|~|~*|^~] /uri/ { … }</code></p>
+<ul>
+<li><p><code>=</code> 开头表示精确匹配</p>
+</li>
+<li><p><code>^~</code> 开头表示uri以某个常规字符串开头，理解为匹配 url路径即可。nginx不对url做编码，因此请求为/static/20%/aa，可以被规则^~ /static/ /aa匹配到（注意是空格）。</p>
+</li>
+<li><p><code>~</code> 开头表示区分大小写的正则匹配</p>
+</li>
+<li><p><code>~*</code> 开头表示不区分大小写的正则匹配</p>
+</li>
+<li><p><code>!~</code>和<code>!~*</code>分别为区分大小写不匹配及不区分大小写不匹配 的正则</p>
+</li>
+<li><p><code>/</code> 通用匹配，任何请求都会匹配到。</p>
+</li>
+</ul>
+<h2 id="root和alias"><a href="#root和alias" class="headerlink" title="root和alias"></a>root和alias</h2><p><code>rooot</code>和<code>alias</code>都是用来指定文件路径的</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">location</span><span class="regexp"> ^~</span> /public/ &#123;</span><br><span class="line">	<span class="attribute">root</span> /www/root/html;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当访问<code>/public/index.html</code>时会在<code>/www/root/html/public/index.html</code>路径下寻找文件</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">location</span><span class="regexp"> ^~</span> /public/ &#123;</span><br><span class="line">	<span class="attribute">alias</span> /www/root/html/;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当访问<code>/public/index.html</code>时会在<code>/www/root/html/index.html</code>路径下寻找文件</p>
+<p>所以，区别就是在查找文件时，root会加上location配置路径，而alias不会</p>
+<h2 id="初始页"><a href="#初始页" class="headerlink" title="初始页"></a>初始页</h2><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">  <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">  <span class="attribute">server_name</span> www.test.com;</span><br><span class="line">  </span><br><span class="line">  <span class="attribute">location</span> / &#123;</span><br><span class="line">    <span class="attribute">root</span> /website/project1;</span><br><span class="line">    <span class="attribute">index</span> index.html welcome.html</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当访问<code>www.test.com</code>时，会在<code>/website/project1/</code>目录下寻找<code>index.html</code>文件，有则返回否则继续寻找<code>welcome.html</code></p>
+<h2 id="错误页"><a href="#错误页" class="headerlink" title="错误页"></a>错误页</h2><p>对于一些错误页面（404，500等），可以通过以下配置来访问</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">error_page</span> <span class="number">404</span> =<span class="number">200</span> /<span class="number">404</span>.html;</span><br><span class="line"><span class="attribute">location</span> = /<span class="number">404</span>.html &#123;</span><br><span class="line">    <span class="attribute">root</span> /website;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="attribute">error_page</span> <span class="number">500</span> <span class="number">502</span> <span class="number">503</span> =<span class="number">200</span> /50x.html;</span><br><span class="line"><span class="attribute">location</span> = /50x.html &#123;</span><br><span class="line">    <span class="attribute">root</span> /website;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当请求发生404时（访问到不存在的页面），会跳转到<code>/404.html</code>。为了防止找不到，加了个<code>location</code>指定文件所在位置（<code>/website/404.html</code>）。</p>
+<p>对于单页面应用，通常只有一个<code>index.html</code>。在配置404等错误时，需要返回<code>index.html</code></p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">error_page</span> <span class="number">404</span> =<span class="number">200</span> /<span class="number">404</span>.html;</span><br><span class="line"><span class="attribute">location</span> = /<span class="number">404</span>.html &#123;</span><br><span class="line">  <span class="attribute">root</span> /website;</span><br><span class="line">  <span class="attribute">try_files</span> <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.html;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>解释：发生404时，重定向到<code>/404.html</code>。匹配到<code>/404.html</code>的<code>location</code>。然后遇到<code>try_files</code>指令</p>
+<p><strong><code>try_files $uri $uri/ /index.html;</code></strong></p>
+<p>访问<code>/public/somepage.html</code>时，会前去找<code>$uri</code>(就是<code>/public/somepage.html</code>)，找不到寻找<code>$uri/</code>。找不到最后返回<code>/index.html</code></p>
+<h2 id="代理"><a href="#代理" class="headerlink" title="代理"></a>代理</h2><p>反向代理和正向代理都需要通过<code>proxy_pass</code>指令来实现。</p>
+<p>需要代理的场景一般有三种角色：</p>
+<ul>
+<li>客户端：一般指浏览器</li>
+<li>代理服务器：指nginx</li>
+<li>服务端：真正需要访问的服务器</li>
+</ul>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">  <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">  <span class="attribute">root</span> /websites/demo;</span><br><span class="line">  </span><br><span class="line">  <span class="attribute">location</span> / &#123;</span><br><span class="line">    <span class="attribute">try_files</span> <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.html;</span><br><span class="line">    <span class="attribute">index</span> index.html;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="attribute">location</span><span class="regexp"> ^~</span> /api &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://localhost:8081/ <span class="comment">#末尾加/ 转发就不会包含/api(location的路径配置)</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端访问<code>/api/get-user-info</code>。请求到达代理服务器，匹配到<code>/api</code>转发给<code>http://localhost:8081/get-user-info</code>。</p>
+<p>反向代理和正向代理本质上都是请求和响应的转发。根据代理的目的来划分它们。</p>
+<p>代理一般都是指<strong>正向代理</strong>，目的是<strong>帮助内网的客户端访问外网</strong>。比如通过科学上网访问google，它在国外假设一台没有被禁的代理服务器。国内访问这台代理服务器，代理服务器再去访问google。</p>
+<p><strong>反向代理</strong>正好相反。它是<strong>帮助外网的客户端访问内网</strong>。比如访问baidu。客户端（浏览器）访问百度，会访问到baidu的代理服务器，通过代理服务器来访问baidu的内网服务器。</p>
+<p>nginx的反向代理常常被提到。因为它的性能真的很好。最重要的是反向代理可以来做<strong>负载均衡</strong>。</p>
+<h2 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h2><p>还以访问百度为例，当代理服务器收到客户端的请求时，代理服务器根据负载均衡规则（算法）来选择百度的内网服务器（百度的服务器肯定不止一台）来转发请求。</p>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">http</span> &#123;</span><br><span class="line">  <span class="attribute">upstream</span> backend &#123;</span><br><span class="line">    <span class="attribute">server</span> <span class="number">127.0.0.1:3000</span> weight=<span class="number">3</span>; <span class="comment"># weight权重 越大访问的机率越高</span></span><br><span class="line">    <span class="attribute">server</span> <span class="number">127.0.0.1:5000</span> weight=<span class="number">1</span>; </span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">    <span class="attribute">root</span> /websites/demo</span><br><span class="line">    location / &#123;</span><br><span class="line">      <span class="attribute">proxy_pass</span> http://backend;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所有请求都会代理转发到<code>upstream</code>中配置的服务器。按照权重分配</p>
+<h3 id="策略"><a href="#策略" class="headerlink" title="策略"></a>策略</h3><h4 id="1-轮询（默认）"><a href="#1-轮询（默认）" class="headerlink" title="1.轮询（默认）"></a>1.轮询（默认）</h4><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">upstream</span> backserver &#123; </span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:3000</span>; </span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:5000</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每个请求都会按照时间循序依次分配到所配置的后端服务器，如果服务器宕机则自动剔除</p>
+<h4 id="2-权重"><a href="#2-权重" class="headerlink" title="2.权重"></a>2.权重</h4><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">upstream</span> backend &#123;</span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:3000</span> weight=<span class="number">3</span>; <span class="comment"># weight权重 越大访问的机率越高</span></span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:5000</span> weight=<span class="number">1</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>指定轮询机率，weight和访问比率成正比，用于后端服务器性能不均的情况。</p>
+<h4 id="3-IP哈希"><a href="#3-IP哈希" class="headerlink" title="3.IP哈希"></a>3.IP哈希</h4><p>服务端可能需要访问session，如果每一次处理请求的服务端不同，是无法获取正确的session的。IP哈希是指每个请求按访问ip的hash结果分配，这样每个访客固定访问一个后端服务器，从而解决session的问题。</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">upstream</span> backserver &#123; </span><br><span class="line">  ip_hash;</span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:3000</span>; </span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:5000</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="4-fair"><a href="#4-fair" class="headerlink" title="4.fair"></a>4.fair</h4><p>按后端服务器的响应时间来分配请求，响应时间短的优先分配。 </p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">upstream</span> backserver &#123;</span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:3000</span>; </span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:5000</span>;</span><br><span class="line">  fair;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="5-URL哈希"><a href="#5-URL哈希" class="headerlink" title="5.URL哈希"></a>5.URL哈希</h4><p>根据请求URL的hash来分配，相同hash分配至同一台服务器</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">upstream</span> backserver &#123;</span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:3000</span>; </span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:5000</span>;</span><br><span class="line">  <span class="attribute">hash</span> <span class="variable">$request_uri</span>;</span><br><span class="line">  <span class="attribute">hash_method</span> crc32;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="其它配置"><a href="#其它配置" class="headerlink" title="其它配置"></a>其它配置</h3><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">upstream</span> backserver &#123;</span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:3000</span> down; <span class="comment"># down表示服务宕机，不参与分配 </span></span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:5000</span>;</span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:6000</span>;</span><br><span class="line">  <span class="attribute">server</span> <span class="number">127.0.0.1:7000</span> backup; <span class="comment"># backup表示这是备用服务，只有当其它服务全部down，才会启用备用服务</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="设置头信息"><a href="#设置头信息" class="headerlink" title="设置头信息"></a>设置头信息</h2><p>设置响应头有两个指令——<code>add_header</code>和<code>proxy_set_header</code>。</p>
+<ul>
+<li><code>add_header key value [always]</code>：<strong>设置响应头给浏览器</strong>，对20x和30x的响应码有效，加上<code>always</code>强制生效</li>
+<li><code>proxy_set_header key value</code>：<strong>设置请求头给上游服务器</strong></li>
+</ul>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># nginx 设置cors跨域</span></span><br><span class="line"><span class="attribute">add_header</span> <span class="string">'Access-Control-Allow-Origin'</span> <span class="string">'*'</span>;</span><br><span class="line"><span class="attribute">add_header</span> <span class="string">'Access-Control-Allow-Methods'</span> <span class="string">'GET, POST, OPTIONS, PUT, DELETE'</span>;</span><br><span class="line"><span class="attribute">add_header</span> <span class="string">'Access-Control-Allow-Headers'</span> <span class="string">'Content-Type'</span>;</span><br><span class="line"><span class="attribute">location</span><span class="regexp"> ^~</span> /api &#123;</span><br><span class="line">  <span class="attribute">if</span> (<span class="variable">$request_method</span> = <span class="string">'OPTIONS'</span>) &#123;</span><br><span class="line">    <span class="attribute">return</span> <span class="number">200</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="attribute">proxy_set_header</span> Host <span class="variable">$http_host</span>;</span><br><span class="line">  <span class="attribute">proxy_pass</span> http://127.0.0.1:8081/;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="变量参数"><a href="#变量参数" class="headerlink" title="变量参数"></a>变量参数</h2><p>nginx内置了很多变量，使用形式<code>$变量名</code></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">$args                    #请求中的参数值</span><br><span class="line">$query_string            #同 $args</span><br><span class="line">$arg_NAME                #GET请求中NAME的值</span><br><span class="line">$is_args                 #如果请求中有参数，值为"?"，否则为空字符串</span><br><span class="line">$uri                     #请求中的当前URI(不带请求参数，参数位于$args)，可以不同于浏览器传递的$request_uri的值，它可以通过内部重定向，或者使用index指令进行修改，$uri不包含主机名，如"/foo/bar.html"。</span><br><span class="line">$document_uri            #同 $uri</span><br><span class="line">$document_root           #当前请求的文档根目录或别名</span><br><span class="line">$host                    #优先级：HTTP请求行的主机名&gt;"HOST"请求头字段&gt;符合请求的服务器名.请求中的主机头字段，如果请求中的主机头不可用，则为服务器处理请求的服务器名称</span><br><span class="line">$hostname                #主机名</span><br><span class="line">$https                   #如果开启了SSL安全模式，值为"on"，否则为空字符串。</span><br><span class="line">$binary_remote_addr      #客户端地址的二进制形式，固定长度为4个字节</span><br><span class="line">$body_bytes_sent         #传输给客户端的字节数，响应头不计算在内；这个变量和Apache的mod_log_config模块中的"%B"参数保持兼容</span><br><span class="line">$bytes_sent              #传输给客户端的字节数</span><br><span class="line">$connection              #TCP连接的序列号</span><br><span class="line">$connection_requests     #TCP连接当前的请求数量</span><br><span class="line">$content_length          #"Content-Length" 请求头字段</span><br><span class="line">$content_type            #"Content-Type" 请求头字段</span><br><span class="line">$cookie_name             #cookie名称</span><br><span class="line">$limit_rate              #用于设置响应的速度限制</span><br><span class="line">$msec                    #当前的Unix时间戳</span><br><span class="line">$nginx_version           #nginx版本</span><br><span class="line">$pid                     #工作进程的PID</span><br><span class="line">$pipe                    #如果请求来自管道通信，值为"p"，否则为"."</span><br><span class="line">$proxy_protocol_addr     #获取代理访问服务器的客户端地址，如果是直接访问，该值为空字符串</span><br><span class="line">$realpath_root           #当前请求的文档根目录或别名的真实路径，会将所有符号连接转换为真实路径</span><br><span class="line">$remote_addr             #客户端地址</span><br><span class="line">$remote_port             #客户端端口</span><br><span class="line">$remote_user             #用于HTTP基础认证服务的用户名</span><br><span class="line">$request                 #代表客户端的请求地址</span><br><span class="line">$request_body            #客户端的请求主体：此变量可在location中使用，将请求主体通过proxy_pass，fastcgi_pass，uwsgi_pass和scgi_pass传递给下一级的代理服务器</span><br><span class="line">$request_body_file       #将客户端请求主体保存在临时文件中。文件处理结束后，此文件需删除。如果需要之一开启此功能，需要设置client_body_in_file_only。如果将次文件传 递给后端的代理服务器，需要禁用request body，即设置proxy_pass_request_body off，fastcgi_pass_request_body off，uwsgi_pass_request_body off，or scgi_pass_request_body off</span><br><span class="line">$request_completion      #如果请求成功，值为"OK"，如果请求未完成或者请求不是一个范围请求的最后一部分，则为空</span><br><span class="line">$request_filename        #当前连接请求的文件路径，由root或alias指令与URI请求生成</span><br><span class="line">$request_length          #请求的长度 (包括请求的地址，http请求头和请求主体)</span><br><span class="line">$request_method          #HTTP请求方法，通常为"GET"或"POST"</span><br><span class="line">$request_time            #处理客户端请求使用的时间,单位为秒，精度毫秒； 从读入客户端的第一个字节开始，直到把最后一个字符发送给客户端后进行日志写入为止。</span><br><span class="line">$request_uri             #这个变量等于包含一些客户端请求参数的原始URI，它无法修改，请查看$uri更改或重写URI，不包含主机名，例如："/cnphp/test.php?arg=freemouse"</span><br><span class="line">$scheme                  #请求使用的Web协议，"http" 或 "https"</span><br><span class="line">$server_addr             #服务器端地址，需要注意的是：为了避免访问linux系统内核，应将ip地址提前设置在配置文件中</span><br><span class="line">$server_name             #服务器名</span><br><span class="line">$server_port             #服务器端口</span><br><span class="line">$server_protocol         #服务器的HTTP版本，通常为 "HTTP/1.0" 或 "HTTP/1.1"</span><br><span class="line">$status                  #HTTP响应代码</span><br><span class="line">$time_iso8601            #服务器时间的ISO 8610格式</span><br><span class="line">$time_local              #服务器时间（LOG Format 格式）</span><br><span class="line">$cookie_NAME             #客户端请求Header头中的cookie变量，前缀"$cookie_"加上cookie名称的变量，该变量的值即为cookie名称的值</span><br><span class="line">$http_NAME               #匹配任意请求头字段；变量名中的后半部分NAME可以替换成任意请求头字段，如在配置文件中需要获取http请求头："Accept-Language"，$http_accept_language即可</span><br><span class="line">$http_cookie　　　　　　　 #请求的所有cookie</span><br><span class="line">$http_host               #请求地址，即浏览器中你输入的地址（IP或域名）</span><br><span class="line">$http_referer            #url跳转来源,用来记录从那个页面链接访问过来的</span><br><span class="line">$http_user_agent         #用户终端浏览器等信息</span><br><span class="line">$http_x_forwarded_for    #客户端的IP和代理服务器的IP，以逗号隔开；可伪造</span><br><span class="line">$http_x_forwarded_proto  #请求的协议</span><br><span class="line">$sent_http_NAME          #可以设置任意http响应头字段；变量名中的后半部分NAME可以替换成任意响应头字段，如需要设置响应头Content-length，$sent_http_content_length即可</span><br><span class="line">$sent_http_cache_control</span><br><span class="line">$sent_http_connection</span><br><span class="line">$sent_http_content_type</span><br><span class="line">$sent_http_keep_alive</span><br><span class="line">$sent_http_last_modified</span><br><span class="line">$sent_http_location</span><br></pre></td></tr></table></figure>
+
+<h2 id="https"><a href="#https" class="headerlink" title="https"></a>https</h2><p>在nginx中使用https，配置一下证书就可以</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># HTTPS server</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">  <span class="attribute">listen</span>       <span class="number">443</span> ssl;</span><br><span class="line">  <span class="attribute">server_name</span>  localhost;</span><br><span class="line"></span><br><span class="line">  <span class="attribute">ssl_certificate</span>      cert.pem; <span class="comment"># 公钥，会被发送给每一个访问的客户端</span></span><br><span class="line">  <span class="attribute">ssl_certificate_key</span>  cert.key; <span class="comment"># 私钥，用来解密客户端发送的数据</span></span><br><span class="line"></span><br><span class="line">  <span class="attribute">ssl_session_cache</span>    shared:SSL:<span class="number">1m</span>; <span class="comment"># 设置ssl/tls会话缓存的类型和大小</span></span><br><span class="line">  <span class="attribute">ssl_session_timeout</span>  <span class="number">5m</span>; <span class="comment"># ssl参数的过期时间</span></span><br><span class="line"></span><br><span class="line">  <span class="attribute">ssl_ciphers</span>  HIGH:!aNULL:!MD5; <span class="comment"># 选择加密套件</span></span><br><span class="line">  <span class="attribute">ssl_prefer_server_ciphers</span>  <span class="literal">on</span>; <span class="comment"># on代表 设置协商加密算法时，优先使用服务端的加密套件，而不是客户端的加密套件</span></span><br><span class="line"></span><br><span class="line">  <span class="attribute">location</span> / &#123;</span><br><span class="line">    <span class="attribute">root</span>   html;</span><br><span class="line">    <span class="attribute">index</span>  index.html index.htm;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/d0156050.html">https://zxffan.github.io/posts/d0156050.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Server/"># Server</a>
+                    
+                        <a href="/tags/Nginx/"># Nginx</a>
+                    
+                        <a href="/tags/Web/"># Web</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/posts/72bec40a.html">JavaScript沙箱</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>
