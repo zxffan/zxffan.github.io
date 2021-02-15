@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>Nodejs搭建vue服务端渲染 | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Nodejs搭建vue服务端渲染</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">二月 15, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Nodejs/">Nodejs</a>
+                            
+                                <a href="/categories/Nodejs/Server/">Server</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="何为服务端渲染"><a href="#何为服务端渲染" class="headerlink" title="何为服务端渲染"></a>何为服务端渲染</h2><p>与<strong>服务端渲染</strong>相对应的是<strong>客户端渲染</strong>。区别他们的方法就是判断网页（具有完整HTML结构）是由服务端生成的还是由客户端生成。以vue为例：</p>
+<ul>
+<li>客户端渲染：用户输入网址，服务端返回一个html文件（没有完整的HTML结构，通常只有<code>&lt;div id=&quot;app&quot;&gt;&lt;/div&gt;</code>）。浏览器解析HTML，遇到许多script外链，进而请求这些脚本。然后再执行这些脚本，最终在生成相应dom节点。</li>
+<li>服务端渲染：用户输入网址，服务端收到请求后。在服务端执行相关脚本，生成相应的dom节点。最后将渲染后的具有完整HTML结构的html文件直接发送给客户端浏览器。这时，浏览器就可以展示页面了，之后再解析HTML文件，请求外链脚本。比较重要的是客户端需要激活服务端生成的那些节点。</li>
+</ul>
+<p>由此，服务端渲染相对于客户端有以下好处：</p>
+<ol>
+<li>比客户端更快的首屏速度，快了请求下载脚本和执行脚本的时间</li>
+<li>更好的SEO，服务器返回的是一个完整的HTML页面。</li>
+</ol>
+<h2 id="技术选型"><a href="#技术选型" class="headerlink" title="技术选型"></a>技术选型</h2><p><strong>服务端渲染</strong>必须有一个服务端来担任渲染网页的职责。nodejs是最好的选择。</p>
+<ul>
+<li>中间件系统：Koa</li>
+<li>Vue相关：vue、vuex、vue-router、vue-server-renderer</li>
+<li>构建：webpak相关</li>
+<li>开发语言：TypeScript</li>
+</ul>
+<h2 id="实现蓝图"><a href="#实现蓝图" class="headerlink" title="实现蓝图"></a>实现蓝图</h2><p><img src="../../images/nodejs/vue_ssr_blueprint.jpg" alt="ssr蓝图"></p>
+<p>首先项目是由webpack打包构建的，项目有两个入口文件<code>server entry</code>和<code>client entry</code>。一个用于服务端一个用于客户端。把服务端和客户端的公共逻辑（例如创建vue、vuex、vue-router实例）抽离出来放入<code>app.js</code>。</p>
+<p>webpack构建后会生成两份<code>bundle</code>——<code>server bundle</code>和<code>client bundle(manifest)</code>。这两个文件会传递给<code>vue-server-renderer</code>用来创建<code>render</code>（渲染器），从而在服务端渲染出html。</p>
+<p><a href="https://github.com/zxffan/vue2-ssr" target="_blank" rel="noopener">源码地址</a></p>
+<h2 id="vue-server-renderer"><a href="#vue-server-renderer" class="headerlink" title="vue-server-renderer"></a>vue-server-renderer</h2><p>这是vue官方提供的一个服务端渲染工具。vue的ssr实现是基于它的。</p>
+<p>配置webpack生成所需要的bundle和manifest</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> VueSSRServerPlugin <span class="keyword">from</span> <span class="string">"vue-server-renderer/server-plugin"</span>;</span><br><span class="line"><span class="keyword">import</span> VueSSRClientPlugin <span class="keyword">from</span> <span class="string">"vue-server-renderer/client-plugin"</span>;</span><br><span class="line"><span class="comment">// client</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="comment">// ...省略</span></span><br><span class="line">  plugins: [<span class="keyword">new</span> VueSSRClientPlugin()],</span><br><span class="line">  <span class="comment">// ...省略</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// server</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="comment">// ...省略</span></span><br><span class="line">  plugins: [<span class="keyword">new</span> VueSSRServerPlugin()],</span><br><span class="line">  <span class="comment">// ...省略</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>vue-server-renderer</code>提供两个<strong>plugin</strong>——<code>server plugin</code>和<code>client plugin</code>。前者会在打包过程中生成<strong>bundle</strong>文件，后者会生成<strong>manifest</strong>文件</p>
+<p>使用例子：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createBundleRenderer &#125; <span class="keyword">from</span> <span class="string">"vue-server-renderer"</span>;</span><br><span class="line"><span class="comment">// 这两个文件是webpack打包后自动生成的</span></span><br><span class="line"><span class="keyword">const</span> bundle = <span class="built_in">require</span>(<span class="string">"../dist/vue-ssr-server-bundle.json"</span>);</span><br><span class="line"><span class="keyword">const</span> clientManifest = <span class="built_in">require</span>(<span class="string">"../dist/vue-ssr-client-manifest.json"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 传入clientManifest和bundle</span></span><br><span class="line"><span class="keyword">const</span> renderer = createBundleRenderer(</span><br><span class="line">  bundle,</span><br><span class="line">  &#123;</span><br><span class="line">    clientManifest,</span><br><span class="line">    template: readFileSync(ab(<span class="string">"./src/index.html"</span>))?.toString(),</span><br><span class="line">    runInNewContext: <span class="literal">false</span>,</span><br><span class="line">    basedir: ab(<span class="string">"./dist"</span>),</span><br><span class="line">  &#125;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"><span class="comment">// async function</span></span><br><span class="line"><span class="keyword">const</span> html = <span class="keyword">await</span> renderer.renderToString(context)</span><br><span class="line"><span class="comment">// html 即 渲染后的html结构</span></span><br></pre></td></tr></table></figure>
+
+<p>一旦bundle和manifest配置完毕，<code>vue-server-render</code>会自动帮我们做很多工作，例如客户端激活。</p>
+<p>还有需要在html模版文件中的body标签哪加上<strong><!--vue-ssr-outlet--></strong>，这样<code>vue-server-renderer</code>就会将生成的vue实例挂载在对应位置。</p>
+<h2 id="集成vue-router"><a href="#集成vue-router" class="headerlink" title="集成vue-router"></a>集成vue-router</h2><p>从两个角度来说：</p>
+<p>一是服务端，当一个路由请求发送到服务端，这是路由匹配发生在服务端</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// server entry</span></span><br><span class="line"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">"./app"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> IServerContext &#123;</span><br><span class="line">  url: <span class="built_in">string</span>;</span><br><span class="line">  state: <span class="built_in">any</span>,</span><br><span class="line">  meta: <span class="built_in">any</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> (<span class="params">ctx: IServerContext</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; app, router, store &#125; = createApp(); <span class="comment">// 此处创建vue实例</span></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>&lt;<span class="keyword">typeof</span> app&gt;<span class="function">(<span class="params">(<span class="params">resolve, reject</span>) =&gt; &#123;</span></span></span><br><span class="line"><span class="function"><span class="params">    router.push(<span class="params">ctx.url</span>); <span class="comment">// 匹配路由</span></span></span></span><br><span class="line"><span class="function"><span class="params">		</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="comment">// 在onReady做一些处理操作</span></span></span></span><br><span class="line"><span class="function"><span class="params">    router.onReady(<span class="params">(<span class="params"></span>) =&gt; &#123;</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      <span class="comment">// 获得所有以已经匹配的组件</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      <span class="keyword">const</span> matchedComponents = router.getMatchedComponents(<span class="params"></span>);</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      <span class="keyword">if</span> (<span class="params">matchedComponents.length &lt;= 0</span>) &#123;</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">        <span class="keyword">return</span> reject(<span class="params">&#123; code: 404 &#125;</span>);</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      &#125;<span class="comment">// 没有说明 没有匹配此路由的组件，返回404</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">			</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      <span class="comment">// 我们约定存在 asyncData选项</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      <span class="comment">// 它返回Promise，并且在服务端执行</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      <span class="comment">// 当 asyncData执行完毕后才会生成html返回给客户端</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      <span class="built_in">Promise</span>.all(<span class="params"></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params">        matchedComponents.map(<span class="params">(<span class="params">com: <span class="built_in">any</span></span>) =&gt; &#123;</span></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params"><span class="params">          <span class="keyword">if</span> (<span class="params">com.asyncData !== <span class="literal">undefined</span></span>) &#123;</span></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params"><span class="params">            <span class="keyword">return</span> com.asyncData(<span class="params">&#123; store, router: router.currentRoute &#125;</span>);</span></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params"><span class="params">          &#125;</span></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params"><span class="params">        &#125;</span>)</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params">      </span>).then(<span class="params">(<span class="params"></span>) =&gt; &#123;</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params">        resolve(<span class="params">app</span>);</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params">      &#125;</span>);</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">    &#125;, reject</span>);</span></span></span><br><span class="line"><span class="function"><span class="params">  &#125;</span>);</span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>二是客户端，当在客户端使用router跳转时，也需要去先执行asyncData，待其执行完毕后在返回页面。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// client entry</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 处理路由 update的情况</span></span><br><span class="line">Vue.mixin(&#123;</span><br><span class="line">  beforeRouteUpdate(to, <span class="keyword">from</span>, next) &#123;</span><br><span class="line">    <span class="built_in">Promise</span>.all(</span><br><span class="line">      to.matched.map(<span class="function">(<span class="params">c</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> options = c.components.$options;</span><br><span class="line">        <span class="keyword">const</span> asyncData = (options <span class="keyword">as</span> <span class="built_in">any</span>).asyncData;</span><br><span class="line">        <span class="keyword">if</span> (asyncData) &#123;</span><br><span class="line">          <span class="keyword">return</span> asyncData(&#123;</span><br><span class="line">            store: store,</span><br><span class="line">            route: to,</span><br><span class="line">          &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    ).finally(next);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">router.onReady(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  router.beforeResolve(<span class="function">(<span class="params">to, <span class="keyword">from</span>, next</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> matched = router.getMatchedComponents(to);</span><br><span class="line">    <span class="keyword">const</span> prevMatched = router.getMatchedComponents(<span class="keyword">from</span>);</span><br><span class="line">		</span><br><span class="line">    <span class="comment">// 对比 两条路由下的组件有否有不同，若都相同就就直接跳转</span></span><br><span class="line">    <span class="keyword">let</span> diffed = <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">const</span> activated = matched.filter(<span class="function">(<span class="params">c, i</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> diffed || (diffed = prevMatched[i] !== c);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (activated.length &lt;= <span class="number">0</span>) next();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这里可以显示加载器</span></span><br><span class="line">    <span class="keyword">const</span> render = createLoading();</span><br><span class="line"></span><br><span class="line">    render</span><br><span class="line">      .mount()</span><br><span class="line">      .then(<span class="function"><span class="params">()</span> =&gt;</span></span><br><span class="line">        <span class="built_in">Promise</span>.all(</span><br><span class="line">          activated.map(<span class="function">(<span class="params">c: <span class="built_in">any</span></span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (c.asyncData) <span class="keyword">return</span> c.asyncData(&#123; store, router: to &#125;);</span><br><span class="line">          &#125;)</span><br><span class="line">        )</span><br><span class="line">      )</span><br><span class="line">      .then(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// TODO 将结果 合并到data选项</span></span><br><span class="line">      &#125;)</span><br><span class="line">      .finally(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 这里可以关闭加载器</span></span><br><span class="line">        render.hide();</span><br><span class="line">        next();</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">  app.$mount(<span class="string">"#app"</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>上面这种路由策略，是必须先asyncData执行完毕，再展示画面，这通常会有一个全屏的loading页。</p>
+<p>还有一种策略是，直接显示页面，当aysncData执行完毕再将其填充组件，这样对于每一个组件都应该有一个loading状态。</p>
+<h2 id="集成vuex"><a href="#集成vuex" class="headerlink" title="集成vuex"></a>集成vuex</h2><p>服务端收到路由请求，先匹配路由，执行asyncData，其可能会修改store的值。待所有路由组件的asyncData执行完毕后。会在返回给客户端的html中插入一段<strong>script</strong></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript"><span class="built_in">window</span>.__INITIAL_STATE__ = &#123;</span></span><br><span class="line"><span class="actionscript">  <span class="comment">// state的值</span></span></span><br><span class="line">&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>客户端需要将<strong>__INITIAL_STATE__</strong>的值插入store实例中。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// client entry</span></span><br><span class="line"><span class="keyword">const</span> initalState = (<span class="built_in">window</span> <span class="keyword">as</span> <span class="built_in">any</span>).__INITIAL_STATE__;</span><br><span class="line"><span class="keyword">if</span> (initalState) &#123;</span><br><span class="line">  store.replaceState(initalState);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在服务端中需要加上一段</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> (<span class="params">ctx: IServerContext</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; app, router, store &#125; = createApp();</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>&lt;<span class="keyword">typeof</span> app&gt;<span class="function">(<span class="params">(<span class="params">resolve, reject</span>) =&gt; &#123;</span></span></span><br><span class="line"><span class="function"><span class="params">    router.push(<span class="params">ctx.url</span>);</span></span></span><br><span class="line"><span class="function"><span class="params">    ctx.meta = app.$meta(<span class="params"></span>)</span></span></span><br><span class="line"><span class="function"><span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">    router.onReady(<span class="params">(<span class="params"></span>) =&gt; &#123;</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      <span class="keyword">const</span> matchedComponents = router.getMatchedComponents(<span class="params"></span>);</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      <span class="keyword">if</span> (<span class="params">matchedComponents.length &lt;= 0</span>) &#123;</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">        <span class="keyword">return</span> reject(<span class="params">&#123; code: 404 &#125;</span>);</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      &#125;</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">      <span class="built_in">Promise</span>.all(<span class="params"></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params">        matchedComponents.map(<span class="params">(<span class="params">com: <span class="built_in">any</span></span>) =&gt; &#123;</span></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params"><span class="params">          <span class="keyword">if</span> (<span class="params">com.asyncData !== <span class="literal">undefined</span></span>) &#123;</span></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params"><span class="params">            <span class="keyword">return</span> com.asyncData(<span class="params">&#123; store, router: router.currentRoute &#125;</span>);</span></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params"><span class="params">          &#125;</span></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params"><span class="params">        &#125;</span>)</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params">      </span>).then(<span class="params">(<span class="params"></span>) =&gt; &#123;</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params">        <span class="comment">// 在上下文加上 state</span></span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params">        ctx.state = store.state</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params">        resolve(<span class="params">app</span>);</span></span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params"><span class="params">      &#125;</span>);</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="params">    &#125;, reject</span>);</span></span></span><br><span class="line"><span class="function"><span class="params">  &#125;</span>);</span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>在服务端入口文件中导出的这个function，会在使用<code>render.renderToString(context)</code>是自动调用，其ctx对于传入的context参数。这个context也会被<code>vue-server-render</code>使用到。</p>
+<h2 id="开发环境的构建"><a href="#开发环境的构建" class="headerlink" title="开发环境的构建"></a>开发环境的构建</h2><p>生产环境直接打包启用服务即可。</p>
+<p>在开发环境下，需要实现热更新。当用户代码发生修改时，重新打包，并通过socket通知浏览器更新相应内容。</p>
+<p>客户端的热更新：由于我们使用的是koa，所以这里使用<code>koa-webpack</code>插件，它集成了两个插件：<br><code>webpack-dev-middleware</code>：打包项目到内存中，并允许客户端访问到<br><code>webpack-hot-client</code>：实现热更新</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 获取webpack配置</span></span><br><span class="line"><span class="keyword">const</span> clientConfig = createClientConfig();</span><br><span class="line"><span class="comment">// 生成compiler</span></span><br><span class="line"><span class="keyword">const</span> clientCompiler = webpack(clientConfig);</span><br><span class="line">koaWebpack(&#123;</span><br><span class="line">  compiler: clientCompiler,</span><br><span class="line">  devMiddleware: &#123;</span><br><span class="line">    publicPath: clientConfig.output?.publicPath,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;).then(<span class="function">(<span class="params">middleware</span>) =&gt;</span> app.use(middleware)); <span class="comment">// 注册中间件</span></span><br></pre></td></tr></table></figure>
+
+<p>服务端的热更新，直接用webpack watch模式来打包。但是注意需要修改文件输出的文件系统，我们需要将打包后的文件放在内存中而不是磁盘上。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// * 处理服务端 更新获取bundle</span></span><br><span class="line"><span class="keyword">const</span> serverConfig = createServerConf();</span><br><span class="line"><span class="keyword">const</span> serverCompiler = webpack(serverConfig);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用 memory-fs 来修改 webpack默认的文件系统</span></span><br><span class="line"><span class="keyword">const</span> mfs = <span class="keyword">new</span> MemoryFs();</span><br><span class="line">serverCompiler.outputFileSystem = mfs;</span><br><span class="line"></span><br><span class="line"><span class="comment">// watch模式 打包</span></span><br><span class="line">serverCompiler.watch(&#123;&#125;, <span class="function">(<span class="params">err, stats</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (err) <span class="keyword">throw</span> err;</span><br><span class="line">  <span class="keyword">const</span> result = stats.toJson();</span><br><span class="line">  <span class="keyword">if</span> (result.errors.length) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// TODO 打包成功</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="css支持"><a href="#css支持" class="headerlink" title="css支持"></a>css支持</h2><p>css的支持只需要有正确的webpack loader配置即可。</p>
+<p>需要注意的是，使用<code>vue-style-loader</code>来代替<code>style-loader</code>。前者支持服务端渲染。</p>
+<p>还有一个坑是，<code>css-loader</code>的默认配置与<code>vue-style-loader</code>冲突，需要关闭<code>esModule</code></p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="comment">// 省略</span></span><br><span class="line">  <span class="keyword">module</span>: &#123;</span><br><span class="line">    rules: [</span><br><span class="line">      &#123;</span><br><span class="line">        test: <span class="regexp">/\.css$/</span>,</span><br><span class="line">        use: [</span><br><span class="line">          isDev ? <span class="string">"vue-style-loader"</span> : extractLoader,</span><br><span class="line">          &#123;</span><br><span class="line">            loader: <span class="string">"css-loader"</span>,</span><br><span class="line">            options: &#123;</span><br><span class="line">              esModule: <span class="literal">false</span>, <span class="comment">// 关闭 esModule</span></span><br><span class="line">            &#125;,</span><br><span class="line">          &#125;,</span><br><span class="line">        ],</span><br><span class="line">      &#125;,</span><br><span class="line">    ],</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="comment">// 省略</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>还可以加上<code>postcss-loader</code>、<code>sass-loader</code>等</p>
+<h2 id="HEAD支持"><a href="#HEAD支持" class="headerlink" title="HEAD支持"></a>HEAD支持</h2><p>为了更好得支持<code>SEO</code>。提供了自定义head的能力。我们通过<a href="https://vue-meta.nuxtjs.org/guide/ssr.html" target="_blank" rel="noopener">vue-meta</a>来实现。</p>
+<p>先注册插件</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> Vue <span class="keyword">from</span> <span class="string">'vue'</span></span><br><span class="line"><span class="keyword">import</span> VueMeta <span class="keyword">from</span> <span class="string">'vue-meta'</span></span><br><span class="line"></span><br><span class="line">Vue.use(VueMeta)</span><br></pre></td></tr></table></figure>
+
+<p>在服务端入口文件</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> (<span class="params">ctx: IServerContext</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; app, router, store &#125; = createApp();</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>&lt;<span class="keyword">typeof</span> app&gt;<span class="function">(<span class="params">(<span class="params">resolve, reject</span>) =&gt; &#123;</span></span></span><br><span class="line"><span class="function"><span class="params">    router.push(<span class="params">ctx.url</span>);</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="comment">// 加上这句</span></span></span></span><br><span class="line"><span class="function"><span class="params">    ctx.meta = app.$meta(<span class="params"></span>)</span></span></span><br><span class="line"><span class="function"><span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="comment">// 省略...</span></span></span></span><br><span class="line"><span class="function"><span class="params">&#125;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>最后修改html模版文件</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"IE=edge"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span>&gt;</span></span><br><span class="line">  &#123;&#123;&#123; meta.inject().title ? meta.inject().title.text() : '' &#125;&#125;&#125;</span><br><span class="line">  &#123;&#123;&#123; meta.inject().meta ? meta.inject().meta.text() : '' &#125;&#125;&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--vue-ssr-outlet--&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用：在metaInfo选项中配置</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  metaInfo: &#123;</span><br><span class="line">    title: <span class="string">"Home页面"</span>,</span><br><span class="line">    meta: [&#123; charset: <span class="string">"utf-8"</span> &#125;, &#123; name: <span class="string">"description"</span>, content: <span class="string">"foo"</span> &#125;],</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="客户端激活"><a href="#客户端激活" class="headerlink" title="客户端激活"></a>客户端激活</h2><p>客户端激活的工作已经由<code>vue-server-renderer</code>完成了。我们分析一下它是如何实现的。</p>
+<p>在服务端，由<code>vue-server-renderer</code>生成html。会在相应的html上打上标记，例如<code>&lt;div id=&quot;app&quot; data-server-rendered=&quot;true&quot;&gt;</code>。客户端识别到<code>data-server-rendered</code>属性，就会知道这部分html是由服务端如渲染而来的，随后客户端就会激活这些静态的HTML</p>
+<h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><p>每次请求，服务端都需要创建组件实例，这会有一定的性能损耗。对于<strong>非用户特定的页面</strong>（对不同的用户展示相同内容的页面），我们可以进行缓存</p>
+<h3 id="缓存页面"><a href="#缓存页面" class="headerlink" title="缓存页面"></a>缓存页面</h3><p>以页面为单位，缓存html文本</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> LRU <span class="keyword">from</span> <span class="string">"lru-cache"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> pageCache = <span class="keyword">new</span> LRU(&#123;</span><br><span class="line">  max: <span class="number">100</span>,</span><br><span class="line">  maxAge: <span class="number">1000</span>, <span class="comment">// 重要提示：条目在 1 秒后过期。</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">renderPage</span>(<span class="params">ctx: Context</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">"路由匹配:"</span>, ctx.url);</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 判断 是否命中缓存</span></span><br><span class="line">    <span class="keyword">const</span> cacheable = isCacheable(ctx.url);</span><br><span class="line">    <span class="keyword">if</span> (cacheable &amp;&amp; pageCache.get(ctx.url)) &#123;</span><br><span class="line">      ctx.status = <span class="number">200</span>;</span><br><span class="line">      ctx.body = pageCache.get(ctx.url);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> context: <span class="built_in">any</span> = &#123;</span><br><span class="line">      url: ctx.url,</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">const</span> html = <span class="keyword">await</span> renderer.renderToString(context);</span><br><span class="line"></span><br><span class="line">    ctx.res.setHeader(<span class="string">"Content-Type"</span>, <span class="string">"text/html"</span>);</span><br><span class="line">    ctx.status = <span class="number">200</span>;</span><br><span class="line">    ctx.body = html;</span><br><span class="line">		</span><br><span class="line">    <span class="comment">// 设置缓存</span></span><br><span class="line">    <span class="keyword">if</span> (cacheable) &#123;</span><br><span class="line">      pageCache.set(ctx.url, html);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">    <span class="comment">// 省略</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">isCacheable</span>(<span class="params">url: <span class="built_in">string</span></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> [<span class="string">"/about"</span>, <span class="string">"/profiles"</span>].indexOf(url) &gt;= <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="缓存组件"><a href="#缓存组件" class="headerlink" title="缓存组件"></a>缓存组件</h3><p>一组件为单位来缓存。<code>vue-server-renderer</code> 内置支持组件级别缓存。只需要在创建<code>renderer</code>时传递<code>cache</code>参数。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> LRU <span class="keyword">from</span> <span class="string">"lru-cache"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> renderer = createRenderer(&#123;</span><br><span class="line">  cache: LRU(&#123;</span><br><span class="line">    max: <span class="number">10000</span>,</span><br><span class="line">    maxAge: <span class="number">1000</span></span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>在组件内，设置<code>serverCacheKey</code>选项来启用缓存。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  name: <span class="string">'item'</span>, <span class="comment">// 必填选项</span></span><br><span class="line">  props: [<span class="string">'item'</span>],</span><br><span class="line">  serverCacheKey: <span class="function"><span class="params">props</span> =&gt;</span> props.item.id,</span><br><span class="line">  render (h) &#123;</span><br><span class="line">    <span class="keyword">return</span> h(<span class="string">'div'</span>, <span class="keyword">this</span>.item.id)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意：</p>
+<ul>
+<li><code>serverCacheKey</code>的返回值表示缓存，当前发生变化缓存失效。若返回常量表示组件将被永久缓存</li>
+<li><code>name</code>唯一</li>
+</ul>
+<p>通常来说，组件缓存比较适用于一种场景。<code>v-for</code>渲染大组件列表。通常数据都会有个id和最后更新时间。通过这两个属性可以决定缓存是否有效</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  serverCacheKey: <span class="function"><span class="params">props</span> =&gt;</span> props.item.id + <span class="string">'::'</span> + props.item.last_updated</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/af3ae610.html">https://zxffan.github.io/posts/af3ae610.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Nodejs/"># Nodejs</a>
+                    
+                        <a href="/tags/vue2/"># vue2</a>
+                    
+                        <a href="/tags/ssr/"># ssr</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/posts/9e0c0ca5.html">Nodejs搭建服务端</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>
