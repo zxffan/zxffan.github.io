@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxffan">
+
+
+    <meta name="subtitle" content="zxffan's Blog">
+
+
+
+    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
+
+
+<title>Emit分析-vue3源码.md | zxffan</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/categories">Categories</a>
+                
+                    <a class="menu-item" href="/tags">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Emit分析-vue3源码.md</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">二月 20, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Vue/">Vue</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h2><p><code>template</code>中绑定自定义事件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">	&lt;child-component @show-info&#x3D;&quot;showInfo&quot; @delete.once&#x3D;&quot;deleteItem&quot;&#x2F;&gt;</span><br><span class="line">&lt;&#x2F;template&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>child-component</code>子组件中使用emit</p>
+<p><code>this.emit(&quot;show-info&quot;)</code></p>
+<h2 id="处理过程"><a href="#处理过程" class="headerlink" title="处理过程"></a>处理过程</h2><p>vue会将所有<code>v-on</code>指令绑定的事件全部存放到组件实例的props中，并对其改名, <code>show-info</code>会变成<code>onShowInfo</code>。这部分工作由构建工具完成。</p>
+<p>如果没有使用<code>template</code>，而使用渲染函数，需要手动写成<code>onShowInfo</code>的形式</p>
+<p>当在子组件中使用emit时，也是会先修改名称再去props中寻找相应事件并执行。</p>
+<h2 id="Emit函数"><a href="#Emit函数" class="headerlink" title="Emit函数"></a>Emit函数</h2><p>emit函数用来触发事件，其源码位于<code>rumtime-core/src/componentEmits.ts</code>下</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">emit</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  instance: ComponentInternalInstance,</span></span></span><br><span class="line"><span class="function"><span class="params">  event: <span class="built_in">string</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  ...rawArgs: <span class="built_in">any</span>[]</span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> props = instance.vnode.props || EMPTY_OBJ</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> args = rawArgs</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ----------------------</span></span><br><span class="line">  <span class="comment">// 此处是处理 update:xxx 事件的(v-model)</span></span><br><span class="line">  <span class="keyword">const</span> isModelListener = event.startsWith(<span class="string">'update:'</span>)</span><br><span class="line">  <span class="keyword">const</span> modelArg = isModelListener &amp;&amp; event.slice(<span class="number">7</span>)</span><br><span class="line">  <span class="keyword">if</span> (modelArg &amp;&amp; modelArg <span class="keyword">in</span> props) &#123;</span><br><span class="line">    <span class="keyword">const</span> modifiersKey = <span class="string">`<span class="subst">$&#123;</span></span></span><br><span class="line"><span class="string"><span class="subst">      modelArg === <span class="string">'modelValue'</span> ? <span class="string">'model'</span> : modelArg</span></span></span><br><span class="line"><span class="string"><span class="subst">    &#125;</span>Modifiers`</span></span><br><span class="line">    <span class="keyword">const</span> &#123; <span class="built_in">number</span>, trim &#125; = props[modifiersKey] || EMPTY_OBJ</span><br><span class="line">    <span class="keyword">if</span> (trim) &#123;</span><br><span class="line">      args = rawArgs.map(<span class="function"><span class="params">a</span> =&gt;</span> a.trim())</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">number</span>) &#123;</span><br><span class="line">      args = rawArgs.map(toNumber)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ----------------------</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果 event是  custom-event</span></span><br><span class="line">  <span class="keyword">let</span> handlerName = toHandlerKey(camelize(event))</span><br><span class="line">  <span class="comment">// handlerName 变成 onCustomEvent</span></span><br><span class="line">  <span class="keyword">let</span> handler = props[handlerName]</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果v-model update:xxx的事件，处理则不同</span></span><br><span class="line">  <span class="keyword">if</span> (!handler &amp;&amp; isModelListener) &#123;</span><br><span class="line">    <span class="comment">// 如果 event是 update:modelValue</span></span><br><span class="line">    handlerName = toHandlerKey(hyphenate(event))</span><br><span class="line">    <span class="comment">// handlerName 变成 update:model-value</span></span><br><span class="line">    handler = props[handlerName]</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (handler) &#123;</span><br><span class="line">    <span class="comment">// 执行 函数</span></span><br><span class="line">    callWithAsyncErrorHandling(</span><br><span class="line">      handler,</span><br><span class="line">      instance,</span><br><span class="line">      ErrorCodes.COMPONENT_EVENT_HANDLER,</span><br><span class="line">      args</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  <span class="comment">// 寻找有没有 once修饰符的事件，</span></span><br><span class="line">  <span class="comment">// 如果有判断是否执行过，用emmited记录</span></span><br><span class="line">  <span class="comment">// 如果有则直接返回，没有记录emited并执行</span></span><br><span class="line">  <span class="keyword">const</span> onceHandler = props[handlerName + <span class="string">`Once`</span>]</span><br><span class="line">  <span class="keyword">if</span> (onceHandler) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!instance.emitted) &#123;</span><br><span class="line">      ;(instance.emitted = &#123;&#125; <span class="keyword">as</span> Record&lt;<span class="built_in">string</span>, <span class="built_in">boolean</span>&gt;)[handlerName] = <span class="literal">true</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (instance.emitted[handlerName]) &#123;</span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    callWithAsyncErrorHandling(</span><br><span class="line">      onceHandler,</span><br><span class="line">      instance,</span><br><span class="line">      ErrorCodes.COMPONENT_EVENT_HANDLER,</span><br><span class="line">      args</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//...</span></span><br></pre></td></tr></table></figure>
+
+<p>源码中有3种处理：v-model的update:xxx、自定义事件、once事件</p>
+<ul>
+<li>v-model的<strong>update:xxx</strong>：</li>
+<li>自定义事件：先修改event，再去props里寻找对应事件，调用</li>
+<li>once：在<code>instance.emited</code>中记录调用次数，并在实践名称后加伤<strong>Once</strong></li>
+</ul>
+<p><code>emit</code>函数会在组件实例创建是被挂载在组件实例上</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtime-core/src/components</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">createComponentInstance</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  vnode: VNode,</span></span></span><br><span class="line"><span class="function"><span class="params">  parent: ComponentInternalInstance | <span class="literal">null</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  suspense: SuspenseBoundary | <span class="literal">null</span></span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  instance.emit = emit.bind(<span class="literal">null</span>, instance)</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="v-on事件处理"><a href="#v-on事件处理" class="headerlink" title="v-on事件处理"></a>v-on事件处理</h2><p>通过<a href="https://vue-next-template-explorer.netlify.app/" target="_blank" rel="noopener">vue-template-explore</a>来观察一下如何处理自定义事件</p>
+<p><code>&lt;child-component @show-info=&quot;showInfo&quot; @delete.once=&quot;deleteItem&quot;&gt;Hello&lt;/child-component&gt;</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createTextVNode <span class="keyword">as</span> _createTextVNode, resolveComponent <span class="keyword">as</span> _resolveComponent, withCtx <span class="keyword">as</span> _withCtx, createVNode <span class="keyword">as</span> _createVNode, openBlock <span class="keyword">as</span> _openBlock, createBlock <span class="keyword">as</span> _createBlock &#125; <span class="keyword">from</span> <span class="string">"vue"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">render</span>(<span class="params">_ctx, _cache, $props, $setup, $data, $options</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> _component_child_component = _resolveComponent(<span class="string">"child-component"</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (_openBlock(), _createBlock(_component_child_component, &#123;</span><br><span class="line">    onShowInfo: _ctx.showInfo,</span><br><span class="line">    onDeleteOnce: _ctx.deleteItem</span><br><span class="line">  &#125;, &#123;</span><br><span class="line">    <span class="keyword">default</span>: _withCtx(<span class="function"><span class="params">()</span> =&gt;</span> [</span><br><span class="line">      _createTextVNode(<span class="string">"Hello"</span>)</span><br><span class="line">    ]),</span><br><span class="line">    _: <span class="number">1</span> <span class="comment">/* STABLE */</span></span><br><span class="line">  &#125;, <span class="number">8</span> <span class="comment">/* PROPS */</span>, [<span class="string">"onShowInfo"</span>, <span class="string">"onDeleteOnce"</span>]))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Check the console for the AST</span></span><br></pre></td></tr></table></figure>
+
+<p><code>createBlock</code>函数位于<code>runtime-core/src/vnode.ts</code>中。用来创建区块根节点。它的第二个参数就是props。可以观察到<code>show-info</code>变成了<code>onShowInfo</code>，<code>delete</code>变成了<code>onDeleteOnce</code>。</p>
+<p>下面是<code>createBlock</code>的函数签名。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createBlock</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">	<span class="keyword">type</span>: VNodeTypes | ClassComponent, </span></span></span><br><span class="line"><span class="function"><span class="params">  props?: Record&lt;<span class="built_in">string</span>, <span class="built_in">any</span>&gt; | <span class="literal">null</span> | <span class="literal">undefined</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  children?: <span class="built_in">any</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  patchFlag?: <span class="built_in">number</span> | <span class="literal">undefined</span>, </span></span></span><br><span class="line"><span class="function"><span class="params">  dynamicProps?: <span class="built_in">string</span>[] | <span class="literal">undefined</span></span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">VNode</span></span></span><br></pre></td></tr></table></figure>
+
+<h2 id="与vue2的区别"><a href="#与vue2的区别" class="headerlink" title="与vue2的区别"></a>与vue2的区别</h2><p>vue2的emit是挂载在<code>vue.prototype</code>上的方法</p>
+<p>vue3的emit是挂载在实例上的方法</p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxffan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/9c1e6144.html">https://zxffan.github.io/posts/9c1e6144.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Vue/"># Vue</a>
+                    
+                        <a href="/tags/%E6%BA%90%E7%A0%81/"># 源码</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/posts/af3ae610.html">Nodejs搭建vue服务端渲染</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxffan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>
