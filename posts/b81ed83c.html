@@ -47,7 +47,7 @@
     
 
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 <body>
     <div class="wrapper">
         <header>
@@ -205,7 +205,7 @@
 
         <div class="post-content">
             <h2 id="XSS进化到RCE"><a href="#XSS进化到RCE" class="headerlink" title="XSS进化到RCE"></a>XSS进化到RCE</h2><p>Web的XSS攻击能做到脚本注入，而Electron具有原生能力可以调用nodejs的模块。这就导致进化成了RCE攻击(Remote code excute)</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">onerror</span>=<span class="string">"require('fs');fs.readFile('./data.json')"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">onerror</span>=<span class="string">&quot;require(&#x27;fs&#x27;);fs.readFile(&#x27;./data.json&#x27;)&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>解决：</p>
 <ol>
@@ -235,24 +235,24 @@
 <li>WebAssembly</li>
 <li>代码混淆，使用构建工具进行代码混淆</li>
 <li>asar：防止小白</li>
-<li><a href="https://www.v2ex.com/t/493344" target="_blank" rel="noopener">asar Hack</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.v2ex.com/t/493344">asar Hack</a></li>
 </ol>
 <h2 id="安全事项"><a href="#安全事项" class="headerlink" title="安全事项"></a>安全事项</h2><p>app层</p>
 <ul>
 <li>做好Web安全</li>
-<li><a href="https://www.electronjs.org/docs/tutorial/security" target="_blank" rel="noopener">官方 安全Checklist</a>，<a href="https://www.electronjs.org/docs/tutorial/security#checklist-securityrecommendations" target="_blank" rel="noopener">文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.electronjs.org/docs/tutorial/security">官方 安全Checklist</a>，<a target="_blank" rel="noopener" href="https://www.electronjs.org/docs/tutorial/security#checklist-securityrecommendations">文档</a></li>
 <li>代码混淆</li>
 </ul>
 <p>npm</p>
 <ul>
 <li>nsp/snyk，检测npm包的安全性</li>
-<li>关注npm官博<a href="https://blog.npmjs.org/tagged/security" target="_blank" rel="noopener">安全文章</a></li>
-<li>nodejs安全小组 <a href="https://github.com/nodejs/security-wg" target="_blank" rel="noopener">Node.js Security WG</a></li>
+<li>关注npm官博<a target="_blank" rel="noopener" href="https://blog.npmjs.org/tagged/security">安全文章</a></li>
+<li>nodejs安全小组 <a target="_blank" rel="noopener" href="https://github.com/nodejs/security-wg">Node.js Security WG</a></li>
 </ul>
 <p>electron</p>
 <ul>
 <li>升级Electron至最新</li>
-<li>有问题反馈<a href="mailto:security@electronjs.org">security@electronjs.org</a></li>
+<li>有问题反馈<a href="mailto:&#115;&#x65;&#x63;&#117;&#114;&#105;&#x74;&#121;&#64;&#x65;&#108;&#x65;&#99;&#x74;&#x72;&#111;&#x6e;&#106;&#x73;&#46;&#111;&#x72;&#x67;">&#115;&#x65;&#x63;&#117;&#114;&#105;&#x74;&#121;&#64;&#x65;&#108;&#x65;&#99;&#x74;&#x72;&#111;&#x6e;&#106;&#x73;&#46;&#111;&#x72;&#x67;</a></li>
 <li>尝试研究electron构建，具备项目应急能力</li>
 </ul>
 
@@ -275,7 +275,7 @@
                 
                     <p class="copyright-item">
                         <span>License:</span>
-                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
                     </p>
                 
                 

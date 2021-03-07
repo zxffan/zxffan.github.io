@@ -47,7 +47,7 @@
     
 
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 <body>
     <div class="wrapper">
         <header>
@@ -206,11 +206,11 @@
         <div class="post-content">
             <p>本系列文章是笔者学习<code>Rust</code>时所做的笔记，供日后翻阅复习。</p>
 <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p><code>rustup</code>以用来进行<code>Rust</code>版本管理的命令行工具。</p>
-<h3 id="MacOS-amp-amp-Linux"><a href="#MacOS-amp-amp-Linux" class="headerlink" title="MacOS &amp;&amp; Linux"></a>MacOS &amp;&amp; Linux</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> curl --proto <span class="string">'=https'</span> --tlsv1.2 https://sh.rustup.rs -sSf | sh</span></span><br></pre></td></tr></table></figure>
+<h3 id="MacOS-amp-amp-Linux"><a href="#MacOS-amp-amp-Linux" class="headerlink" title="MacOS &amp;&amp; Linux"></a>MacOS &amp;&amp; Linux</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> curl --proto <span class="string">&#x27;=https&#x27;</span> --tlsv1.2 https://sh.rustup.rs -sSf | sh</span></span><br></pre></td></tr></table></figure>
 
 <p>该命令是用来下载一个脚本然后开始安装<code>rustup</code>工具</p>
-<h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><p>前往<a href="https://www.rust-lang.org/tools/install" target="_blank" rel="noopener">Rust官网</a>下载<code>exe</code>安装包</p>
-<p>安装过程会提示需要<code>C++ build tools</code>。比较简单的办法是安装<a href="https://visualstudio.microsoft.com/zh-hans/downloads/" target="_blank" rel="noopener"><code>virtual studio</code></a>。工作负载中选择<code>C++桌面开发</code>。</p>
+<h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><p>前往<a target="_blank" rel="noopener" href="https://www.rust-lang.org/tools/install">Rust官网</a>下载<code>exe</code>安装包</p>
+<p>安装过程会提示需要<code>C++ build tools</code>。比较简单的办法是安装<a target="_blank" rel="noopener" href="https://visualstudio.microsoft.com/zh-hans/downloads/"><code>virtual studio</code></a>。工作负载中选择<code>C++桌面开发</code>。</p>
 <h3 id="rustup常用命令"><a href="#rustup常用命令" class="headerlink" title="rustup常用命令"></a>rustup常用命令</h3><table>
 <thead>
 <tr>
@@ -256,7 +256,7 @@
 </tr>
 </tbody></table>
 <h2 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello World"></a>Hello World</h2><p>创建<code>main.rs</code>，编写代码</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"Hello, World"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello, World&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>执行代码：</p>
 <ol>
@@ -297,7 +297,7 @@
                 
                     <p class="copyright-item">
                         <span>License:</span>
-                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
                     </p>
                 
                 

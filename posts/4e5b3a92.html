@@ -47,7 +47,7 @@
     
 
 
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 <body>
     <div class="wrapper">
         <header>
@@ -211,7 +211,7 @@
 <h3 id="数据链路层"><a href="#数据链路层" class="headerlink" title="数据链路层"></a>数据链路层</h3><p>数据链路是用来处理连接网络的<strong>硬件部分</strong><br>例如：<code>NIC(网卡)</code>、<code>光纤</code>等物理可见部分</p>
 <h3 id="通信传输流"><a href="#通信传输流" class="headerlink" title="通信传输流"></a>通信传输流</h3><p><img src="../../images/%E5%9B%BE%E8%A7%A3HTTP/TCPIP%E5%88%86%E5%B1%82.png" alt="TCPIP分层"></p>
 <p>发送端再每一层都会打上包含该层所属的一个首部。当接收端接收到数据时，会依次拆开首部。</p>
-<h2 id="与HTTP有关的协议"><a href="#与HTTP有关的协议" class="headerlink" title="与HTTP有关的协议"></a>与HTTP有关的协议</h2><h3 id="IP"><a href="#IP" class="headerlink" title="IP"></a>IP</h3><p><strong>网际协议(Internet Protocol, IP)</strong>位于网络层，其作用是把数据包传送给对方。具体如何规定传送呢？</p>
+<h2 id="与HTTP有关的协议"><a href="#与HTTP有关的协议" class="headerlink" title="与HTTP有关的协议"></a>与HTTP有关的协议</h2><h3 id="IP"><a href="#IP" class="headerlink" title="IP"></a>IP</h3><p>**网际协议(Internet Protocol, IP)**位于网络层，其作用是把数据包传送给对方。具体如何规定传送呢？</p>
 <p>每个网络节点都有一个<strong>IP地址</strong>，每一台计算机的网卡都有一个固定的<strong>MAC地址</strong>。<br>IP地址又可以通过<code>ARP协议</code>转换成MAC地址</p>
 <p>数据包发送过程如下：</p>
 <ol>
@@ -219,10 +219,10 @@
 <li>网关根据数据包中的网段 ID 寻找目标网络。如果找到，将数据包发送到目标网段；如果没找到，重复步骤（1）将数据包发送到上一级网关。</li>
 <li>数据包经过网关被发送到正确的网段中。目标IP地址被ARP协议解析为 MAC 地址。根据该 MAC 地址，数据包被发送给目标地址的主机。</li>
 </ol>
-<h3 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h3><p><strong>传输控制协议( Transport Control Protocol, TCP)</strong>位于传输层，提供可靠的<strong>字节流服务</strong>即将大块数据分割成报文段为单位的数据包进行管理。</p>
+<h3 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h3><p><strong>传输控制协议( Transport Control Protocol, TCP)<strong>位于传输层，提供可靠的</strong>字节流服务</strong>即将大块数据分割成报文段为单位的数据包进行管理。</p>
 <p>三次握手</p>
 <p>发送端首先发送一个带<code>SYN</code>标志的数据包给对方。接收端收到后，会回传一个带有<code>SYN/ACK</code>标志的数据包以表示传达确认信息。最后，发送端再发送一个带有<code>ACK</code>标志的数据包，代表“握手”结束</p>
-<h3 id="DNS"><a href="#DNS" class="headerlink" title="DNS"></a>DNS</h3><p><strong>域名解析服务(Domain Name System, DNS)</strong>位于应用层，提供通过域名查找IP地址，或者逆向从IP地址查找域名的服务</p>
+<h3 id="DNS"><a href="#DNS" class="headerlink" title="DNS"></a>DNS</h3><p>**域名解析服务(Domain Name System, DNS)**位于应用层，提供通过域名查找IP地址，或者逆向从IP地址查找域名的服务</p>
 <h2 id="HTTP协议与其它协议的关系"><a href="#HTTP协议与其它协议的关系" class="headerlink" title="HTTP协议与其它协议的关系"></a>HTTP协议与其它协议的关系</h2><p><img src="../../images/%E5%9B%BE%E8%A7%A3HTTP/%E6%95%B0%E6%8D%AE%E8%AF%B7%E6%B1%82%E4%B8%8E%E5%8D%8F%E8%AE%AE.png" alt="数据请求与协议"></p>
 <h2 id="URL与URI"><a href="#URL与URI" class="headerlink" title="URL与URI"></a>URL与URI</h2><h3 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h3><p>统一资源标识符（Uniform Resource Identifier, URI）<br>统一资源定位符（Uniform Resource Locator， URL）<br>统一资源名称（Uniform Resource Name， URN）</p>
 <p><code>URL</code>和<code>URN</code>都是<code>URI</code>的子集。比如说人们的身份证号码就是<code>URN</code>（能够唯一标识），一个网站<code>http://zxffan.github.io/</code>就是<code>URL</code>。它们都属于<code>URI</code></p>
@@ -254,7 +254,7 @@
                 
                     <p class="copyright-item">
                         <span>License:</span>
-                        <span>Copyright (c) 2019 <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC-BY-NC-4.0</a> LICENSE</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
                     </p>
                 
                 
