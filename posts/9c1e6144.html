@@ -16,7 +16,7 @@
     <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
 
 
-<title>Emit分析-vue3源码.md | zxffan</title>
+<title>Emit分析-vue3源码 | zxffan</title>
 
 
 
@@ -177,7 +177,7 @@
     
     <article class="post-wrap">
         <header class="post-header">
-            <h1 class="post-title">Emit分析-vue3源码.md</h1>
+            <h1 class="post-title">Emit分析-vue3源码</h1>
             
                 <div class="post-meta">
                     
@@ -209,7 +209,7 @@
 
 <p>在<code>child-component</code>子组件中使用emit</p>
 <p><code>this.emit(&quot;show-info&quot;)</code></p>
-<h2 id="处理过程"><a href="#处理过程" class="headerlink" title="处理过程"></a>处理过程</h2><p>vue会将所有<code>v-on</code>指令绑定的事件全部存放到组件实例的props中，并对其改名, <code>show-info</code>会变成<code>onShowInfo</code>。这部分工作由构建工具完成。</p>
+<h2 id="处理过程"><a href="#处理过程" class="headerlink" title="处理过程"></a>处理过程</h2><p>vue会将所有<code>v-on</code>指令绑定的事件全部存放到<strong>组件实例</strong>的<strong>props</strong>中，并对其改名, <code>show-info</code>会变成<code>onShowInfo</code>。这部分工作由构建工具完成。</p>
 <p>如果没有使用<code>template</code>，而使用渲染函数，需要手动写成<code>onShowInfo</code>的形式</p>
 <p>当在子组件中使用emit时，也是会先修改名称再去props中寻找相应事件并执行。</p>
 <h2 id="Emit函数"><a href="#Emit函数" class="headerlink" title="Emit函数"></a>Emit函数</h2><p>emit函数用来触发事件，其源码位于<code>rumtime-core/src/componentEmits.ts</code>下</p>
@@ -219,7 +219,7 @@
 <ul>
 <li>v-model的<strong>update:xxx</strong>：</li>
 <li>自定义事件：先修改event，再去props里寻找对应事件，调用</li>
-<li>once：在<code>instance.emited</code>中记录调用次数，并在实践名称后加伤<strong>Once</strong></li>
+<li>once：在<code>instance.emited</code>中记录调用次数，并在事件名称后加上<strong>Once</strong></li>
 </ul>
 <p><code>emit</code>函数会在组件实例创建是被挂载在组件实例上</p>
 <figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtime-core/src/components</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">createComponentInstance</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  vnode: VNode,</span></span></span><br><span class="line"><span class="function"><span class="params">  parent: ComponentInternalInstance | <span class="literal">null</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  suspense: SuspenseBoundary | <span class="literal">null</span></span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  instance.emit = emit.bind(<span class="literal">null</span>, instance)</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
