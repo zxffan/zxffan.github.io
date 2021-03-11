@@ -6,21 +6,21 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <meta name="author" content="zxffan">
+    <meta name="author" content="zxfan">
 
 
-    <meta name="subtitle" content="zxffan's Blog">
-
-
-
-    <meta name="keywords" content="zxffan,blog,javascript,nodejs,electron">
-
-
-<title>Vue指令-vue3源码 | zxffan</title>
+    <meta name="subtitle" content="zxfan's Blog">
 
 
 
-    <link rel="icon" href="/favicon.ico">
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>Vue指令-vue3源码 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
 
 
 
@@ -53,16 +53,16 @@
         <header>
     <nav class="navbar">
         <div class="container">
-            <div class="navbar-header header-logo"><a href="/">ZXFFAN BLOG</a></div>
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
             <div class="menu navbar-right">
                 
-                    <a class="menu-item" href="/archives">Posts</a>
+                    <a class="menu-item" href="/archives">文章</a>
                 
-                    <a class="menu-item" href="/categories">Categories</a>
+                    <a class="menu-item" href="/categories">分类</a>
                 
-                    <a class="menu-item" href="/tags">Tags</a>
+                    <a class="menu-item" href="/tags">标签</a>
                 
-                    <a class="menu-item" href="/about">About</a>
+                    <a class="menu-item" href="/about">我</a>
                 
                 <input id="switch_default" type="checkbox" class="switch_default">
                 <label for="switch_default" class="toggleBtn"></label>
@@ -75,19 +75,19 @@
         <div class="container">
             <div class="navbar-header">
                 <div>
-                    <a href="/">ZXFFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
                 </div>
                 <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
             </div>
             <div class="menu" id="mobile-menu">
                 
-                    <a class="menu-item" href="/archives">Posts</a>
+                    <a class="menu-item" href="/archives">文章</a>
                 
-                    <a class="menu-item" href="/categories">Categories</a>
+                    <a class="menu-item" href="/categories">分类</a>
                 
-                    <a class="menu-item" href="/tags">Tags</a>
+                    <a class="menu-item" href="/tags">标签</a>
                 
-                    <a class="menu-item" href="/about">About</a>
+                    <a class="menu-item" href="/about">我</a>
                 
             </div>
         </div>
@@ -181,7 +181,7 @@
             
                 <div class="post-meta">
                     
-                        Author: <a itemprop="author" rel="author" href="/">zxffan</a>
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
                     
 
                     
@@ -248,9 +248,9 @@
 </ul>
 </blockquote>
 <h2 id="处理过程"><a href="#处理过程" class="headerlink" title="处理过程"></a>处理过程</h2><p>全局注册指令，会在<strong>上下文对象</strong>上的<strong>directives（Array类型）</strong>中添加指令</p>
-<p>局部指令注册，会将指令存放在<strong>组件对象</strong></p>
+<p>局部指令注册，会将指令存放在<strong>组件实例</strong></p>
 <p>在<code>template</code>中使用指令，构建工具将其转换成<code>render函数</code>。</p>
-<p>运行时，先去app上下文或者组件对象上寻找指令。然后将指令绑定到<code>VNode</code>。每个<code>VNode</code>都会有一个<code>dirs</code>数组，用来存放绑定到该<code>VNode</code>的全部指令。</p>
+<p>运行时，先去app上下文或者组件实例上寻找指令。然后将指令绑定到<code>VNode</code>。每个<code>VNode</code>都会有一个<code>dirs</code>数组，用来存放绑定到该<code>VNode</code>的全部指令。</p>
 <p>最后在各个阶段执行指令相应的生命周期函数</p>
 <h2 id="注册流程"><a href="#注册流程" class="headerlink" title="注册流程"></a>注册流程</h2><h3 id="全局注册"><a href="#全局注册" class="headerlink" title="全局注册"></a>全局注册</h3><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span></span><br><span class="line"><span class="keyword">import</span> App <span class="keyword">from</span> <span class="string">&#x27;app.vue&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = createApp(App)</span><br><span class="line"></span><br><span class="line">app.derectives(<span class="string">&quot;focus&quot;</span>, &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
@@ -267,8 +267,8 @@
 <blockquote>
 <p><code>context</code>是一个上下文对象。通过<code>createAppContext</code>函数创建的</p>
 </blockquote>
-<h3 id="局部注册"><a href="#局部注册" class="headerlink" title="局部注册"></a>局部注册</h3><p>选择局部注册的方式，指令写在<code>directives选项</code>中。单文件组件会通过构建工具生成<strong>组件对象</strong>，也等价于<strong>defineComponent</strong>。在生成<code>VNode</code>时，将组件对象绑定到<code>VNode</code>的<code>type</code>属性上。</p>
-<p>局部注册的指令存放在组件对象上。后续会通过<code>VNode.type.directives</code>来访问指令</p>
+<h3 id="局部注册"><a href="#局部注册" class="headerlink" title="局部注册"></a>局部注册</h3><p>选择局部注册的方式，指令写在<code>directives选项</code>中。单文件组件会通过构建工具生成<strong>组件实例</strong>，也等价于<strong>defineComponent</strong>。在生成<code>VNode</code>时，将组件实例绑定到<code>VNode</code>的<code>type</code>属性上。</p>
+<p>局部注册的指令存放在组件实例上。后续会通过<code>VNode.type.directives</code>来访问指令</p>
 <h2 id="绑定与执行"><a href="#绑定与执行" class="headerlink" title="绑定与执行"></a>绑定与执行</h2><p>在template模版上使用指令，如：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">	&lt;input v-focus &#x2F;&gt;</span><br><span class="line">&lt;&#x2F;template&gt;</span><br></pre></td></tr></table></figure>
 
@@ -277,16 +277,16 @@
 
 <p>可以看出，render内调用了两个方法：</p>
 <ul>
-<li><code>_resolveDirective</code>：接受指令名称作为参数。该函数的作用是去app上下文或者组件对象上寻找指令</li>
+<li><code>_resolveDirective</code>：接受指令名称作为参数。该函数的作用是去app上下文或者组件实例上寻找指令</li>
 <li><code>_withDirectives</code>：将指令绑定到VNode上。</li>
 </ul>
 <h3 id="解析指令"><a href="#解析指令" class="headerlink" title="解析指令"></a>解析指令</h3><p>解析指令找到需要使用的指令，也就是<code>resolveDirective</code>的过程。分析源码，发现<code>resolveDirective</code>调用<code>resolveAsset</code>。</p>
 <figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtime-core/helpers/resolveAssets.ts</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> COMPONENTS = <span class="string">&#x27;components&#x27;</span></span><br><span class="line"><span class="keyword">const</span> DIRECTIVES = <span class="string">&#x27;directives&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">resolveDirective</span>(<span class="params">name: <span class="built_in">string</span></span>): <span class="title">Directive</span> | <span class="title">undefined</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> resolveAsset(DIRECTIVES, name)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">resolveAsset</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">type</span>: <span class="keyword">typeof</span> COMPONENTS | <span class="keyword">typeof</span> DIRECTIVES,</span></span></span><br><span class="line"><span class="function"><span class="params">  name: <span class="built_in">string</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  warnMissing = <span class="literal">true</span></span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> instance = currentRenderingInstance || currentInstance</span><br><span class="line">  <span class="keyword">if</span> (instance) &#123;</span><br><span class="line">    <span class="keyword">const</span> Component = instance.type</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略 组件处理...</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> res =</span><br><span class="line">      <span class="comment">// 局部注册</span></span><br><span class="line">      <span class="comment">// check instance[type] first for components with mixin or extends.</span></span><br><span class="line">      resolve(instance[<span class="keyword">type</span>] || (Component <span class="keyword">as</span> ComponentOptions)[<span class="keyword">type</span>], name) ||</span><br><span class="line">      <span class="comment">// 全局注册</span></span><br><span class="line">      resolve(instance.appContext[<span class="keyword">type</span>], name)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> res</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">resolve</span>(<span class="params">registry: Record&lt;<span class="built_in">string</span>, <span class="built_in">any</span>&gt; | <span class="literal">undefined</span>, name: <span class="built_in">string</span></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    registry &amp;&amp;</span><br><span class="line">    (registry[name] ||</span><br><span class="line">      registry[camelize(name)] ||</span><br><span class="line">      registry[capitalize(camelize(name))])</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><code>instance</code>是组件实例，<code>instance.type</code>等于<code>VNode.type</code>即组件对象（也就是注册局部指令的地方）。<code>instance.appContext</code>是全局上下文（也就是注册全局指令的地方）</p>
+<p><code>instance</code>是组件实例，<code>instance.type</code>等于<code>VNode.type</code>即组件实例（也就是注册局部指令的地方）。<code>instance.appContext</code>是全局上下文（也就是注册全局指令的地方）</p>
 <p>解析组件的过程：</p>
 <ul>
-<li>先寻找局部注册的指令，在组件实例<code>instance</code>上寻找，找不到去组件对象（<code>instance.type</code>）去找。</li>
+<li>先寻找局部注册的指令，在组件实例<code>instance</code>上寻找，找不到去组件实例（<code>instance.type</code>）去找。</li>
 <li>如果找不到局部注册指令，就寻找全局注册指令。直接在上下文对象<code>intance.appContext</code>上找</li>
 </ul>
 <blockquote>
@@ -358,7 +358,7 @@
                 
                     <p class="copyright-item">
                         <span>Author:</span>
-                        <span>zxffan</span>
+                        <span>zxfan</span>
                     </p>
                 
                 
@@ -401,6 +401,8 @@
         </section>
         <section class="post-nav">
             
+                <a class="prev" rel="prev" href="/posts/dafb6b4a.html">依赖注入-vu3源码</a>
+            
             
             <a class="next" rel="next" href="/posts/d884e9d5.html">手撕Promise</a>
             
@@ -413,7 +415,7 @@
         </div>
         <footer id="footer" class="footer">
   <div class="copyright">
-    <span>Copyright 2019-2020 © zxffan</span>
+    <span>Copyright 2019-2020 © zxfan</span>
   </div>
 </footer>
 

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>依赖注入-vu3源码 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">依赖注入-vu3源码</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">三月 8, 2021&nbsp;&nbsp;
+                        <!-- 13:46:53 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Vue/">Vue</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h2><p>在<code>setup</code>中使用：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 生产组件</span></span><br><span class="line"><span class="keyword">import</span> &#123; defineComponent, provide, inject, ref &#125; <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span>;</span><br><span class="line"></span><br><span class="line">defineComponent(&#123;</span><br><span class="line">  <span class="function"><span class="title">setup</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> name = ref(<span class="string">&quot;name&quot;</span>);</span><br><span class="line">    provide(<span class="string">&quot;name&quot;</span>, name);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 消费组件</span></span><br><span class="line">defineComponent(&#123;</span><br><span class="line">  <span class="function"><span class="title">setup</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> name = inject(<span class="string">&quot;name&quot;</span>); <span class="comment">// 会保留响应式</span></span><br><span class="line">    <span class="keyword">return</span> &#123; name &#125;;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>全局<code>provide</code></p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = createApp()</span><br><span class="line"></span><br><span class="line">app.provide(name, <span class="string">&#x27;ZXFAN&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="处理过程"><a href="#处理过程" class="headerlink" title="处理过程"></a>处理过程</h2><p>在<strong>父组件</strong>的<code>setup</code>中使用<code>provide</code>函数，会在放在组件实例上的<code>provides</code>对象上。<strong>注意：每个组件实例上的<code>provides</code>对象的原型对象都是其父组件的<code>provides</code>对象</strong>，根组件的原型对象为null。这样在查找时，就会自动在原型链上寻找。</p>
+<p>在<strong>子组件</strong>的<code>setup</code>中使用<code>inject</code>函数，会在组件实例上找，实例上没有就去<strong>原型链</strong>（父组件的<code>provides</code>对象）去找。</p>
+<p>全局<code>provide</code>即<code>app.provide(xx, xx)</code>的形式，会将注入的内容存放在上下文对象的<code>providers</code>上</p>
+<h2 id="provides原型链的形成"><a href="#provides原型链的形成" class="headerlink" title="provides原型链的形成"></a><code>provides</code>原型链的形成</h2><p>具有嵌套的组件的provides对象构成了原型链，这是为了方便做查找操作</p>
+<p>原型链的最顶是null，这是在创建应用上下文对象时初始化的。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtime-core/src/apiCreateApp.ts</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">createAppContext</span>(<span class="params"></span>): <span class="title">AppContext</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    app: <span class="literal">null</span> <span class="keyword">as</span> <span class="built_in">any</span>,</span><br><span class="line">    config: &#123;</span><br><span class="line">      isNativeTag: NO,</span><br><span class="line">      performance: <span class="literal">false</span>,</span><br><span class="line">      globalProperties: &#123;&#125;,</span><br><span class="line">      optionMergeStrategies: &#123;&#125;,</span><br><span class="line">      isCustomElement: NO,</span><br><span class="line">      errorHandler: <span class="literal">undefined</span>,</span><br><span class="line">      warnHandler: <span class="literal">undefined</span></span><br><span class="line">    &#125;,</span><br><span class="line">    mixins: [],</span><br><span class="line">    components: &#123;&#125;,</span><br><span class="line">    directives: &#123;&#125;,</span><br><span class="line">    provides: <span class="built_in">Object</span>.create(<span class="literal">null</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Object.create(null)</code>会创建并返回一个空对象，并且将这个空对象的原型对象设置为参数<code>null</code>。</p>
+<p>然后是组件实例创建时，会自动初始化<code>provides</code>对象。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">createComponentInstance</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  vnode: VNode,</span></span></span><br><span class="line"><span class="function"><span class="params">  parent: ComponentInternalInstance | <span class="literal">null</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  suspense: SuspenseBoundary | <span class="literal">null</span></span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> instance: ComponentInternalInstance = &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    provides: parent ? parent.provides : <span class="built_in">Object</span>.create(appContext.provides),</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> instance</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>显示判断<strong>是否存在父组件</strong>，若存在直接取父组件的<strong>provides对象</strong><br>若没有父组件，则说明是<strong>根组件</strong>，则取<strong>上下文对象</strong>的<strong>provides对象</strong></p>
+<h2 id="provide函数"><a href="#provide函数" class="headerlink" title="provide函数"></a>provide函数</h2><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtime-core/src/apiInject.ts</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">provide</span>&lt;<span class="title">T</span>&gt;(<span class="params">key: InjectionKey&lt;T&gt; | <span class="built_in">string</span> | <span class="built_in">number</span>, value: T</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!currentInstance) &#123;</span><br><span class="line">    <span class="keyword">if</span> (__DEV__) &#123;</span><br><span class="line">      warn(<span class="string">`provide() can only be used inside setup().`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> provides = currentInstance.provides</span><br><span class="line">    <span class="comment">// 默认，实例会继承其父组件的原型对象</span></span><br><span class="line">    <span class="comment">// 当组件本身需要provide，它会创建自己的provides对象，并将父组件的provides对象设为其原型对象</span></span><br><span class="line">    <span class="comment">// 这样在使用inject函数注入时，就能利用原型链自动向父组件查找。</span></span><br><span class="line">    <span class="keyword">const</span> parentProvides =</span><br><span class="line">      currentInstance.parent &amp;&amp; currentInstance.parent.provides</span><br><span class="line">    <span class="keyword">if</span> (parentProvides === provides) &#123;</span><br><span class="line">      provides = currentInstance.provides = <span class="built_in">Object</span>.create(parentProvides)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// TS doesn&#x27;t allow symbol as index type</span></span><br><span class="line">    provides[key <span class="keyword">as</span> <span class="built_in">string</span>] = value</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当<code>parentProvides === provides</code>为<code>true</code>时，说明这是当前组件第一次调用<code>provide</code>函数。因为如果一个组件不需要provide，那么实例的<code>provides</code>就指向其父组件的<code>provides</code>对象。这样就缩短了原型链的长度。</p>
+<h2 id="inject函数"><a href="#inject函数" class="headerlink" title="inject函数"></a>inject函数</h2><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">inject</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  key: InjectionKey&lt;<span class="built_in">any</span>&gt; | <span class="built_in">string</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  defaultValue?: unknown,</span></span></span><br><span class="line"><span class="function"><span class="params">  treatDefaultAsFactory = <span class="literal">false</span></span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// fallback to `currentRenderingInstance` so that this can be called in</span></span><br><span class="line">  <span class="comment">// a functional component</span></span><br><span class="line">  <span class="keyword">const</span> instance = currentInstance || currentRenderingInstance</span><br><span class="line">  <span class="keyword">if</span> (instance) &#123;</span><br><span class="line">    <span class="comment">// #2400</span></span><br><span class="line">    <span class="comment">// to support `app.use` plugins,</span></span><br><span class="line">    <span class="comment">// fallback to appContext&#x27;s `provides` if the intance is at root</span></span><br><span class="line">    <span class="keyword">const</span> provides =</span><br><span class="line">      instance.parent == <span class="literal">null</span></span><br><span class="line">        ? instance.vnode.appContext &amp;&amp; instance.vnode.appContext.provides</span><br><span class="line">        : instance.parent.provides</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (provides &amp;&amp; (key <span class="keyword">as</span> <span class="built_in">string</span> | symbol) <span class="keyword">in</span> provides) &#123;</span><br><span class="line">      <span class="comment">// TS doesn&#x27;t allow symbol as index type</span></span><br><span class="line">      <span class="keyword">return</span> provides[key <span class="keyword">as</span> <span class="built_in">string</span>]</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">arguments</span>.length &gt; <span class="number">1</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> treatDefaultAsFactory &amp;&amp; isFunction(defaultValue)</span><br><span class="line">        ? defaultValue()</span><br><span class="line">        : defaultValue</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (__DEV__) &#123;</span><br><span class="line">      warn(<span class="string">`injection &quot;<span class="subst">$&#123;<span class="built_in">String</span>(key)&#125;</span>&quot; not found.`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (__DEV__) &#123;</span><br><span class="line">    warn(<span class="string">`inject() can only be used inside setup() or functional components.`</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>inject就是去<code>provides</code>对象找对应<code>key</code>的过程。<br>注意：这里判断<code>instance.parent == null</code>是来判断当前组件是不是根组件。</p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/dafb6b4a.html">https://zxffan.github.io/posts/dafb6b4a.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Vue/"># Vue</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/d43bedc2.html">前端性能指标</a>
+            
+            
+            <a class="next" rel="next" href="/posts/c445157e.html">Vue指令-vue3源码</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>前端性能指标 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">前端性能指标</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">三月 10, 2021&nbsp;&nbsp;
+                        <!-- 15:52:17 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Performance/">Performance</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="性能指标"><a href="#性能指标" class="headerlink" title="性能指标"></a>性能指标</h2><p><code>google</code>的<strong>Core Web Vitals</strong>主要由三个性能指标组成</p>
+<ul>
+<li><p><code>LCP(Largest Contentful Paint)</code>：最大内容绘制</p>
+</li>
+<li><p><code>FID(First Input Delay)</code>：首次输入延迟</p>
+</li>
+<li><p><code>CLS(Cumlative Layout Shift)</code>：累积布局偏移</p>
+</li>
+</ul>
+<p>除此之外，还有一些常见性能指标：</p>
+<ul>
+<li><p><code>FCP(First Contentful Paint)</code>：首次内容绘制</p>
+</li>
+<li><p><code>TTFB(Time to First Byte)</code>：首字节时间</p>
+</li>
+</ul>
+<h2 id="Web-Vitals"><a href="#Web-Vitals" class="headerlink" title="Web Vitals"></a>Web Vitals</h2><p><code>Web Vitals</code>是<code>google</code>发起的倡议，为web性能提供统一的衡量标准。它有三部分组成——<code>LCP</code>、<code>FID</code>和<code>CLS</code>。</p>
+<p><img src="../../images/Performance/web-vitals.png" alt="web vitals"></p>
+<ul>
+<li><strong>Largest Contentful Paint (LCP)</strong>: 用于衡量加载性能。考虑到用户体验，LCP应该在<strong>2.5s</strong>内</li>
+<li><strong>First Input Delay (FID)</strong>: 用来衡量网站的交互性。考虑到用户体验，FID应该小于<strong>100ms</strong></li>
+<li><strong>Cumulative Layout Shift (CLS)</strong>: 用来衡量网站的视觉稳定性。考虑到用户体验，CLS应该小于<strong>0.1</strong></li>
+</ul>
+<p>衡量一个网站的性能：如果一个网站有**75%**的页面能达到<code>GOOD</code>标准，那么该网站就满足<code>GOOD</code>级别的性能。</p>
+<p>这三个性能数据都可以通过</p>
+<ul>
+<li><code>Google</code>开源的<a target="_blank" rel="noopener" href="https://www.npmjs.com/package/web-vitals">web-vitals</a></li>
+<li><code>lighthouse</code></li>
+</ul>
+<p>来测量。</p>
+<h2 id="Largest-Contentful-Paint-LCP"><a href="#Largest-Contentful-Paint-LCP" class="headerlink" title="Largest Contentful Paint(LCP)"></a><a target="_blank" rel="noopener" href="https://web.dev/lcp/">Largest Contentful Paint(LCP)</a></h2><p>最大内容绘制时间是指网页最大图像/文本块的绘制时间。当一个页面的<strong>最大丰富内容元素</strong>绘制完成了，就几乎可以认为是该页面渲染完成。LCP认为的<strong>最大丰富内容元素</strong>有：</p>
+<ul>
+<li><code>img</code>元素</li>
+<li><code>svg</code>里的<code>image</code>元素</li>
+<li><code>video</code>元素</li>
+<li><code>css</code>中<code>url()</code>加载的图片</li>
+<li>包含文本元素的块级元素</li>
+</ul>
+<h3 id="分阶段加载"><a href="#分阶段加载" class="headerlink" title="分阶段加载"></a>分阶段加载</h3><p>页面的加载是分阶段的，页面上的最大元素可能会发生变化。</p>
+<p>当页面首帧绘制完毕后，浏览器会实例一个化<a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/API/PerformanceEntry"><code>PerformanceEntry</code></a>对象，并且将其<code>entryType</code>属性设置为<code>largest-contentful-paint</code>。用于标识首帧元素的绘制</p>
+<p>当页面出现新的最大元素时，又会再创建一个<code>PerformancenEntry</code>对象。如何有任何元素大于大于上一个最大元素，就会创建一个<code>PerformanceEntry</code>对象</p>
+<p><img src="../../images/Performance/lcpvsfcp.png" alt="lcp vs fcp"></p>
+<p>FCP是值首次内容绘制时间，指的是页面出现第一个绘制完成元素的时间。所以FCP比LCP要快。</p>
+<h3 id="影响LCP的因素"><a href="#影响LCP的因素" class="headerlink" title="影响LCP的因素"></a>影响LCP的因素</h3><ul>
+<li>服务端响应慢</li>
+<li>css和js阻塞渲染</li>
+<li>资源加载时间</li>
+<li>客户端渲染</li>
+</ul>
+<h2 id="First-Input-Delay"><a href="#First-Input-Delay" class="headerlink" title="First Input Delay"></a><a target="_blank" rel="noopener" href="https://web.dev/fid/">First Input Delay</a></h2><p>首次输入延迟（FID）度量标准有助于衡量用户对网站的交互性和响应性的第一印象。</p>
+<p>FID衡量的是从用户首次与页面进行交互（即当他们单击链接，点击按钮或使用自定义的JavaScript事件）到浏览器实际上能够开始处理事件处理程序的时间</p>
+<blockquote>
+<p>FID仅在事件处理中测量“延迟”。它不会测量事件处理时间本身。</p>
+</blockquote>
+<p><img src="../../images/Performance/fid.svg" alt="fid"></p>
+<p>当用户<strong>第一次与页面交互</strong>（例如点击页面）。但是这时<strong>JS线程</strong>正在执行，它会阻塞渲染线程的执行，所以此时，页面是没有给用户反馈的。这段时间就是<strong>FID</strong></p>
+<p>要再强调<strong>首次</strong>，FID只衡量第一次的交互。第一个输入延迟将是用户对您网站的响应度的第一印象，而第一印象对于塑造我们对网站质量和可靠性的整体印象至关重要。</p>
+<p>再次强调FID只测量<strong>输入延迟</strong>，记录首次交互到事件开始的事件，并不记录事件执行的事件。</p>
+<h2 id="Cumlative-Layout-Shift"><a href="#Cumlative-Layout-Shift" class="headerlink" title="Cumlative Layout Shift"></a><a target="_blank" rel="noopener" href="https://web.dev/cls/">Cumlative Layout Shift</a></h2><p>累积布局偏移会测量在页面整个生命周期中发生的每个<em>意外的布局移位</em>的所有个别<em>布偏移分数</em>的总和</p>
+<p><strong>布局偏移</strong>是指页面上的课件元素下一阵偏移到其它位置。</p>
+<h3 id="布局偏移分数"><a href="#布局偏移分数" class="headerlink" title="布局偏移分数"></a>布局偏移分数</h3><p><code>Layout Shift Score</code>计算，是通过视窗口中两个渲染帧之间元素的运动，取该运动中两个度量的乘积：<strong>冲击分数（Impact Fraction）</strong>和<strong>距离分数（Distance Fraction）</strong></p>
+<p>$layout shift score = impact fraction * distance fraction$</p>
+<h3 id="Impact-Fraction"><a href="#Impact-Fraction" class="headerlink" title="Impact Fraction"></a>Impact Fraction</h3><p><img src="../../images/Performance/impact_fraction.png" alt="impact fraction"></p>
+<p>在上图中，有一个元素在一帧中占据了视口的一半。然后，在下一帧中，元素下移视口高度的25％。红色的虚线矩形表示两个帧中元素的可见区域的并集，在这种情况下，其为总视口的75％，因此其<em>影响分数</em>为<code>0.75</code>。</p>
+<h3 id="Distance-Fraction"><a href="#Distance-Fraction" class="headerlink" title="Distance Fraction"></a>Distance Fraction</h3><p><img src="../../images/Performance/distance_fraction.png" alt="distance_fraction.png"></p>
+<p>在上面的示例中，最大视口尺寸是高度，不稳定元素已移动了视口高度的25％，这使得<em>距离分数</em>为0.25。</p>
+<p>因此，在此示例中，<em>碰撞分数</em>为<code>0.75</code>，<em>距离分数</em>为<code>0.25</code>，因此<em>布局偏移分数</em>为<code>0.75 * 0.25 = 0.1875</code>。</p>
+<h3 id="如何改善CLS"><a href="#如何改善CLS" class="headerlink" title="如何改善CLS "></a><a target="_blank" rel="noopener" href="https://web.dev/cls/#how-to-improve-cls">如何改善CLS </a></h3><p>对于大多数网站，可以遵循一些指导原则来避免所有意外的布局变化：</p>
+<ul>
+<li><strong>务必确保图片和视频元素有正确的尺寸</strong>，通过<code>padding-top</code>实现<strong>宽高等比例</strong>，容器内容使用<strong>绝对定位</strong></li>
+<li><strong>除非响应用户交互，否则切勿在现有内容上方插入内容。</strong>这样可以确保可以预期发生任何版式移位。</li>
+<li><strong>与将动画（animation）触发布局更改的属性动画相比，转换（transform）动画更可取。</strong>对过渡进行动画处理，以提供状态与状态之间的上下文和连续性。</li>
+</ul>
+<h2 id="First-Contentful-Paint"><a href="#First-Contentful-Paint" class="headerlink" title="First Contentful Paint"></a>First Contentful Paint</h2><p><strong>首次内容绘制</strong>衡量页面开始加载到页面首个元素渲染完成的事件。通常可以用来代表网页的白屏时间。通常<code>LCP</code>时间是大于或等于<code>FCP</code>时间</p>
+<h2 id="Time-To-First-Bytes"><a href="#Time-To-First-Bytes" class="headerlink" title="Time To First Bytes"></a>Time To First Bytes</h2><p><strong>首字节时间</strong>是指客户端（浏览器）接收到服务端发来的第一个字节所经历的时间。包括<strong>DNS解析</strong>、<strong>TCP三次握手</strong>、<strong>TLS协商</strong>以及<strong>服务端处理请求</strong></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/d43bedc2.html">https://zxffan.github.io/posts/d43bedc2.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/%E7%BD%91%E7%BB%9C/"># 网络</a>
+                    
+                        <a href="/tags/Nodejs/"># Nodejs</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/posts/dafb6b4a.html">依赖注入-vu3源码</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+</body>
+</html>
