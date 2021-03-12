@@ -83,6 +83,9 @@ document.ready(
         _Blog.toggleTheme();
 
         // ready function.
-
+        
+        new Zooming({
+            // options...
+          }).listen('.post-content img')
     }
 );

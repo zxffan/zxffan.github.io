@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
+  <head>
     <meta charset="UTF-8">
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
@@ -32,7 +32,12 @@
 
 
 
+
     <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
     
     <script src="/js/script.js"></script>
     
@@ -47,13 +52,210 @@
     
 
 
-<meta name="generator" content="Hexo 5.4.0"></head>
-<body>
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
     <div class="wrapper">
-        <header>
+      <header>
     <nav class="navbar">
         <div class="container">
             <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
             <div class="menu navbar-right">
                 
                     <a class="menu-item" href="/archives">文章</a>
@@ -77,7 +279,27 @@
                 <div>
                     <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
                 </div>
-                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
             </div>
             <div class="menu" id="mobile-menu">
                 
@@ -107,8 +329,7 @@
         }
     }
 </script>
-        <div class="main">
-            
+      <div class="main">
 
 
 
@@ -175,6 +396,14 @@
                                 
                                     <article class="archive-item">
                                         <a class="archive-item-link"
+                                           href="/posts/60bc3abb.html">Electron-体验优化</a>
+                                    </article>
+                                
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
                                            href="/posts/b81ed83c.html">Electron-安全</a>
                                     </article>
                                 
@@ -200,14 +429,6 @@
                                     <article class="archive-item">
                                         <a class="archive-item-link"
                                            href="/posts/34a04fbb.html">Electron-质量监控</a>
-                                    </article>
-                                
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
-                                           href="/posts/60bc3abb.html">Electron-体验优化</a>
                                     </article>
                                 
                             
@@ -245,14 +466,6 @@
                                 
                                     <article class="archive-item">
                                         <a class="archive-item-link"
-                                           href="/posts/d884e9d5.html">手撕Promise</a>
-                                    </article>
-                                
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
                                            href="/posts/af0be6b0.html">Web Animation API</a>
                                     </article>
                                 
@@ -269,7 +482,15 @@
                                 
                                     <article class="archive-item">
                                         <a class="archive-item-link"
-                                           href="/posts/2f57a694.html">正则表达式</a>
+                                           href="/posts/d884e9d5.html">手撕Promise</a>
+                                    </article>
+                                
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
+                                           href="/posts/d0699962.html">搞懂EventLoop</a>
                                     </article>
                                 
                             
@@ -278,6 +499,82 @@
                             
                             
                                 <a class="more-post-link" href="/categories/JavaScript/">More >></a>
+                            
+                        </div>
+                    </div>
+                
+                    
+                    <div class="card-item">
+                        <div class="categories">
+                            <a href="/categories/NetWork/">
+                                <h3>
+                                    <i class="iconfont icon-category" style="padding-right:3px"></i>
+                                    NetWork
+                                </h3>
+                            </a>
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
+                                           href="/posts/3b531846.html">HTTP梳理</a>
+                                    </article>
+                                
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
+                                           href="/posts/8b77beaa.html">HTTP首部</a>
+                                    </article>
+                                
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
+                                           href="/posts/4e5b3a92.html">Web网络基础</a>
+                                    </article>
+                                
+                            
+                            
+                        </div>
+                    </div>
+                
+                    
+                    <div class="card-item">
+                        <div class="categories">
+                            <a href="/categories/Nodejs/">
+                                <h3>
+                                    <i class="iconfont icon-category" style="padding-right:3px"></i>
+                                    Nodejs
+                                </h3>
+                            </a>
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
+                                           href="/posts/af3ae610.html">Nodejs搭建vue服务端渲染</a>
+                                    </article>
+                                
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
+                                           href="/posts/9e0c0ca5.html">Nodejs搭建服务端</a>
+                                    </article>
+                                
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
+                                           href="/posts/91c0fa71.html">认识RPC</a>
+                                    </article>
+                                
+                            
                             
                         </div>
                     </div>
@@ -315,10 +612,10 @@
                     
                     <div class="card-item">
                         <div class="categories">
-                            <a href="/categories/NetWork/">
+                            <a href="/categories/Performance/">
                                 <h3>
                                     <i class="iconfont icon-category" style="padding-right:3px"></i>
-                                    NetWork
+                                    Performance
                                 </h3>
                             </a>
                             
@@ -326,53 +623,7 @@
                                 
                                     <article class="archive-item">
                                         <a class="archive-item-link"
-                                           href="/posts/4e5b3a92.html">Web网络基础</a>
-                                    </article>
-                                
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
-                                           href="/posts/8b77beaa.html">HTTP首部</a>
-                                    </article>
-                                
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
-                                           href="/posts/3b531846.html">HTTP梳理</a>
-                                    </article>
-                                
-                            
-                            
-                        </div>
-                    </div>
-                
-                    
-                    <div class="card-item">
-                        <div class="categories">
-                            <a href="/categories/Webpack/">
-                                <h3>
-                                    <i class="iconfont icon-category" style="padding-right:3px"></i>
-                                    Webpack
-                                </h3>
-                            </a>
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
-                                           href="/posts/378e5729.html">Webpack-问题梳理</a>
-                                    </article>
-                                
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
-                                           href="/posts/46109b3a.html">Webpack5</a>
+                                           href="/posts/d43bedc2.html">前端性能指标</a>
                                     </article>
                                 
                             
@@ -427,44 +678,6 @@
                     
                     <div class="card-item">
                         <div class="categories">
-                            <a href="/categories/Nodejs/">
-                                <h3>
-                                    <i class="iconfont icon-category" style="padding-right:3px"></i>
-                                    Nodejs
-                                </h3>
-                            </a>
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
-                                           href="/posts/91c0fa71.html">认识RPC</a>
-                                    </article>
-                                
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
-                                           href="/posts/af3ae610.html">Nodejs搭建vue服务端渲染</a>
-                                    </article>
-                                
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
-                                           href="/posts/9e0c0ca5.html">Nodejs搭建服务端</a>
-                                    </article>
-                                
-                            
-                            
-                        </div>
-                    </div>
-                
-                    
-                    <div class="card-item">
-                        <div class="categories">
                             <a href="/categories/Rust/">
                                 <h3>
                                     <i class="iconfont icon-category" style="padding-right:3px"></i>
@@ -503,36 +716,6 @@
                     
                     <div class="card-item">
                         <div class="categories">
-                            <a href="/categories/Nodejs/Server/">
-                                <h3>
-                                    <i class="iconfont icon-category" style="padding-right:3px"></i>
-                                    Server
-                                </h3>
-                            </a>
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
-                                           href="/posts/af3ae610.html">Nodejs搭建vue服务端渲染</a>
-                                    </article>
-                                
-                            
-                                
-                                
-                                    <article class="archive-item">
-                                        <a class="archive-item-link"
-                                           href="/posts/9e0c0ca5.html">Nodejs搭建服务端</a>
-                                    </article>
-                                
-                            
-                            
-                        </div>
-                    </div>
-                
-                    
-                    <div class="card-item">
-                        <div class="categories">
                             <a href="/categories/Server/">
                                 <h3>
                                     <i class="iconfont icon-category" style="padding-right:3px"></i>
@@ -545,6 +728,36 @@
                                     <article class="archive-item">
                                         <a class="archive-item-link"
                                            href="/posts/d0156050.html">Nginx</a>
+                                    </article>
+                                
+                            
+                            
+                        </div>
+                    </div>
+                
+                    
+                    <div class="card-item">
+                        <div class="categories">
+                            <a href="/categories/Webpack/">
+                                <h3>
+                                    <i class="iconfont icon-category" style="padding-right:3px"></i>
+                                    Webpack
+                                </h3>
+                            </a>
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
+                                           href="/posts/378e5729.html">Webpack-问题梳理</a>
+                                    </article>
+                                
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
+                                           href="/posts/46109b3a.html">Webpack5</a>
                                     </article>
                                 
                             
@@ -593,10 +806,10 @@
                     
                     <div class="card-item">
                         <div class="categories">
-                            <a href="/categories/Serverles/">
+                            <a href="/categories/Nodejs/Server/">
                                 <h3>
                                     <i class="iconfont icon-category" style="padding-right:3px"></i>
-                                    Serverles
+                                    Server
                                 </h3>
                             </a>
                             
@@ -604,7 +817,15 @@
                                 
                                     <article class="archive-item">
                                         <a class="archive-item-link"
-                                           href="/posts/8aa364dc.html">云计算的发展</a>
+                                           href="/posts/af3ae610.html">Nodejs搭建vue服务端渲染</a>
+                                    </article>
+                                
+                            
+                                
+                                
+                                    <article class="archive-item">
+                                        <a class="archive-item-link"
+                                           href="/posts/9e0c0ca5.html">Nodejs搭建服务端</a>
                                     </article>
                                 
                             
@@ -637,10 +858,10 @@
                     
                     <div class="card-item">
                         <div class="categories">
-                            <a href="/categories/Performance/">
+                            <a href="/categories/Serverles/">
                                 <h3>
                                     <i class="iconfont icon-category" style="padding-right:3px"></i>
-                                    Performance
+                                    Serverles
                                 </h3>
                             </a>
                             
@@ -648,7 +869,7 @@
                                 
                                     <article class="archive-item">
                                         <a class="archive-item-link"
-                                           href="/posts/d43bedc2.html">前端性能指标</a>
+                                           href="/posts/8aa364dc.html">云计算的发展</a>
                                     </article>
                                 
                             
@@ -660,14 +881,53 @@
 
         </div>
     </div>
-
-        </div>
-        <footer id="footer" class="footer">
+</div>
+      <footer id="footer" class="footer">
   <div class="copyright">
     <span>Copyright 2019-2020 © zxfan</span>
   </div>
 </footer>
 
     </div>
-</body>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
 </html>
