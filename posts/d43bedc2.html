@@ -504,6 +504,119 @@
 </ul>
 <h2 id="First-Contentful-Paint"><a href="#First-Contentful-Paint" class="headerlink" title="First Contentful Paint"></a>First Contentful Paint</h2><p><strong>首次内容绘制</strong>衡量页面开始加载到页面首个元素渲染完成的事件。通常可以用来代表网页的白屏时间。通常<code>LCP</code>时间是大于或等于<code>FCP</code>时间</p>
 <h2 id="Time-To-First-Bytes"><a href="#Time-To-First-Bytes" class="headerlink" title="Time To First Bytes"></a>Time To First Bytes</h2><p><strong>首字节时间</strong>是指客户端（浏览器）接收到服务端发来的第一个字节所经历的时间。包括<strong>DNS解析</strong>、<strong>TCP三次握手</strong>、<strong>TLS协商</strong>以及<strong>服务端处理请求</strong></p>
+<h2 id="其它性能数据"><a href="#其它性能数据" class="headerlink" title="其它性能数据"></a>其它性能数据</h2><p>通过<code>performance</code>对象，能获取到详细的网页性能数据</p>
+<p><code>performance.timing</code>对象结构：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> PerformanceTiming &#123;</span><br><span class="line">    <span class="keyword">readonly</span> connectEnd: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> connectStart: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> domComplete: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> domContentLoadedEventEnd: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> domContentLoadedEventStart: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> domInteractive: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> domLoading: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> domainLookupEnd: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> domainLookupStart: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> fetchStart: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> loadEventEnd: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> loadEventStart: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> navigationStart: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> redirectEnd: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> redirectStart: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> requestStart: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> responseEnd: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> responseStart: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> secureConnectionStart: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> unloadEventEnd: <span class="built_in">number</span>;</span><br><span class="line">    <span class="keyword">readonly</span> unloadEventStart: <span class="built_in">number</span>;</span><br><span class="line">    toJSON(): <span class="built_in">any</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>timing对象提供了各种与浏览器处理相关的时间数据。具体如下表</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用（这里所有时间戳都代表UNIX毫秒时间戳）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>connectEnd</td>
+<td>浏览器与服务器之间的连接建立时的时间戳，连接建立指的是所有握手和认证过程全部结束</td>
+</tr>
+<tr>
+<td>connectStart</td>
+<td>HTTP请求开始向服务器发送时的时间戳，如果是持久连接，则等同于fetchStart。</td>
+</tr>
+<tr>
+<td>domComplete</td>
+<td>当前网页DOM结构生成时，也就是Document.readyState属性变为“complete”,并且相应的readystatechange事件触发时的时间戳。</td>
+</tr>
+<tr>
+<td>domContentLoadedEventEnd</td>
+<td>当前网页DOMContentLoaded事件发生时，也就是DOM结构解析完毕、所有脚本运行完成时的时间戳。</td>
+</tr>
+<tr>
+<td>domContentLoadedEventStart</td>
+<td>当前网页DOMContentLoaded事件发生时，也就是DOM结构解析完毕、所有脚本开始运行时的时间戳。</td>
+</tr>
+<tr>
+<td>domInteractive</td>
+<td>当前网页DOM结构结束解析、开始加载内嵌资源时，也就是Document.readyState属性变为“interactive”、并且相应的readystatechange事件触发时的时间戳。</td>
+</tr>
+<tr>
+<td>domLoading</td>
+<td>当前网页DOM结构开始解析时,也就是Document.readyState属性变为“loading”、并且相应的readystatechange事件触发时的时间戳。</td>
+</tr>
+<tr>
+<td>domainLookupEnd</td>
+<td>域名查询结束时的时间戳。如果使用持久连接，或者从本地缓存获取信息的，等同于fetchStart</td>
+</tr>
+<tr>
+<td>domainLookupStart</td>
+<td>域名查询开始时的时间戳。如果使用持久连接，或者从本地缓存获取信息的，等同于fetchStart</td>
+</tr>
+<tr>
+<td>fetchStart</td>
+<td>浏览器准备通过HTTP请求去获取页面的时间戳。在检查应用缓存之前发生。</td>
+</tr>
+<tr>
+<td>loadEventEnd</td>
+<td>当前网页load事件的回调函数结束时的时间戳。如果该事件还没有发生，返回0。</td>
+</tr>
+<tr>
+<td>loadEventStart</td>
+<td>当前网页load事件的回调函数开始时的时间戳。如果该事件还没有发生，返回0。</td>
+</tr>
+<tr>
+<td>navigationStart</td>
+<td>当前浏览器窗口的前一个网页关闭，发生unload事件时的时间戳。如果没有前一个网页，就等于fetchStart</td>
+</tr>
+<tr>
+<td>redirectEnd</td>
+<td>最后一次重定向完成，也就是Http响应的最后一个字节返回时的时间戳。如果没有重定向，或者上次重定向不是同源的。则为0</td>
+</tr>
+<tr>
+<td>redirectStart</td>
+<td>第一次重定向开始时的时间戳，如果没有重定向，或者上次重定向不是同源的。则为0</td>
+</tr>
+<tr>
+<td>requestStart</td>
+<td>浏览器向服务器发出HTTP请求时（或开始读取本地缓存时）的时间戳。</td>
+</tr>
+<tr>
+<td>responseEnd</td>
+<td>浏览器从服务器收到（或从本地缓存读取）最后一个字节时（如果在此之前HTTP连接已经关闭，则返回关闭时）的时间戳</td>
+</tr>
+<tr>
+<td>responseStart</td>
+<td>浏览器从服务器收到（或从本地缓存读取）第一个字节时的时间戳。</td>
+</tr>
+<tr>
+<td>secureConnectionStart</td>
+<td>浏览器与服务器开始安全链接的握手时的时间戳。如果当前网页不要求安全连接，则返回0。</td>
+</tr>
+<tr>
+<td>unloadEventEnd</td>
+<td>如果前一个网页与当前网页属于同一个域下，则表示前一个网页的unload回调结束时的时间戳。如果没有前一个网页，或者之前的网页跳转不是属于同一个域内，则返回值为0。</td>
+</tr>
+<tr>
+<td>unloadEventStart</td>
+<td>如果前一个网页与当前网页属于同一个域下，则表示前一个网页的unload事件发生时的时间戳。如果没有前一个网页，或者之前的网页跳转不是属于同一个域内，则返回值为0。</td>
+</tr>
+</tbody></table>
+<p><strong>常用指标计算公式如下</strong></p>
+<ol>
+<li>DNS解析耗时: domainLookupEnd - domainLookupStart</li>
+<li>TCP连接耗时: connectEnd - connectStart</li>
+<li>SSL安全连接耗时: connectEnd - secureConnectionStart</li>
+<li>网络请求耗时(TTFB): responseStart - requestStart</li>
+<li>数据传输耗时: responseEnd - responseStart</li>
+<li>DOM解析耗时: domInteractive - responseEnd</li>
+<li>资源加载耗时: loadEventStart - domContentLoadedEventEnd</li>
+<li>首包时间: responseStart - domainLookupStart</li>
+<li>首次渲染时间 / 白屏时间: responseEnd - fetchStart</li>
+<li>首次可交互时间: domInteractive - fetchStart</li>
+<li>DOM Ready时间: domContentLoadEventEnd - fetchStart</li>
+<li>页面完全加载时间: loadEventStart - fetchStart</li>
+</ol>
 
         </div>
 
@@ -557,7 +670,7 @@
         </section>
         <section class="post-nav">
             
-                <a class="prev" rel="prev" href="/posts/473044e6.html">web-vitals源码的工程化</a>
+                <a class="prev" rel="prev" href="/posts/473044e6.html">web-vitals源码解读</a>
             
             
             <a class="next" rel="next" href="/posts/dafb6b4a.html">依赖注入-vu3源码</a>

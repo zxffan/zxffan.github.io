@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>Webpack原理 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
+    <div class="wrapper">
+      <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+      <div class="main"><div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Webpack原理</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">三月 20, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Webpack/">Webpack</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="Webpack工作流程"><a href="#Webpack工作流程" class="headerlink" title="Webpack工作流程"></a>Webpack工作流程</h2><h3 id="类比"><a href="#类比" class="headerlink" title="类比"></a>类比</h3><p>Webpack 可以看做是一个工厂车间， <code>plugin</code> 和 <code>loader</code> 是车间中的两类机器，工厂有一个车间主任和一个生 产车间。车间主任叫 <code>Compiler</code> ，负责指挥生产车间机器 <code>Compilation</code> 进行生产劳动， <code>Compilation</code> 会首先将 进来的原材料（ <code>entry</code> ）使用一种叫做 <code>loader</code> 的机器进行加工，生产出来的产品就是 <code>Chunk</code> ； <code>Chunk</code> 生产出 来之后，会被组装成 <code>Bundle</code> ，然后通过一类 <code>plugin</code> 的机器继续加工，得到最后的 <code>Bundle</code> ，然后运输到对应 的仓库（<code>output</code>）。这个工厂的生产线就是 <code>Tapable</code>，厂子运作的整个流程都是生产线控制的，车间中有好几 条生产线，每个生产线有很多的操作步骤（ <code>hook</code> ），一步操作完毕，会进入到下一步操作，直到生产线全流 程完成，再将产出传给下一个产品线处理。整个车间生产线也组成了一条最大的生产线。</p>
+<h3 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h3><h4 id="三个阶段"><a href="#三个阶段" class="headerlink" title="三个阶段"></a>三个阶段</h4><ul>
+<li>准备阶段：主要任务是创建 Compiler 和 Compilation 对象；</li>
+<li> 编译阶段：这个阶段任务是完成 modules 解析，并且生成 chunks；</li>
+<li>module 解析：包含了三个主要步骤，创建实例、loaders 应用和依赖收集；</li>
+<li>chunks 生成，主要步骤是找到每个 chunk 所需要包含的 modules 。 </li>
+<li>产出阶段：这个阶段的主要任务是根据 chunks 生成最终文件，主要有三个步骤：模板 Hash 更新，模板渲染 chunk，生成文件。</li>
+</ul>
+<h4 id="细化"><a href="#细化" class="headerlink" title="细化"></a>细化</h4><ol>
+<li>初始化参数：包括从配置文件和 shell 中读取和合并参数，然后得出最终参数；<strong>shell 中的参数要优于配置文件的</strong></li>
+<li>使用上一步得到的参数<strong>实例化一个 Compiler 类</strong>，注册所有的插件，给对应的 Webpack 构建生命周期绑定 Hook</li>
+<li>开始编译：执行 Compiler 类的 run 方法开始执行编译</li>
+<li>compiler.run 方法调用 compiler.compile ，在 compile 内<strong>实例化一个 Compilation 类</strong>， Compilation 是做构 建打包的事情，主要事情包括： <ol>
+<li>查找入口：根据 entry 配置，找出全部的入口文件</li>
+<li>编译模块：根据文件类型和 loader 配置，使用对应 loader 对文件进行转换处理</li>
+<li>解析文件的 AST 语法树</li>
+<li>找出文件依赖关系</li>
+<li>递归编译依赖的模块</li>
+</ol>
+</li>
+<li>递归完后得到每个文件的最终结果，根据 entry 配置生成代码块 chunk</li>
+<li>输出所有 chunk 到对应的 output 路径</li>
+</ol>
+<p><img src="../images/framework/webpack-proceed.png" alt="webpack工作流程"></p>
+<h2 id="Tapable"><a href="#Tapable" class="headerlink" title="Tapable"></a>Tapable</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p><code>Tapable</code>是webpack的核心模块。其原理和nodejs的<code>EventEmitter</code> 类似，但是功能更强大，包括多种类型，通过<strong>事件的注册和监听</strong>，触发 Webpack 生命周期中的函数方法。tapable 都是放到对象的 hooks 上，所以我们叫它们 钩子。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// webpack 4.29.6</span></span><br><span class="line"><span class="comment">// lib/compiler</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Compiler</span> <span class="keyword">extends</span> <span class="title">Tapable</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">constructor</span>(<span class="params">context</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>();</span><br><span class="line">    <span class="built_in">this</span>.hooks = &#123;</span><br><span class="line">      shouldEmit: <span class="keyword">new</span> SyncBailHook([<span class="string">&#x27;compilation&#x27;</span>]),</span><br><span class="line">      done: <span class="keyword">new</span> AsyncSeriesHook([<span class="string">&#x27;stats&#x27;</span>]),</span><br><span class="line">      additionalPass: <span class="keyword">new</span> AsyncSeriesHook([]),</span><br><span class="line">      beforeRun: <span class="keyword">new</span> AsyncSeriesHook([<span class="string">&#x27;compiler&#x27;</span>]),</span><br><span class="line">      run: <span class="keyword">new</span> AsyncSeriesHook([<span class="string">&#x27;compiler&#x27;</span>]),</span><br><span class="line">      emit: <span class="keyword">new</span> AsyncSeriesHook([<span class="string">&#x27;compilation&#x27;</span>]),</span><br><span class="line">      afterEmit: <span class="keyword">new</span> AsyncSeriesHook([<span class="string">&#x27;compilation&#x27;</span>]),</span><br><span class="line">      thisCompilation: <span class="keyword">new</span> SyncHook([<span class="string">&#x27;compilation&#x27;</span>, <span class="string">&#x27;params&#x27;</span>]),</span><br><span class="line">      compilation: <span class="keyword">new</span> SyncHook([<span class="string">&#x27;compilation&#x27;</span>, <span class="string">&#x27;params&#x27;</span>]),</span><br><span class="line">      normalModuleFactory: <span class="keyword">new</span> SyncHook([<span class="string">&#x27;normalModuleFactory&#x27;</span>]),</span><br><span class="line">      contextModuleFactory: <span class="keyword">new</span> SyncHook([<span class="string">&#x27;contextModulefactory&#x27;</span>]),</span><br><span class="line">      beforeCompile: <span class="keyword">new</span> AsyncSeriesHook([<span class="string">&#x27;params&#x27;</span>]),</span><br><span class="line">      compile: <span class="keyword">new</span> SyncHook([<span class="string">&#x27;params&#x27;</span>]),</span><br><span class="line">      make: <span class="keyword">new</span> AsyncParallelHook([<span class="string">&#x27;compilation&#x27;</span>]),</span><br><span class="line">      afterCompile: <span class="keyword">new</span> AsyncSeriesHook([<span class="string">&#x27;compilation&#x27;</span>]),</span><br><span class="line">      watchRun: <span class="keyword">new</span> AsyncSeriesHook([<span class="string">&#x27;compiler&#x27;</span>]),</span><br><span class="line">      failed: <span class="keyword">new</span> SyncHook([<span class="string">&#x27;error&#x27;</span>]),</span><br><span class="line">      invalid: <span class="keyword">new</span> SyncHook([<span class="string">&#x27;filename&#x27;</span>, <span class="string">&#x27;changeTime&#x27;</span>]),</span><br><span class="line">      watchClose: <span class="keyword">new</span> SyncHook([]),</span><br><span class="line">      environment: <span class="keyword">new</span> SyncHook([]),</span><br><span class="line">      afterEnvironment: <span class="keyword">new</span> SyncHook([]),</span><br><span class="line">      afterPlugins: <span class="keyword">new</span> SyncHook([<span class="string">&#x27;compiler&#x27;</span>]),</span><br><span class="line">      entryOption: <span class="keyword">new</span> SyncBailHook([<span class="string">&#x27;context&#x27;</span>, <span class="string">&#x27;entry&#x27;</span>])</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="Tapable中Hook类型"><a href="#Tapable中Hook类型" class="headerlink" title="Tapable中Hook类型"></a>Tapable中Hook类型</h3><p>Hook 类型可以分为同步（ Sync ）和异步（ Async ），异步又分为并行和串行：</p>
+<p><img src="../images/framework/tapable_hook.png" alt="tapable_hook"></p>
+<p>根据使用方式来分，又可以分为 Basic 、 Waterfall 、 Bail 和 Loop 四类，每类 Hook 都有自己的使用要点：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>使用要点</th>
+<th>hook</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Basic</td>
+<td>基础类型，不关心监听函数的返回值，不根据返回值做事情</td>
+<td><code>SyncHook</code> 、 <code>AsyncParallelHook</code> 和 <code>AsyncSeriesHook</code></td>
+</tr>
+<tr>
+<td>Bail</td>
+<td>保险式，只要监听函数中有返回值（不为 undefined ），则跳过之后的监听函数（类比Array.find）</td>
+<td><code>SyncBailHook </code>、 <code>AsyncSeriesBailHook</code> 、 <code>AsyncParallelBailHook</code></td>
+</tr>
+<tr>
+<td>Waterfall</td>
+<td>瀑布式，上一步的返回值(非undefined)继续交给下一步处理和使用（类比Array.reduce）</td>
+<td><code>SyncWaterfallHook</code> 和 <code>AsyncSeriesWaterfallHook</code></td>
+</tr>
+<tr>
+<td>Loop</td>
+<td>循环类型，如果该监听函数返回 true 则这个监听函数会反复执行，如果返回 undefined 则退出循环</td>
+<td><code>SyncLoopHook</code></td>
+</tr>
+</tbody></table>
+<h3 id="Tapable原理解析"><a href="#Tapable原理解析" class="headerlink" title="Tapable原理解析"></a>Tapable原理解析</h3><p>Tapable执行分为四步</p>
+<ol>
+<li>使用 tap* 对事件进行注册绑定。根据类型不同，提供三种绑定的方式： <code>tap</code> 、 <code>tapPromise</code> 、 <code>tapAsync</code> ，其中 <code>tapPromise</code> 、 <code>tapAsync</code> 为异步类 Hook 的绑定方法</li>
+<li>使用 call* 对事件进行触发，根据类型不同，也提供了三种触发的方式： <code>call</code> 、 <code>promise</code> 、 <code>callAsync</code> </li>
+<li>生成对应类型的代码片段（要执行的代码实际是拼字符串拼出来的）</li>
+<li>生成第三步生成的代码片段。</li>
+</ol>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>Tapable 是 Webpack 的核心模块，Webpack 的所有工作流程都是通过 Tapable 来实现的。Tapable 本质上是提供 了多种类型的事件绑定机制，根据不同的流程特点可以选择不同类型的 Hook 来使用。Tapable 的核心实现在绑定 事件阶段跟我们平时的自定义 JavaScript事件绑定（例如EventEmitter）没有太大区别，但是在事件触发执行的时 候，会临时生成可以执行的函数代码片段。通过这种实现方式，Tapable 实现了强大的事件流程控制能力，也增加 了如 waterfall / parallel 系列方法，实现了异步/并行等事件流的控制能力。</p>
+<h2 id="Compiler-和-Compilation"><a href="#Compiler-和-Compilation" class="headerlink" title="Compiler 和 Compilation"></a>Compiler 和 Compilation</h2><p>compiler和compilation都继承Tapable，不同点是Compiler是每 个 Webpack 的配置，对应一个Compiler对象，记录着整个 Webpack 的生命周期；在构建的过程中，每次构建都 会产生一次Compilation，Compilation则是构建周期的产物。</p>
+<h3 id="Compiler"><a href="#Compiler" class="headerlink" title="Compiler"></a>Compiler</h3><p>每次执行webpack构建的时候，webpack内部都会实例化一个<code>Compiler</code>对象，然后调用它的<code>run</code>方法开始一次完整的编译过程。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> webpack = <span class="built_in">require</span>(<span class="string">&#x27;webpack&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> webpackConfig = <span class="built_in">require</span>(<span class="string">&#x27;./webpack.config.js&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 只传入config</span></span><br><span class="line"><span class="keyword">const</span> compiler = webapck(webpackConfig)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行</span></span><br><span class="line">compiler.run()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 上面两句等价于</span></span><br><span class="line">webpack(webpackConfig, callback)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>使用<code>webpack-dev-server</code>API方式时，只需要将compiler对象给dev server即可，不需要手动执行<code>compiler.run()</code>；如果需要手动实例化<code>Compiler</code>对象，可以通过<code>const Compiler = webpack.Compiler</code>来获取它的类。</p>
+</blockquote>
+<h3 id="Compiler钩子"><a href="#Compiler钩子" class="headerlink" title="Compiler钩子"></a>Compiler钩子</h3><table>
+<thead>
+<tr>
+<th align="left">钩子名</th>
+<th align="left">Tapable 类型</th>
+<th align="left">触发时机</th>
+<th align="left">传入 callback 的参数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">entryOption</td>
+<td align="left">SyncBailHook</td>
+<td align="left">在 webpack 中的 entry 配置处理过之后</td>
+<td align="left"><code>context</code>，<code>entry</code></td>
+</tr>
+<tr>
+<td align="left">afterPlugins</td>
+<td align="left">SyncHook</td>
+<td align="left">初始化完内置插件之后</td>
+<td align="left"><code>compiler</code></td>
+</tr>
+<tr>
+<td align="left">afterResolvers</td>
+<td align="left">SyncHook</td>
+<td align="left">resolver 完成之后（后面解释resolver是什么）</td>
+<td align="left"><code>compiler</code></td>
+</tr>
+<tr>
+<td align="left">environment</td>
+<td align="left">SyncHook</td>
+<td align="left">准备编译环境，webpack plugins配置初始化完成之后</td>
+<td align="left"><code>compiler</code></td>
+</tr>
+<tr>
+<td align="left">afterEnvironment</td>
+<td align="left">SyncHook</td>
+<td align="left">编译环境准备好之后</td>
+<td align="left"><code>compiler</code></td>
+</tr>
+<tr>
+<td align="left">beforeRun</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">开始正式编译之前</td>
+<td align="left"><code>compiler</code></td>
+</tr>
+<tr>
+<td align="left">run</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">开始编译之后，读取 records 之前；监听模式触发<code>watch-run</code></td>
+<td align="left"><code>compiler</code></td>
+</tr>
+<tr>
+<td align="left">watchRun</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">监听模式下，一个新的编译触发之后</td>
+<td align="left"><code>compiler</code></td>
+</tr>
+<tr>
+<td align="left">normalModuleFactory</td>
+<td align="left">SyncHook</td>
+<td align="left">NormalModuleFactory 创建之后</td>
+<td align="left"><code>normalModuleFactory</code>实例</td>
+</tr>
+<tr>
+<td align="left">contextModuleFactory</td>
+<td align="left">SyncHook</td>
+<td align="left">ContextModuleFactory 创建之后</td>
+<td align="left"><code>contextModuleFactory</code>实例</td>
+</tr>
+<tr>
+<td align="left">beforeCompile</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">compilation 实例化需要的参数创建完毕之后</td>
+<td align="left"><code>compilationParams</code></td>
+</tr>
+<tr>
+<td align="left">compile</td>
+<td align="left">SyncHook</td>
+<td align="left">一次 compilation 编译创建之前</td>
+<td align="left"><code>compilationParams</code></td>
+</tr>
+<tr>
+<td align="left">thisCompilation</td>
+<td align="left">SyncHook</td>
+<td align="left">触发 compilation 事件之前执行</td>
+<td align="left"><code>compilation</code>，<code>compilationParams</code></td>
+</tr>
+<tr>
+<td align="left">compilation</td>
+<td align="left">SyncHook</td>
+<td align="left">compilation创建成功之后</td>
+<td align="left"><code>compilation</code>，<code>compilationParams</code></td>
+</tr>
+<tr>
+<td align="left">make</td>
+<td align="left">AsyncParallelHook</td>
+<td align="left">完成编译之前</td>
+<td align="left"><code>compilation</code></td>
+</tr>
+<tr>
+<td align="left">afterCompile</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">完成编译和封存（seal）编译产出之后</td>
+<td align="left"><code>compilation</code></td>
+</tr>
+<tr>
+<td align="left">shouldEmit</td>
+<td align="left">SyncBailHook</td>
+<td align="left">发布构建后资源之前触发，回调必须返回<code>true</code>/<code>false</code>，<code>true</code>则继续</td>
+<td align="left"><code>compilation</code></td>
+</tr>
+<tr>
+<td align="left">emit</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">生成资源到 output 目录之前</td>
+<td align="left"><code>compilation</code></td>
+</tr>
+<tr>
+<td align="left">afterEmit</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">生成资源到 output 目录之后</td>
+<td align="left"><code>compilation</code></td>
+</tr>
+<tr>
+<td align="left">done</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">compilation完成之后</td>
+<td align="left"><code>stats</code></td>
+</tr>
+<tr>
+<td align="left">failed</td>
+<td align="left">SyncHook</td>
+<td align="left">compilation失败</td>
+<td align="left"><code>error</code></td>
+</tr>
+<tr>
+<td align="left">invalid</td>
+<td align="left">SyncHook</td>
+<td align="left">监听模式下，编译无效时</td>
+<td align="left"><code>fileName</code>，<code>changeTime</code></td>
+</tr>
+<tr>
+<td align="left">watchClose</td>
+<td align="left">SyncHook</td>
+<td align="left">监听模式停止</td>
+<td align="left">无</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Tips：整个<code>Compiler</code>完整地展现了 Webpack 的构建流程：</p>
+<ul>
+<li>准备阶段：run之前做的事情都属于准备阶段，这阶段的calback入参以compiler为主； </li>
+<li>编译阶段：这阶段以compilation的钩子为主，calback入参以compilation为主； </li>
+<li>产出阶段：这阶段从compilation开始，最后回到Compiler钩子上，calback传入参数是跟结果相关的数据，包括stats、error</li>
+</ul>
+</blockquote>
+<p>钩子的调用需要使用<code>tap</code>、<code>tapPromise</code>或<code>tapAsync</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">compiler.hooks.someHook.tap(<span class="string">&#x27;MyPlugin&#x27;</span>, <span class="function"><span class="params">params</span> =&gt;</span> &#123;    <span class="comment">/* ... */</span> &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>注解1: Resolver</p>
+<p>Compiler 的 Resolver 是指来自于enhanced-resolve模块，它主要功能是一个提供异步require.resolve()，即从哪里去查找文件的路径，可以通过Webpack的resolve和resolveLoader来配置。Compiler类有三种类型的内置 Resolver：</p>
+<ul>
+<li>Normal：通过绝对路径或相对路径，解析一个模块； </li>
+<li>Context：通过给定的上下文（context）解析一个模块； </li>
+<li>Loader：解析一个 webpack loader。</li>
+</ul>
+<p>注解2： ：<code>thisCompilation</code>和<code>compilation</code></p>
+<p>这里为什么会有 thisCompilation和compilation 两个钩子呢？其实是跟子编译（child compiler）有关， Compiler 实例通过 createChildCompiler 方法可以创建子编译实例 childCompiler。创建childCompiler时，childCompiler会复制 compiler 实例的任务点监听器。compilation的钩子会被复制，而 的钩子会被复制，而 thisCompilation 钩子则 钩子则不会被复制。</p>
+<h3 id="Compilation"><a href="#Compilation" class="headerlink" title="Compilation"></a>Compilation</h3><p>在 Compilation 阶段，模块会被加载(loaded)、封存(sealed)、优化(optimized)、分块(chunked)、哈希(hashed)和重新创建(restored)，Compilation 对象包含了当前的模块资源、编译生成资源、变化的文件等。当 Webpack 以监听（watch）模式运行时，每当检测到一个文件变化，一次新的 Compilation 将被创建。Compilation 对象也提供了很多事件回调供插件做扩展，通过 Compilation 也能读取到 Compiler 对象。</p>
+<h4 id="Compilation钩子"><a href="#Compilation钩子" class="headerlink" title="Compilation钩子"></a>Compilation钩子</h4><p>compilation先从单个 module 开始处理，查找依赖关系， 最后完成单个module 处理，完成全部modules 之后，开始 chunks 阶段处理，最后在根据优化配置，按需生成 assets。</p>
+<p>带★是比较重要的</p>
+<table>
+<thead>
+<tr>
+<th align="left">钩子名</th>
+<th align="left">Tapable 类型</th>
+<th align="left">触发时机</th>
+<th align="left">传入 callback 的参数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">buildModule</td>
+<td align="left">SyncHook</td>
+<td align="left">在模块构建开始之前触发</td>
+<td align="left"><code>module</code></td>
+</tr>
+<tr>
+<td align="left">rebuildModule</td>
+<td align="left">SyncHook</td>
+<td align="left">在重新构建一个模块之前触发</td>
+<td align="left"><code>module</code></td>
+</tr>
+<tr>
+<td align="left">failedModule</td>
+<td align="left">SyncHook</td>
+<td align="left">模块构建失败时执行</td>
+<td align="left"><code>module</code>，<code>error</code></td>
+</tr>
+<tr>
+<td align="left">succeedModule</td>
+<td align="left">SyncHook</td>
+<td align="left">模块构建成功时执行</td>
+<td align="left"><code>module</code></td>
+</tr>
+<tr>
+<td align="left">finishModules</td>
+<td align="left">SyncHook</td>
+<td align="left">所有模块都完成构建</td>
+<td align="left"><code>module</code></td>
+</tr>
+<tr>
+<td align="left">finishRebuildingModule</td>
+<td align="left">SyncHook</td>
+<td align="left">一个模块完成重新构建</td>
+<td align="left"><code>module</code></td>
+</tr>
+<tr>
+<td align="left">seal</td>
+<td align="left">SyncHook</td>
+<td align="left">★编译（compilation）停止接收新模块时触发</td>
+<td align="left"><code>module</code></td>
+</tr>
+<tr>
+<td align="left">unseal</td>
+<td align="left">SyncHook</td>
+<td align="left">编译（compilation）开始接收新模块时触发</td>
+<td align="left"><code>module</code></td>
+</tr>
+<tr>
+<td align="left">optimizeDependencies</td>
+<td align="left">SyncBailHook</td>
+<td align="left">依赖优化开始时触发</td>
+<td align="left"><code>modules</code></td>
+</tr>
+<tr>
+<td align="left">afterOptimizeDependencies</td>
+<td align="left">SyncHook</td>
+<td align="left">依赖优化结束时触发</td>
+<td align="left"><code>modules</code></td>
+</tr>
+<tr>
+<td align="left">optimize</td>
+<td align="left">SyncHook</td>
+<td align="left">★优化阶段开始时触发</td>
+<td align="left"><code>modules</code></td>
+</tr>
+<tr>
+<td align="left">optimizeModules</td>
+<td align="left">SyncBailHook</td>
+<td align="left">★模块的优化</td>
+<td align="left"><code>modules</code></td>
+</tr>
+<tr>
+<td align="left">afterOptimizeModules</td>
+<td align="left">SyncHook</td>
+<td align="left">模块优化结束时触发</td>
+<td align="left"><code>modules</code></td>
+</tr>
+<tr>
+<td align="left">optimizeChunks</td>
+<td align="left">SyncBailHook</td>
+<td align="left">★优化 chunks</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">afterOptimizeChunks</td>
+<td align="left">SyncHook</td>
+<td align="left">chunk 优化完成之后触发</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">optimizeTree</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">异步优化依赖树</td>
+<td align="left"><code>chunks</code>，<code>modules</code></td>
+</tr>
+<tr>
+<td align="left">afterOptimizeTree</td>
+<td align="left">SyncHook</td>
+<td align="left">异步优化依赖树完成时</td>
+<td align="left"><code>chunks</code>，<code>modules</code></td>
+</tr>
+<tr>
+<td align="left">optimizeChunkModules</td>
+<td align="left">SyncBailHook</td>
+<td align="left">优化单个chunk中的 modules 开始</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">afterOptimizeChunkModules</td>
+<td align="left">SyncHook</td>
+<td align="left">优化单个chunk中的 modules 结束</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">shouldRecord</td>
+<td align="left">SyncHook</td>
+<td align="left"></td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">reviveModules</td>
+<td align="left">SyncHook</td>
+<td align="left">从 records 中恢复模块信息</td>
+<td align="left"><code>modules</code>，<code>records</code></td>
+</tr>
+<tr>
+<td align="left">optimizeModuleOrder</td>
+<td align="left">SyncHook</td>
+<td align="left">将模块从最重要的到最不重要的进行排序</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">beforeModuleIds</td>
+<td align="left">SyncHook</td>
+<td align="left">处理 modulesId 之前</td>
+<td align="left"><code>modules</code></td>
+</tr>
+<tr>
+<td align="left">moduleIds</td>
+<td align="left">SyncHook</td>
+<td align="left">处理 modulesId</td>
+<td align="left"><code>modules</code></td>
+</tr>
+<tr>
+<td align="left">optimizeModuleIds</td>
+<td align="left">SyncHook</td>
+<td align="left">优化 modulesId</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">afterOptimizeModuleIds</td>
+<td align="left">SyncHook</td>
+<td align="left">优化 modulesId之后</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">reviveChunks</td>
+<td align="left">SyncHook</td>
+<td align="left">从 records 中恢复 chunk 信息</td>
+<td align="left"><code>modules</code>，<code>records</code></td>
+</tr>
+<tr>
+<td align="left">optimizeChunkOrder</td>
+<td align="left">SyncHook</td>
+<td align="left">将 chunk 从最重要的到最不重要的进行排序</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">beforeOptimizeChunkIds</td>
+<td align="left">SyncHook</td>
+<td align="left">chunk id 优化之前触发</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">optimizeChunkIds</td>
+<td align="left">SyncHook</td>
+<td align="left">chunk id 优化开始触发</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">afterOptimizeChunkIds</td>
+<td align="left">SyncHook</td>
+<td align="left">chunk id 优化结束触发</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">recordModules</td>
+<td align="left">SyncHook</td>
+<td align="left">将模块信息存储到 records</td>
+<td align="left"><code>modules</code>，<code>records</code></td>
+</tr>
+<tr>
+<td align="left">recordChunks</td>
+<td align="left">SyncHook</td>
+<td align="left">将 chunk 信息存储到 records</td>
+<td align="left"><code>chunks</code>，<code>records</code></td>
+</tr>
+<tr>
+<td align="left">beforeHash</td>
+<td align="left">SyncHook</td>
+<td align="left">在编译被哈希（hashed）之前</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">afterHash</td>
+<td align="left">SyncHook</td>
+<td align="left">在编译被哈希（hashed）之后</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">record</td>
+<td align="left">SyncHook</td>
+<td align="left">将 compilation 相关信息存储到 records 中</td>
+<td align="left"><code>compilation</code>，<code>records</code></td>
+</tr>
+<tr>
+<td align="left">beforeChunkAssets</td>
+<td align="left">SyncHook</td>
+<td align="left">在创建 chunk 资源（asset）之前</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">additionalChunkAssets</td>
+<td align="left">SyncHook</td>
+<td align="left">为 chunk 创建附加资源（asset）</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">additionalAssets</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">★为编译（compilation）创建附加资源（asset）</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">optimizeChunkAssets</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">★优化所有 chunk 资源（asset）</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">afterOptimizeChunkAssets</td>
+<td align="left">SyncHook</td>
+<td align="left">chunk 资源（asset）已经被优化</td>
+<td align="left"><code>chunks</code></td>
+</tr>
+<tr>
+<td align="left">optimizeAssets</td>
+<td align="left">AsyncSeriesHook</td>
+<td align="left">★优化存储在 compilation.assets 中的所有资源（asset）</td>
+<td align="left"><code>assets</code></td>
+</tr>
+<tr>
+<td align="left">afterOptimizeAssets</td>
+<td align="left">SyncHook</td>
+<td align="left">优化compilation.assets 中的所有资源（asset）之后</td>
+<td align="left"><code>assets</code></td>
+</tr>
+<tr>
+<td align="left">moduleAsset</td>
+<td align="left">SyncHook</td>
+<td align="left">一个模块中的一个资源被添加到编译中</td>
+<td align="left"><code>module</code>，<code>filename</code></td>
+</tr>
+<tr>
+<td align="left">chunkAsset</td>
+<td align="left">SyncHook</td>
+<td align="left">一个 chunk 中的一个资源被添加到编译中</td>
+<td align="left"><code>chunk</code>，<code>filename</code></td>
+</tr>
+<tr>
+<td align="left">assetPath</td>
+<td align="left">SyncWaterfallHook</td>
+<td align="left">asset 路径确认之后</td>
+<td align="left"><code>filename</code>，<code>data</code></td>
+</tr>
+<tr>
+<td align="left">childCompiler</td>
+<td align="left">SyncHook</td>
+<td align="left">子编译（compiler）触发</td>
+<td align="left"><code>childCompiler</code>，<code>compilerName</code>，<code>compilerIndex</code></td>
+</tr>
+<tr>
+<td align="left">normalModuleLoader</td>
+<td align="left">SyncHook</td>
+<td align="left">★普通模块 loader，真正（一个接一个地）加载模块图（graph）中所有模块的函数</td>
+<td align="left"><code>loaderContext</code>，<code>module</code></td>
+</tr>
+</tbody></table>
+<h4 id="Stats"><a href="#Stats" class="headerlink" title="Stats"></a>Stats</h4><p>在webpack的回调函数——<code>webpack(cofnig, (err, stats) =&gt; &#123;&#125;)</code>中会得到stats对象，这个对象实际来自于<code>Compilation.getStats()</code>，返回的是主要含有<code>modules</code>、<code>chunks</code>和<code>assets</code>三个属性值的对象。</p>
+<ul>
+<li>modules： 记录了所有解析后的模块</li>
+<li>chunks：记录了所有chunk</li>
+<li>assets：记录了所有要生成的文件</li>
+</ul>
+<p>Stats对象本质是来自于<code>lib/Stats.js</code>的类的实例。常用的方法：</p>
+<ul>
+<li>stats.hasWarnings()</li>
+<li>stats.hasErrors()</li>
+<li>stats.toJson()</li>
+<li>stats.toString()</li>
+</ul>
+<h4 id="Stats对象数据结构"><a href="#Stats对象数据结构" class="headerlink" title="Stats对象数据结构"></a>Stats对象数据结构</h4><p>在webpack的回调中获取stats，然后再调用<code>toJson</code>方法获取stats的数据接口</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">webpack(config, <span class="function">(<span class="params">err, stats</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(stats.toJson())</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>Stats对象可以通过<code>webpack-cli</code>打包成一个json文件：<code>webpack --profile --json &gt; compilation-stats.json</code></p>
+<p>数据结构如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;version&quot;</span>: <span class="string">&quot;4.29.6&quot;</span>, <span class="comment">// 用来编译的 webpack 的版本</span></span><br><span class="line">    <span class="attr">&quot;hash&quot;</span>: <span class="string">&quot;11593e3b3ac85436984a&quot;</span>, <span class="comment">// 编译使用的 hash</span></span><br><span class="line">    <span class="attr">&quot;time&quot;</span>: <span class="number">2469</span>, <span class="comment">// 编译耗时 (ms)</span></span><br><span class="line">    <span class="attr">&quot;filteredModules&quot;</span>: <span class="number">0</span>, <span class="comment">// 当 `exclude`传入`toJson` 函数时，统计被无视的模块的数量</span></span><br><span class="line">    <span class="attr">&quot;outputPath&quot;</span>: <span class="string">&quot;/&quot;</span>, <span class="comment">// path to webpack 输出目录的 path 路径</span></span><br><span class="line">    <span class="attr">&quot;assetsByChunkName&quot;</span>: &#123;</span><br><span class="line">        <span class="comment">// 用作映射的 chunk 的名称</span></span><br><span class="line">        <span class="attr">&quot;main&quot;</span>: <span class="string">&quot;web.js?h=11593e3b3ac85436984a&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;named-chunk&quot;</span>: <span class="string">&quot;named-chunk.web.js&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;other-chunk&quot;</span>: [<span class="string">&quot;other-chunk.js&quot;</span>, <span class="string">&quot;other-chunk.css&quot;</span>]</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;assets&quot;</span>: [</span><br><span class="line">        <span class="comment">// asset 对象 (asset objects) 的数组</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;chunks&quot;</span>: [</span><br><span class="line">        <span class="comment">// chunk 对象 (chunk objects) 的数组</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;modules&quot;</span>: [</span><br><span class="line">        <span class="comment">// 模块对象 (module objects) 的数组</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;errors&quot;</span>: [</span><br><span class="line">        <span class="comment">// 错误字符串 (error string) 的数组</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;warnings&quot;</span>: [</span><br><span class="line">        <span class="comment">// 警告字符串 (warning string) 的数组</span></span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>stats.toJson可以指定要不要输出对应的数据。例如不想输出 modules 和 chunks，可以使用stats. toJson({modules: false, chunks: false})</p>
+</blockquote>
+<h4 id="module"><a href="#module" class="headerlink" title="module"></a>module</h4><p>在每个 module 中，我们可以得到它的所有信息，这些信息可以分为四大类：</p>
+<ol>
+<li>基本信息：包括最基本的内容、大小、id；</li>
+<li>依赖关系：<code>module.reasons</code>对象描述了这个模块被加入依赖图表的理由，包含了引入的方式、引入的 module 信息及其对应代码在第几行第几列等，可以通过这个计算出 module 之间的依赖关系图表（graph）；</li>
+<li>chunks 和 assets 关系：<code>module.chunks</code>和<code>module.assets</code>包含到 chunks 和 assets 中的对应 id 等；</li>
+<li>被 webpack 处理的后的信息：包含<code>module.failed</code>、<code>module.errors</code>、<code>module.warnings</code>等。</li>
+</ol>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;assets&quot;</span>: [</span><br><span class="line">        <span class="comment">// asset对象 (asset objects)的数组</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;built&quot;</span>: <span class="literal">true</span>, <span class="comment">// 表示这个模块会参与 Loaders , 解析, 并被编译</span></span><br><span class="line">    <span class="attr">&quot;cacheable&quot;</span>: <span class="literal">true</span>, <span class="comment">// 表示这个模块是否会被缓存</span></span><br><span class="line">    <span class="attr">&quot;chunks&quot;</span>: [</span><br><span class="line">        <span class="comment">// 包含这个模块的 chunks 的 id</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;errors&quot;</span>: <span class="number">0</span>, <span class="comment">// 处理这个模块发现的错误的数量</span></span><br><span class="line">    <span class="attr">&quot;failed&quot;</span>: <span class="literal">false</span>, <span class="comment">// 编译是否失败</span></span><br><span class="line">    <span class="attr">&quot;id&quot;</span>: <span class="number">0</span>, <span class="comment">// 这个模块的ID (类似于 `module.id`)</span></span><br><span class="line">    <span class="attr">&quot;identifier&quot;</span>: <span class="string">&quot;(webpack)\\test\\browsertest\\lib\\index.web.js&quot;</span>, <span class="comment">// webpack内部使用的唯一的标识</span></span><br><span class="line">    <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;./lib/index.web.js&quot;</span>, <span class="comment">// 实际文件的地址</span></span><br><span class="line">    <span class="attr">&quot;optional&quot;</span>: <span class="literal">false</span>, <span class="comment">// 每一个对这个模块的请求都会包裹在 `try... catch` 内 (与ESM无关)</span></span><br><span class="line">    <span class="attr">&quot;prefetched&quot;</span>: <span class="literal">false</span>, <span class="comment">// 表示这个模块是否会被 prefetched</span></span><br><span class="line">    <span class="attr">&quot;profile&quot;</span>: &#123;</span><br><span class="line">        <span class="comment">// 有关 `--profile` flag 的这个模块特有的编译数据 (ms)</span></span><br><span class="line">        <span class="attr">&quot;building&quot;</span>: <span class="number">73</span>, <span class="comment">// 载入和解析</span></span><br><span class="line">        <span class="attr">&quot;dependencies&quot;</span>: <span class="number">242</span>, <span class="comment">// 编译依赖</span></span><br><span class="line">        <span class="attr">&quot;factory&quot;</span>: <span class="number">11</span> <span class="comment">// 解决依赖</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;reasons&quot;</span>: [</span><br><span class="line">        <span class="comment">// 见下文描述</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;size&quot;</span>: <span class="number">3593</span>, <span class="comment">// 预估模块的大小 (byte)</span></span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: <span class="string">&quot;// Should not break it...\r\nif(typeof...&quot;</span>, <span class="comment">// 字符串化的输入</span></span><br><span class="line">    <span class="attr">&quot;warnings&quot;</span>: <span class="number">0</span> <span class="comment">// 处理模块时警告的数量</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>module.reasons</code>数据结构如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;loc&quot;</span>: <span class="string">&quot;33:24-93&quot;</span>, <span class="comment">// 导致这个被加入依赖图标的代码行数</span></span><br><span class="line">    <span class="attr">&quot;module&quot;</span>: <span class="string">&quot;./lib/index.web.js&quot;</span>, <span class="comment">// 所基于模块的相对地址 context</span></span><br><span class="line">    <span class="attr">&quot;moduleId&quot;</span>: <span class="number">0</span>, <span class="comment">// 模块的 ID</span></span><br><span class="line">    <span class="attr">&quot;moduleIdentifier&quot;</span>: <span class="string">&quot;(webpack)\\test\\browsertest\\lib\\index.web.js&quot;</span>, <span class="comment">// 模块的地址</span></span><br><span class="line">    <span class="attr">&quot;moduleName&quot;</span>: <span class="string">&quot;./lib/index.web.js&quot;</span>, <span class="comment">// 可读性更好的模块名称 (用于 &quot;更好的打印 (pretty-printing)&quot;)</span></span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;require.context&quot;</span>, <span class="comment">// 使用的请求的种类 (type of request)</span></span><br><span class="line">    <span class="attr">&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="chunk"><a href="#chunk" class="headerlink" title="chunk"></a>chunk</h4><p>在每个 chunk 中，信息也可以分为四大类：</p>
+<ol>
+<li>基本信息：包括最基本的内容、大小、id；</li>
+<li>来源：<code>chunk.origins</code>对象描述了这个模块被加入的理由，包含了引入的方式、引入的 module 信息及其对应代码在第几行第几列等，可以通过这个计算出 module 之间的依赖关系图表（graph）；</li>
+<li>引用关系：<code>chunk.parents</code>和<code>chunk.children</code>被引用和引用的 ids；</li>
+<li>包含和被包含：<code>chunk.files</code>和<code>chunk.modules</code>包含到 assets 和自己包含 modules 中信息等。</li>
+</ol>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;entry&quot;</span>: <span class="literal">true</span>, <span class="comment">// 表示这个 chunk 是否包含 webpack 的运行时</span></span><br><span class="line">    <span class="attr">&quot;files&quot;</span>: [</span><br><span class="line">        <span class="comment">// 一个包含这个 chunk 的文件名的数组</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;filteredModules&quot;</span>: <span class="number">0</span>, <span class="comment">// 见上文的 结构</span></span><br><span class="line">    <span class="attr">&quot;id&quot;</span>: <span class="number">0</span>, <span class="comment">// 这个 chunk 的id</span></span><br><span class="line">    <span class="attr">&quot;initial&quot;</span>: <span class="literal">true</span>, <span class="comment">// 表示这个 chunk 是开始就要加载还是 懒加载(lazy-loading)</span></span><br><span class="line">    <span class="attr">&quot;modules&quot;</span>: [</span><br><span class="line">        <span class="comment">// 模块对象 (module objects)的数组</span></span><br><span class="line">        <span class="string">&quot;web.js?h=11593e3b3ac85436984a&quot;</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;names&quot;</span>: [</span><br><span class="line">        <span class="comment">// 包含在这个 chunk 内的 chunk 的名字的数组</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;origins&quot;</span>: [</span><br><span class="line">        <span class="comment">// 下文详述</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;parents&quot;</span>: [], <span class="comment">// 父 chunk 的 ids</span></span><br><span class="line">    <span class="comment">// 生成 assets 的原因</span></span><br><span class="line">    <span class="attr">&quot;reason&quot;</span>: <span class="string">&quot;split chunk (cache group: asyncVendors) (name: async)&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;hash&quot;</span>: <span class="string">&quot;170746935298270ad813&quot;</span>,</span><br><span class="line">    <span class="comment">// 自己引用谁</span></span><br><span class="line">    <span class="attr">&quot;children&quot;</span>: [],</span><br><span class="line">    <span class="comment">// 引用的顺序</span></span><br><span class="line">    <span class="attr">&quot;childrenByOrder&quot;</span>: &#123;&#125;,</span><br><span class="line">    <span class="attr">&quot;modules&quot;</span>: [],</span><br><span class="line">    <span class="attr">&quot;rendered&quot;</span>: <span class="literal">true</span>, <span class="comment">// 表示这个 chunk 是否会参与进编译</span></span><br><span class="line">    <span class="attr">&quot;size&quot;</span>: <span class="number">188057</span> <span class="comment">// chunk 的大小(byte)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>chunk.origins</code>对应的格式如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;loc&quot;</span>: <span class="string">&quot;&quot;</span>, <span class="comment">// 具体是哪行生成了这个chunk</span></span><br><span class="line">    <span class="attr">&quot;module&quot;</span>: <span class="string">&quot;(webpack)\\test\\browsertest\\lib\\index.web.js&quot;</span>, <span class="comment">// 模块的位置</span></span><br><span class="line">    <span class="attr">&quot;moduleId&quot;</span>: <span class="number">0</span>, <span class="comment">// 模块的ID</span></span><br><span class="line">    <span class="attr">&quot;moduleIdentifier&quot;</span>: <span class="string">&quot;(webpack)\\test\\browsertest\\lib\\index.web.js&quot;</span>, <span class="comment">// 模块的地址</span></span><br><span class="line">    <span class="attr">&quot;moduleName&quot;</span>: <span class="string">&quot;./lib/index.web.js&quot;</span>, <span class="comment">// 模块的相对地址</span></span><br><span class="line">    <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;main&quot;</span>, <span class="comment">// chunk的名称</span></span><br><span class="line">    <span class="attr">&quot;reasons&quot;</span>: [</span><br><span class="line">        <span class="comment">// 模块对象中`reason`的数组</span></span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="asset"><a href="#asset" class="headerlink" title="asset"></a>asset</h4><p><code>asset</code>相对简单一些，内容如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;chunkNames&quot;</span>: [], <span class="comment">// 这个 asset 包含的 chunk</span></span><br><span class="line">    <span class="attr">&quot;chunks&quot;</span>: [<span class="number">10</span>, <span class="number">6</span>], <span class="comment">// 这个 asset 包含的 chunk 的 id</span></span><br><span class="line">    <span class="attr">&quot;emitted&quot;</span>: <span class="literal">true</span>, <span class="comment">// 表示这个 asset 是否会让它输出到 output 目录</span></span><br><span class="line">    <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;10.web.js&quot;</span>, <span class="comment">// 输出的文件名</span></span><br><span class="line">    <span class="attr">&quot;size&quot;</span>: <span class="number">1058</span> <span class="comment">// 文件的大小</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/e2b02a9e.html">https://zxffan.github.io/posts/e2b02a9e.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/webpack/"># webpack</a>
+                    
+                        <a href="/tags/%E6%9E%B6%E6%9E%84/"># 架构</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/e0efe5dc.html">手写webpack的loader</a>
+            
+            
+        </section>
+
+
+    </article>
+</div>
+</div>
+      <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
+</html>

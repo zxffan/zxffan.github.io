@@ -16,7 +16,7 @@
     <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
 
 
-<title>Tag: 架构 | zxfan</title>
+<title>HTTPS工作流程 | zxfan</title>
 
 
 
@@ -333,65 +333,211 @@
         }
     }
 </script>
-      <div class="main">
-
+      <div class="main"><div class="container">
     
-<div class="container">
-    <div class="post-wrap tags">
-        <h2 class="post-title">-&nbsp;Tag&nbsp;·&nbsp;架构-</h2>
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
     </div>
-    <div class="post-wrap archive">
-    
-    
-        
-
-        
-            <h3>2020</h3>
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/46109b3a.html">Webpack5</a>
-            <span class="archive-item-date">十一月 25, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/378e5729.html">Webpack-问题梳理</a>
-            <span class="archive-item-date">八月 27, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/b6d2303e.html">手写webpack的plugin</a>
-            <span class="archive-item-date">三月 25, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/e0efe5dc.html">手写webpack的loader</a>
-            <span class="archive-item-date">三月 23, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/e2b02a9e.html">Webpack原理</a>
-            <span class="archive-item-date">三月 20, 2020</span>
-        </article>
-    
-    
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
 </div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">HTTPS工作流程</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">四月 2, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/NetWork/">NetWork</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="HTTP与HTTPS"><a href="#HTTP与HTTPS" class="headerlink" title="HTTP与HTTPS"></a>HTTP与HTTPS</h2><p>HTTP(超文本传输协议)，有着一个致命的缺陷，那就是内容是<strong>明文传输</strong>的，没有经过任何加密，而这些明文数据会经过<strong>WiFi、路由器、运营商、机房</strong>等多个物理设备节点，如果在这中间任意一个节点被监听，传输的内容就会完全暴露，，这一攻击手法叫做MITM（Man In The Middle）<strong>中间人</strong>攻击。</p>
+<p>常见的如运行商劫持，推送广告</p>
+<p><img src="../images/network/%E8%BF%90%E8%90%A5%E5%95%86%E5%8A%AB%E6%8C%81.webp" alt="运营商劫持"></p>
+<h2 id="HTTPS工作流程"><a href="#HTTPS工作流程" class="headerlink" title="HTTPS工作流程"></a>HTTPS工作流程</h2><img src="../images/network/HTTP-process.webp" alt="HTTP-process"  />
+
+<ol>
+<li>客户端发送HTTPS请求（默认端口443）</li>
+<li>服务端有一套<code>CA数字证书</code>，证书含有一个<code>公钥public</code>。服务端接收到请求，会将这个证书发送给客户端。服务端还有一个<code>私钥private</code>，私钥是一直保存再服务端不公开的。</li>
+<li>客户端收到证书，校验合法性，主要包括是否在有效期内、证书的域名与请求的域名是否匹配，上一级证书是否有效（递归判断，直到判断到系统内置或浏览器配置好的根证书），如果不通过，则显示HTTPS警告信息，如果通过则继续。</li>
+<li>客户端先生成一段<code>随机key</code>，再利用证书中的<code>公钥public</code>加密这段<code>随机key</code>，并将这个<code>随机key密文</code>发送给服务端。</li>
+<li>服务端收到这个<code>随机key密文</code>文后，通过<code>私钥private</code>来解密，获取客户端真正的<code>随机key</code></li>
+<li>服务端使用<code>随机key</code>来加密需要传输的HTTP数据，并发送给客户端</li>
+<li>客户端再用<code>随机key</code>来解密服务端传输过来的密文，获取真正的数据</li>
+<li>后续HTTPS请求使用之前交换好的<code>随机Key</code>进行对称加解密。</li>
+</ol>
+<blockquote>
+<p> 由于随机key明文没有再网络上传输，所以”中间人”并不知道用于加密和解密的随机key，因此是安全的</p>
+</blockquote>
+<h2 id="对称加密和非对称加密"><a href="#对称加密和非对称加密" class="headerlink" title="对称加密和非对称加密"></a>对称加密和非对称加密</h2><p>HTTPS的工作流程其实就是 非对称加密+对称加密。</p>
+<ul>
+<li><p>非对称加密：公钥加密，私钥解密</p>
+</li>
+<li><p>对称加密：随机key加密解密</p>
+</li>
+</ul>
+<p><strong>非对称加解密耗时要远大于对称加解密</strong>，对性能有很大损耗</p>
+<h2 id="CA颁发机构"><a href="#CA颁发机构" class="headerlink" title="CA颁发机构"></a>CA颁发机构</h2><p>上述的HTTPS工作流程中的CA证书验证十分重要。如果没有它，会发生以下情况：</p>
+<p><img src="./images/https%E5%8A%AB%E6%8C%81.webp" alt="https劫持"></p>
+<ol>
+<li>服务端发送公钥A1给客户端，中间人把服务端的公钥替换为自己的公钥B1</li>
+<li>客户端通过公钥B1加密生成K密文，并发送给服务端</li>
+<li>中间人通过自己的私钥B2解密K密文得到K，再用公钥A1加密，发送给服务端</li>
+<li>客户端与服务端通信的K，已被中间人获取，所以不再安全</li>
+</ol>
+<p>出现这一问题的核心原因是<strong>客户端无法确认收到的公钥是不是真的是服务端发来的</strong>。为了解决这个问题，互联网引入了一个公信机构，这就是CA。</p>
+<ol>
+<li>CA机构拥有自己的一对公钥和私钥</li>
+<li>CA机构在颁发证书时对证书明文信息进行哈希</li>
+<li>将哈希值用<code>私钥</code>进行<strong>加签</strong>，得到数字签名</li>
+</ol>
+<p>明文数据和数字签名组成证书，传递给客户端。</p>
+<ol>
+<li>客户端得到证书，分解成明文部分Text和数字签名Sig1</li>
+<li>用CA机构的公钥进行<strong>解签</strong>，得到Sig2（由于CA机构是一种公信身份，因此在系统或浏览器中会内置CA机构的证书和公钥信息）</li>
+<li>用证书里声明的哈希算法对明文Text部分进行哈希得到T</li>
+<li>当自己计算得到的哈希值T与<strong>解签</strong>后的Sig2<strong>相等</strong>，表示证书可信，<strong>没有被篡改</strong></li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/ef0f9b3a.html">https://zxffan.github.io/posts/ef0f9b3a.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/NetWork/"># NetWork</a>
+                    
+                        <a href="/tags/HTTP/"># HTTP</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/2f57a694.html">正则表达式</a>
+            
+            
+            <a class="next" rel="next" href="/posts/b6d2303e.html">手写webpack的plugin</a>
+            
+        </section>
+
+
+    </article>
 </div>
 </div>
       <footer id="footer" class="footer">

@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>手写webpack的loader | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
+    <div class="wrapper">
+      <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+      <div class="main"><div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">手写webpack的loader</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">三月 23, 2020&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Webpack/">Webpack</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>webpack的loader本质上就是一个函数</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">content, sourcemap</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 处理 content 操作...</span></span><br><span class="line">  </span><br><span class="line">  <span class="built_in">this</span>.callback(<span class="literal">null</span>, content) <span class="comment">// 或者 return content</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>this 是 webpack 调用 loader 时候传入的自定义的特殊上下文，所以不应该使用箭头函数！</p>
+</blockquote>
+<p>this.callback 可以传入四个参数（其中后两个参数可以省略），分别是： </p>
+<ul>
+<li>error ：当 loader 出错时向外抛出一个 Error 对象，成功则传入 null ；</li>
+<li>content ：经过 loader 编译后需要导出的内容，类型可以是为 String 或者 Buffer ； </li>
+<li>sourceMap ：为方便调试生成的编译后内容的 source map； </li>
+<li>ast : 本次编译生成的 AST 静态语法树，之后执行的 loader 可以直接使用这个 AST，可以省去重复生成 AST 的 过程。</li>
+</ul>
+<h2 id="loader-异步处理数据"><a href="#loader-异步处理数据" class="headerlink" title="loader 异步处理数据"></a>loader 异步处理数据</h2><p>第一种方式是是使用 <code>async/await</code> 异步函数写法</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = <span class="keyword">async</span> <span class="function"><span class="keyword">function</span>(<span class="params">content</span>) </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">timeout</span>(<span class="params">delay</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      	<span class="comment">// 模拟一些异步操作处理 content</span></span><br><span class="line">        resolve(content);</span><br><span class="line">        &#125;, delay);</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> data = <span class="keyword">await</span> timeout(<span class="number">1000</span>);</span><br><span class="line">    <span class="keyword">return</span> data;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>第二种方式是使用 <code>this.async</code> 方法获取一个异步的 callback ，然后返回它。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">content</span>) </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">timeout</span>(<span class="params">delay</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 模拟异步操作</span></span><br><span class="line">        resolve(content)</span><br><span class="line">      &#125;, delay)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> callback = <span class="built_in">this</span>.async()</span><br><span class="line">  timeout(<span class="number">1000</span>).then(<span class="function"><span class="params">data</span> =&gt;</span> &#123;</span><br><span class="line">    callback(<span class="literal">null</span>, data)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>this.async 获取的 callback，参数也是跟 this.callback 的参数一致，即 error，content，sourcemap 和 ast。</p>
+</blockquote>
+<h2 id="处理二进制数据"><a href="#处理二进制数据" class="headerlink" title="处理二进制数据"></a>处理二进制数据</h2><p>像 file-loader 这样的 Loader，实际处理的内容是二进制数据，那么就需要通过设置 <code>moudle.exports.raw = true;</code> 来告诉 Webpack 给 loader 传入二进制格式的数据。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">source</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (source <span class="keyword">instanceof</span> Buffer) &#123;</span><br><span class="line">    <span class="comment">// 一系列的操作</span></span><br><span class="line">    <span class="keyword">return</span> source <span class="comment">// 本身也可以返回二进制数据提供给下一个loader</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">module</span>.exports.raw = <span class="literal">true</span> <span class="comment">// 不设置，就会拿到字符串</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="loader-的-pitch"><a href="#loader-的-pitch" class="headerlink" title="loader 的 pitch"></a>loader 的 pitch</h2><p>loader 的执行分为两个阶段，pitch阶段loader从左到右链式调用。而Normal阶段是从右到左的链式调用。</p>
+<p><img src="../images/framework/loader-pitch.webp" alt="loader_pitch"></p>
+<p>在一些场景下，loader 并不依赖上一个 loader 的结果，而只关心原输入内容。这时候，要 拿到一开始的文件原内容，就需要使用 <code>module.exports.pitch = function();</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports.pitch = <span class="function"><span class="keyword">function</span>(<span class="params">remainingRequest, precedingRequest, data</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (somothingFlag()) &#123;</span><br><span class="line">  	<span class="keyword">return</span> <span class="string">&#x27;module.exports = require(&#x27;</span> + <span class="built_in">JSON</span>.stringify(<span class="string">&#x27;-!&#x27;</span> + remaining) + <span class="string">&#x27;);&#x27;</span></span><br><span class="line">  &#125;</span><br><span class="line">  data.value = <span class="number">1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>pitch函数的data，在执行阶段也会暴露在 <code>this.data</code> 之下，并且可以用于在循环时，捕获和共享前面的信息。</p>
+<h2 id="loader-结果缓存"><a href="#loader-结果缓存" class="headerlink" title="loader 结果缓存"></a>loader 结果缓存</h2><p>Webpack 增量编译机制会观察每次编译时的变更文件，在默认情况下，Webpack 会对 loader 的执行结果进行缓 存，这样能够大幅度提升构建速度，不过我们也可以手动关闭它：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">content</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">this</span>.cacheable(<span class="literal">false</span>)</span><br><span class="line">  <span class="keyword">return</span> content</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="loader-工具库"><a href="#loader-工具库" class="headerlink" title="loader 工具库"></a>loader 工具库</h2><h3 id="loader-utils"><a href="#loader-utils" class="headerlink" title="loader-utils"></a>loader-utils</h3><p>loader-utils 提供了各种跟 loader 选项（options）相关的工具函数</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; getOptions，stringifyRequest, parseQuery &#125; = <span class="built_in">require</span>(<span class="string">&#x27;loader-utils&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">content</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// getOptions 用于在loader里获取传入的options，返回的是对象值。</span></span><br><span class="line">  <span class="keyword">const</span> options = getOptions(<span class="built_in">this</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// stringifyRequest转换路径，避免require()或impot时使用的绝对路径</span></span><br><span class="line">  stringifyRequest(<span class="built_in">this</span>, <span class="string">&#x27;./test.js&#x27;</span>); <span class="comment">// Result =&gt; &quot;\&quot;./test.js\&quot;&quot;</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// parseQuery获取query参数的</span></span><br><span class="line">  parseQuery(<span class="string">&#x27;?name=kev&amp;age=14&#x27;</span>) <span class="comment">// Result =&gt; &#123;name: &#x27;kev&#x27;, age: &#x27;14&#x27;&#125;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="schema-utils"><a href="#schema-utils" class="headerlink" title="schema-utils"></a>schema-utils</h3><p>schema-utils 是 loader 和 plugin 的参数认证器，检测传入的参数是否符合预期</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> validateOptions = <span class="built_in">require</span>(<span class="string">&#x27;schema-utils&#x27;</span>);</span><br><span class="line"><span class="comment">// 下面是一个schema描述</span></span><br><span class="line"><span class="keyword">const</span> schema = &#123;</span><br><span class="line">  type: <span class="string">&#x27;object&#x27;</span>,</span><br><span class="line">  properties: &#123;</span><br><span class="line">    name: &#123;</span><br><span class="line">    	type: <span class="string">&#x27;string&#x27;</span></span><br><span class="line">  	&#125;,</span><br><span class="line">    test: &#123;</span><br><span class="line">      anyOf: [&#123;<span class="attr">type</span>: <span class="string">&#x27;array&#x27;</span>&#125;, &#123;<span class="attr">type</span>: <span class="string">&#x27;string&#x27;</span>&#125;, &#123;<span class="attr">instanceof</span>: <span class="string">&#x27;RegExp&#x27;</span>&#125;]</span><br><span class="line">    &#125;,</span><br><span class="line">    transform: &#123;</span><br><span class="line">      <span class="keyword">instanceof</span>: <span class="string">&#x27;Function&#x27;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    sourceMap: &#123;</span><br><span class="line">      type: <span class="string">&#x27;boolean&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  additionalProperties: <span class="literal">false</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">source</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 验证参数的类型是否正确。</span></span><br><span class="line">  validateOptions(schema, options, <span class="string">&#x27;loader name&#x27;</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="loader-上下文"><a href="#loader-上下文" class="headerlink" title="loader 上下文"></a>loader 上下文</h2><p>loader 中 this 相关的其它方法和属性 </p>
+<ul>
+<li>this.context : 当前处理转换的文件所在的目录； </li>
+<li>this.resource : 当前处理转换的文件完整请求路径，包括 querystring； this.resourcePath : 当前处理转换的文件的路径； </li>
+<li>this.resourceQuery : 当前处理文件的 querystring； </li>
+<li>this.target : Webpack 配置的 target； </li>
+<li>this.loadMoudle : 处理文件时，需要依赖其它文件的处理结果时，可以使用 this.loadMoudle(request: strin g, callback: function(err, source, sourceMap, module)) 去获取到依赖文件的处理结果； </li>
+<li>this.resolve : 获取指定文件的完整路径；</li>
+<li>this.addDependency : 为当前处理文件添加依赖文件，以便依赖文件发生变化时重新调用 Loader 转换该文件， this.addDependency(file: string) ； </li>
+<li>this.addContextDependency : 为当前处理文件添加依赖文件目录，以便依赖文件目录里文件发生变化时重新调 用 Loader 转换该文件， this.addContextDependency(dir: string) ； </li>
+<li>this.clearDependencies : 清除当前正在处理文件的所有依赖； </li>
+<li>this.emitFile : 输出一个文件，使用的方法为 this.emitFile(name: string, content: Buffer | string, so urceMap: {…}) ； </li>
+<li>this.emitError ：发送一个错误信息。</li>
+</ul>
+<h2 id="markdown-loader"><a href="#markdown-loader" class="headerlink" title="markdown-loader"></a>markdown-loader</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> showdown = <span class="built_in">require</span>(<span class="string">&#x27;showdown&#x27;</span>) <span class="comment">// 第三方工具，把md转成html</span></span><br><span class="line"><span class="keyword">const</span> &#123; getOptions &#125; = <span class="built_in">require</span>(<span class="string">&#x27;loader-utils&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">content</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 获取options</span></span><br><span class="line">  <span class="keyword">const</span> options = getOptions(<span class="built_in">this</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取cache</span></span><br><span class="line">  <span class="built_in">this</span>.cacheable()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 初始化showdown转换器</span></span><br><span class="line">  <span class="keyword">const</span> converter = <span class="keyword">new</span> showdown.Converter(options)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 处理content</span></span><br><span class="line">  content = converter.makeHtml(content)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 返回结果</span></span><br><span class="line">  <span class="built_in">this</span>.callback(<span class="literal">null</span>, content)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/e0efe5dc.html">https://zxffan.github.io/posts/e0efe5dc.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/webpack/"># webpack</a>
+                    
+                        <a href="/tags/%E6%9E%B6%E6%9E%84/"># 架构</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/b6d2303e.html">手写webpack的plugin</a>
+            
+            
+            <a class="next" rel="next" href="/posts/e2b02a9e.html">Webpack原理</a>
+            
+        </section>
+
+
+    </article>
+</div>
+</div>
+      <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
+</html>
