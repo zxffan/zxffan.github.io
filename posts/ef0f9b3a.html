@@ -431,9 +431,8 @@
         <div class="post-content">
             <h2 id="HTTP与HTTPS"><a href="#HTTP与HTTPS" class="headerlink" title="HTTP与HTTPS"></a>HTTP与HTTPS</h2><p>HTTP(超文本传输协议)，有着一个致命的缺陷，那就是内容是<strong>明文传输</strong>的，没有经过任何加密，而这些明文数据会经过<strong>WiFi、路由器、运营商、机房</strong>等多个物理设备节点，如果在这中间任意一个节点被监听，传输的内容就会完全暴露，，这一攻击手法叫做MITM（Man In The Middle）<strong>中间人</strong>攻击。</p>
 <p>常见的如运行商劫持，推送广告</p>
-<p><img src="../images/network/%E8%BF%90%E8%90%A5%E5%95%86%E5%8A%AB%E6%8C%81.webp" alt="运营商劫持"></p>
-<h2 id="HTTPS工作流程"><a href="#HTTPS工作流程" class="headerlink" title="HTTPS工作流程"></a>HTTPS工作流程</h2><img src="../images/network/HTTP-process.webp" alt="HTTP-process"  />
-
+<p><img src="../../images/network/%E8%BF%90%E8%90%A5%E5%95%86%E5%8A%AB%E6%8C%81.webp" alt="劫持"></p>
+<h2 id="HTTPS工作流程"><a href="#HTTPS工作流程" class="headerlink" title="HTTPS工作流程"></a>HTTPS工作流程</h2><p><img src="../../images/network/HTTP-process.webp" alt="https"></p>
 <ol>
 <li>客户端发送HTTPS请求（默认端口443）</li>
 <li>服务端有一套<code>CA数字证书</code>，证书含有一个<code>公钥public</code>。服务端接收到请求，会将这个证书发送给客户端。服务端还有一个<code>私钥private</code>，私钥是一直保存再服务端不公开的。</li>
@@ -456,7 +455,7 @@
 </ul>
 <p><strong>非对称加解密耗时要远大于对称加解密</strong>，对性能有很大损耗</p>
 <h2 id="CA颁发机构"><a href="#CA颁发机构" class="headerlink" title="CA颁发机构"></a>CA颁发机构</h2><p>上述的HTTPS工作流程中的CA证书验证十分重要。如果没有它，会发生以下情况：</p>
-<p><img src="./images/https%E5%8A%AB%E6%8C%81.webp" alt="https劫持"></p>
+<p><img src="../../images/network/https%E5%8A%AB%E6%8C%81.webp" alt="劫持"></p>
 <ol>
 <li>服务端发送公钥A1给客户端，中间人把服务端的公钥替换为自己的公钥B1</li>
 <li>客户端通过公钥B1加密生成K密文，并发送给服务端</li>

@@ -16,7 +16,7 @@
     <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
 
 
-<title>归档 | zxfan</title>
+<title>js中的数值类型 | zxfan</title>
 
 
 
@@ -333,109 +333,191 @@
         }
     }
 </script>
-      <div class="main"><div class="post-wrap archive">
+      <div class="main"><div class="container">
     
     
-        
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
 
-        
-            <h3>2021</h3>
-        
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
 
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/9e0c0ca5.html">Nodejs搭建服务端</a>
-            <span class="archive-item-date">一月 12, 2021</span>
-        </article>
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
     
-        
 
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/d0156050.html">Nginx</a>
-            <span class="archive-item-date">一月 6, 2021</span>
-        </article>
     
-        
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">js中的数值类型</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">三月 27, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/JavaScript/">JavaScript</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="IEEE-754"><a href="#IEEE-754" class="headerlink" title="IEEE 754"></a>IEEE 754</h2><p><code>JavaScript</code>的数值类型遵循<code>IEEE 754</code>规范。<code>JavaScript</code>中的数字都是以是64-bits的双精度数的形式存储的。所以能表示有2^64种情况。</p>
+<h3 id="浮点数公式"><a href="#浮点数公式" class="headerlink" title="浮点数公式"></a>浮点数公式</h3><p>js中的任何一个二进制浮点数可以由以下公式来表示：<br>$$<br>V = (-1)^{S} * M * 2^{E}<br>$$</p>
+<ul>
+<li>V：表示二进制浮点数</li>
+<li>S：指数位，1位。为0正数，1为负数</li>
+<li>M：有效数字，52位。</li>
+<li>E：指数位，11位</li>
+</ul>
+<p><code>M</code>是一个介于1和2之间的数即(<code>1.xxxxxxxxxxx</code>, 11个<code>x</code>)。第一个<code>1</code>是默认填上的所以M有<code>2^53 - 1</code>中可能。</p>
+<p><code>E</code>的取值有<code>2^11</code>中可能，由于<code>E</code>需要能够表示负数，所以要减去一个中间数(<code>1023</code>)</p>
+<p>十进制7，二进制为111：<br>$$<br>7(111) = (-1)^{0} * 1.11 * 2^{2}<br>= 1.11 * 100 = 111<br>$$<br>注意：这里是2进制的运算<code>2^2 = 100</code></p>
+<p><code>E</code>为2（10），这里已经减去1023。<code>2+1023=1025</code>，即十一位二进制对应的值为<code>1025</code></p>
+<h3 id="E的几种情况"><a href="#E的几种情况" class="headerlink" title="E的几种情况"></a>E的几种情况</h3><p>同时指数E还可以<strong>根据规定分为三种情况讨论</strong></p>
+<ol>
+<li><strong>E不全为0或不全为1</strong> 这个阶段就是正常的浮点数表示，通过计算E然后减去1024即为指数</li>
+<li><strong>E全为0</strong> 浮点数的指数E等于0-1023 = -1023，当指数为-1023时，<strong>有效数字M不再加上第一位的1</strong>，而是还原为0.xxxxxx的小数。这样做是为了表示±0，以及接近于0的很小的数字</li>
+<li><strong>E全为1</strong> 此时如果有效数字M全为0，那么就表示+∞或者-∞，取决于第一位符号位。<strong>但是如果有效数字M不全为0，则表示这不是一个数(NaN)</strong></li>
+</ol>
+<h2 id="JavaScript中的IEEE-754"><a href="#JavaScript中的IEEE-754" class="headerlink" title="JavaScript中的IEEE 754"></a>JavaScript中的IEEE 754</h2><h3 id="最大安全整数"><a href="#最大安全整数" class="headerlink" title="最大安全整数"></a>最大安全整数</h3><p>$$<br>Number.MAX_SAFE_INTEGER = 2^{53} - 1<br>$$</p>
+<p>S为0，53位(包含首位1)有效数字都为1。减去1是排除首位0的情况。</p>
+<h3 id="0-1-0-2-0-3"><a href="#0-1-0-2-0-3" class="headerlink" title="0.1 + 0.2 !== 0.3 ?"></a>0.1 + 0.2 !== 0.3 ?</h3><p>计算机进行数值运算是，是将十进制转成二进制补码再进行计算</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0.1D = (-1)^0 * 1.1001..(1001循环13次)1010B * 2^-4</span><br><span class="line">0.2D = (-1)^0 * 1.1001..(1001循环13次)1010B * 2^-3</span><br><span class="line">0.3D = (-1)^0 * 1.0011..(0011循环13次)0011B * 2^-2</span><br></pre></td></tr></table></figure>
+
+<p>当0.1，0.2转化为二进制的时候，有效数字都是52位(4 * 12 + 4)，因为在64位精确度中，只能保持52位有效数字，如果没有52位有效数字的约束，其实在第53位中，0.1转二进制本来是1，但是有了52位约束之后，根据二进制的取舍（<strong>0舍1入</strong>） ，最后五位数就从1001 <strong>1(第53位)</strong> 变成了 1010。</p>
+<p>我们可以手动计算一下0.1的二进制加上0.2的二进制：<br>$$<br>0.1 + 0.2 = (-1)^{0} * 1.0011…(0011 循环13次)0011 * 2^{-2}<br>$$<br>那么相加结果转换为十进制其实等于<code>0.30000000000000004</code>，这就是为什么0.1 + 0.2 != 0.3 的原因了。</p>
+
+        </div>
 
         
-            <h3>2020</h3>
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/9a6a2aee.html">https://zxffan.github.io/posts/9a6a2aee.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
         
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/Number/"># Number</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/8d54c840.html">js位运算和权限</a>
+            
+            
+            <a class="next" rel="next" href="/posts/a574aaab.html">Rust学习笔记-Struct</a>
+            
+        </section>
 
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/72bec40a.html">JavaScript沙箱</a>
-            <span class="archive-item-date">十二月 28, 2020</span>
-        </article>
-    
-        
 
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/8aa364dc.html">云计算的发展</a>
-            <span class="archive-item-date">十二月 24, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/82fa4d6c.html">js实现选中与复制粘贴</a>
-            <span class="archive-item-date">十二月 14, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/1690d21b.html">函数式编程</a>
-            <span class="archive-item-date">十二月 11, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/46109b3a.html">Webpack5</a>
-            <span class="archive-item-date">十一月 25, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/8b77beaa.html">HTTP首部</a>
-            <span class="archive-item-date">十一月 11, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/3b531846.html">HTTP梳理</a>
-            <span class="archive-item-date">十一月 4, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/4e5b3a92.html">Web网络基础</a>
-            <span class="archive-item-date">十一月 3, 2020</span>
-        </article>
-    
-    
-    <nav class="pagination">
-        <a class="page-number" href="/archives/">1</a><span class="page-number current">2</span><a class="page-number" href="/archives/page/3/">3</a><a class="page-number" href="/archives/page/4/">4</a><a class="page-number" href="/archives/page/5/">5</a>
-    </nav>
-
-</div></div>
+    </article>
+</div>
+</div>
       <footer id="footer" class="footer">
   <div class="copyright">
     <span>Copyright 2019-2020 © zxfan</span>
