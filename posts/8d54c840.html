@@ -16,7 +16,7 @@
     <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
 
 
-<title>Tag: javascript | zxfan</title>
+<title>js位运算和权限 | zxfan</title>
 
 
 
@@ -333,114 +333,193 @@
         }
     }
 </script>
-      <div class="main">
-
+      <div class="main"><div class="container">
     
-<div class="container">
-    <div class="post-wrap tags">
-        <h2 class="post-title">-&nbsp;Tag&nbsp;·&nbsp;javascript-</h2>
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
     </div>
-    <div class="post-wrap archive">
-    
-    
-        
-
-        
-            <h3>2020</h3>
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/60bc3abb.html">Electron-体验优化</a>
-            <span class="archive-item-date">七月 30, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/acb10ea6.html">Electron-项目打包</a>
-            <span class="archive-item-date">七月 26, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/34a04fbb.html">Electron-质量监控</a>
-            <span class="archive-item-date">七月 24, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/e7227c9a.html">Electron-应用更新</a>
-            <span class="archive-item-date">七月 22, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/4dbf3745.html">浏览器中的音视频</a>
-            <span class="archive-item-date">七月 15, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/c51bfcb4.html">WebRTC Introduction</a>
-            <span class="archive-item-date">七月 8, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/2f57a694.html">正则表达式</a>
-            <span class="archive-item-date">七月 1, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/b6d2303e.html">手写webpack的plugin</a>
-            <span class="archive-item-date">三月 25, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/e0efe5dc.html">手写webpack的loader</a>
-            <span class="archive-item-date">三月 23, 2020</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/e2b02a9e.html">Webpack原理</a>
-            <span class="archive-item-date">三月 20, 2020</span>
-        </article>
-    
-    
-    <nav class="pagination">
-        <a class="page-number" href="/tags/javascript/">1</a><span class="page-number current">2</span>
-    </nav>
-
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
 </div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">js位运算和权限</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">三月 27, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/JavaScript/">JavaScript</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="位运算"><a href="#位运算" class="headerlink" title="位运算"></a>位运算</h2><h3 id="与-amp"><a href="#与-amp" class="headerlink" title="与 &amp;"></a>与 &amp;</h3><p>都为1则为1，否则为0</p>
+<p>A：0011010<br>B：0101100<br>C：0001000</p>
+<h3 id="或"><a href="#或" class="headerlink" title="或     |"></a>或     |</h3><p>有1即为1，否则为0</p>
+<p>A：0011010<br>B：0101100<br>C：0111110</p>
+<h3 id="非"><a href="#非" class="headerlink" title="非 ^"></a>非 ^</h3><p>不同为1，相同为0</p>
+<p>A：0011010<br>B：0101100<br>C：0110110</p>
+<h2 id="权限控制"><a href="#权限控制" class="headerlink" title="权限控制"></a>权限控制</h2><p>现在有<code>读</code>、<code>写</code>和<code>执行</code>三种权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">读	写 执行 十进制 权限</span><br><span class="line">0	 0  1     1		只有执行</span><br><span class="line">0	 1  0     2		只有写</span><br><span class="line">1	 0	0			4		只有读</span><br></pre></td></tr></table></figure>
+
+<p>读写执行对应的值分别是<code>1</code>、<code>2</code>和<code>4</code></p>
+<p><code>011</code>即<code>3</code>对应的权限为<strong>写和执行</strong>，其它以此类推。</p>
+<h3 id="添加权限"><a href="#添加权限" class="headerlink" title="添加权限"></a>添加权限</h3><p>使用<code>|</code>来添加权限</p>
+<p>用户的权限为1(<code>001</code>，只有执行)，现在需要加上读(4, <code>100</code>)</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1 | 4:</span><br><span class="line">0 0 1 =&gt; 1</span><br><span class="line">1 0 0 =&gt; 4</span><br><span class="line">1 0 1 =&gt; 5</span><br></pre></td></tr></table></figure>
+
+<p>结果为5(<code>101</code>)对应执行和读的权限</p>
+<h3 id="删除权限"><a href="#删除权限" class="headerlink" title="删除权限"></a>删除权限</h3><p>使用<code>^</code>来删除权限</p>
+<p>用户的权限为7(<code>111</code>)，需要删除写(2, <code>010</code>)的权限</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">7 ^ 2:</span><br><span class="line">1 1 1 =&gt; 7</span><br><span class="line">0 1 0 =&gt; 2</span><br><span class="line">1 0 1	=&gt; 5</span><br></pre></td></tr></table></figure>
+
+<p>结果为5(<code>101</code>)，对应执行和读的权限</p>
+<h3 id="判断权限"><a href="#判断权限" class="headerlink" title="判断权限"></a>判断权限</h3><p>当拿到用户权限时，使用<code>&amp;</code>来判断用户的权限</p>
+<p>用户的权限是6（<code>110</code>，读和写）</p>
+<p><code>110</code> &amp; <code>001</code> = <code>000</code>， 表示<strong>没有</strong>执行权限 </p>
+<p><code>110</code> &amp; <code>010</code> = <code>010</code>， 表示<strong>有</strong>写的权限</p>
+<p><code>110</code> &amp; <code>100</code> = <code>100</code>， 表示<strong>有</strong>读的权限 </p>
+<p>只有&amp;后的结果等于所需判断的权限，就表示有该权限</p>
+<h2 id="权限数的限制"><a href="#权限数的限制" class="headerlink" title="权限数的限制"></a>权限数的限制</h2><p>每增加一位权限，就需要多一位二进制位。</p>
+<p><code>JavaScript</code>中的位运算只支持<code>32</code>位，第32位是符号为，所有js中最多能配置32种权限。</p>
+<p>使用<code>BigInt</code>能够表示更多的权限。</p>
+<p><code>1n &lt;&lt; 33n =&gt; 8589934592n</code></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/8d54c840.html">https://zxffan.github.io/posts/8d54c840.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/%E4%BD%8D%E8%BF%90%E7%AE%97/"># 位运算</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/posts/a574aaab.html">Rust学习笔记-Struct</a>
+            
+        </section>
+
+
+    </article>
 </div>
 </div>
       <footer id="footer" class="footer">
