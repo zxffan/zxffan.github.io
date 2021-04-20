@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>队列问题梳理 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
+    <div class="wrapper">
+      <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+      <div class="main"><div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">队列问题梳理</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">四月 14, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Algorithm/">Algorithm</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="BFS-广度优先遍历"><a href="#BFS-广度优先遍历" class="headerlink" title="BFS 广度优先遍历"></a>BFS 广度优先遍历</h2><p>BFS、广度优先、层序遍历都是一回事。需要通过队列来实现</p>
+<h3 id="队列实现BFS"><a href="#队列实现BFS" class="headerlink" title="队列实现BFS"></a>队列实现BFS</h3><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * class TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     val: number</span></span><br><span class="line"><span class="comment"> *     left: TreeNode | null</span></span><br><span class="line"><span class="comment"> *     right: TreeNode | null</span></span><br><span class="line"><span class="comment"> *     constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) &#123;</span></span><br><span class="line"><span class="comment"> *         this.val = (val===undefined ? 0 : val)</span></span><br><span class="line"><span class="comment"> *         this.left = (left===undefined ? null : left)</span></span><br><span class="line"><span class="comment"> *         this.right = (right===undefined ? null : right)</span></span><br><span class="line"><span class="comment"> *     &#125;</span></span><br><span class="line"><span class="comment"> * &#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">levelOrder</span>(<span class="params">root: TreeNode | <span class="literal">null</span></span>): <span class="title">number</span>[][] </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> queue: TreeNode[] = [root]</span><br><span class="line">  <span class="keyword">const</span> ans = []</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (root === <span class="literal">null</span>) <span class="keyword">return</span> ans</span><br><span class="line">  <span class="keyword">while</span> (queue.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> node = queue.shift()</span><br><span class="line">    ans.push(node.val)</span><br><span class="line">    <span class="keyword">if</span> (node.left) queue.push(node.left)</span><br><span class="line">    <span class="keyword">if</span> (node.right) queue.push(node.right)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> ans</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="按层次输出层序遍历"><a href="#按层次输出层序遍历" class="headerlink" title="按层次输出层序遍历"></a>按层次输出层序遍历</h3><p>在层序遍历的过程中还要记住当前处在拿一层</p>
+<ul>
+<li>用一个last指针指向每一层最后一个节点</li>
+<li>或者，前序遍历。逐个给每一层添加元素。前序遍历是先遍历第一个第一个元素，然后第二层第一个元素….</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/binary-tree-level-order-traversal/">102. 二叉树的层序遍历</a></p>
+<p>往往，考题不会只靠队列这一个点。层序遍历只是解决问题的一个手段</p>
+<h3 id="填充右侧节点"><a href="#填充右侧节点" class="headerlink" title="填充右侧节点"></a>填充右侧节点</h3><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/populating-next-right-pointers-in-each-node-ii/">117. 填充每个节点的下一个右侧节点指针 II</a></p>
+<p>考点：层序遍历+last指针记住层次</p>
+<p>层次遍历到当前节点时：</p>
+<ul>
+<li>当前节点是last：不修改next指针</li>
+<li>不是last：将当前节点的next指向队列中第一个元素</li>
+</ul>
+<h2 id="循环队列"><a href="#循环队列" class="headerlink" title="循环队列"></a>循环队列</h2><h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/design-circular-queue/">622. 设计循环队列</a></p>
+<p>循环队列有两种实现方式</p>
+<h4 id="fornt-rear-used"><a href="#fornt-rear-used" class="headerlink" title="fornt+rear+used"></a>fornt+rear+used</h4><p><img src="../../images/algorithm/%E5%BE%AA%E7%8E%AF%E9%98%9F%E5%88%971.png" alt="循环队列"></p>
+<p>front和rear分别指向队头和队尾，used记录队列的元素个数，当：</p>
+<ul>
+<li>队列为空：front = rear且used=0</li>
+<li>队列满了：front=rear且used=队列长度</li>
+<li>其它情况：front != rear，used=队列元素个数</li>
+</ul>
+<h4 id="浪费一个空间"><a href="#浪费一个空间" class="headerlink" title="浪费一个空间"></a>浪费一个空间</h4><p><img src="../../images/algorithm/%E5%BE%AA%E7%8E%AF%E9%98%9F%E5%88%972.png" alt="循环队列2"></p>
+<p>front和rear分别指向队头和队尾，当：</p>
+<ul>
+<li>队列为空：front = rear</li>
+<li>队列满了：(rear + 1) % capacity == front</li>
+<li>其它情况：front != rear</li>
+</ul>
+<h3 id="🌟在js中实现循环队列"><a href="#🌟在js中实现循环队列" class="headerlink" title="🌟在js中实现循环队列"></a>🌟在js中实现循环队列</h3><p>无需指针，直接调用数组对象的<code>push</code>和<code>shift</code>方法模拟队列。</p>
+<p>循环队列的出现是因为其它语言的数组是定长的，在声明时就要指定长度，所以需要充分利用空间。而JavaScript中的数组，无需声明是指定长度。所以并不需要循环队列这种数据结构。</p>
+<p>理论上<code>shift</code>删除队列首元素，会导致后面所有元素向前移动一位。但是在<code>v8</code>的优化下，这种方式比<code>front</code>+<code>rear</code>两个指针要快</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyCircularQueue</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> size: <span class="built_in">number</span>;</span><br><span class="line">  <span class="keyword">private</span> queue: <span class="built_in">number</span>[] = [];</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">constructor</span>(<span class="params">k: <span class="built_in">number</span></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.size = k;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  enQueue(value: <span class="built_in">number</span>): <span class="built_in">boolean</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.isFull()) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="built_in">this</span>.queue.push(value);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  deQueue(): <span class="built_in">boolean</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.isEmpty()) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="built_in">this</span>.queue.shift();</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Front(): <span class="built_in">number</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.isEmpty()) <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.queue[<span class="number">0</span>];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Rear(): <span class="built_in">number</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.isEmpty()) <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.queue[<span class="built_in">this</span>.queue.length - <span class="number">1</span>];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  isEmpty(): <span class="built_in">boolean</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.queue.length === <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  isFull(): <span class="built_in">boolean</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.queue.length === <span class="built_in">this</span>.size;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="单调队列"><a href="#单调队列" class="headerlink" title="单调队列"></a>单调队列</h2><p>单调队列：</p>
+<ul>
+<li>基于双端队列：两端都可以入队和出队</li>
+<li>队列元素满足<strong>单调递增</strong>或者<strong>单调递减</strong></li>
+</ul>
+<h3 id="滑动窗口最大值"><a href="#滑动窗口最大值" class="headerlink" title="滑动窗口最大值"></a>滑动窗口最大值</h3><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/sliding-window-maximum/">239. 滑动窗口最大值</a></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/631e9859.html">https://zxffan.github.io/posts/631e9859.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/JavaScript/"># JavaScript</a>
+                    
+                        <a href="/tags/TypeScript/"># TypeScript</a>
+                    
+                        <a href="/tags/Algorithm/"># Algorithm</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/88f2a5b3.html">排序问题梳理</a>
+            
+            
+            <a class="next" rel="next" href="/posts/d2a05aba.html">Vue3任务调度-vue3源码</a>
+            
+        </section>
+
+
+    </article>
+</div>
+</div>
+      <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
+</html>

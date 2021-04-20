@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>链表问题梳理 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
+    <div class="wrapper">
+      <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+      <div class="main"><div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">链表问题梳理</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">三月 28, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Algorithm/">Algorithm</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>解决链表问题的“三板斧”：<strong>假头、新链表、双指针</strong>。</p>
+<h2 id="假头节点"><a href="#假头节点" class="headerlink" title="假头节点"></a>假头节点</h2><p>假头通常也叫作 Dummy Head。就是在链表前面，加上一个额外的结点。此时，存放了 N 个数据的带假头的链表，算上假头一共有 N+1 个结点。添加假头后，可以省略掉很多空指针的判断，链表的各种操作会变得更加简洁。</p>
+<p><code>LeetCode[707] 设计链表</code><br>掌握几种常见的链表操作</p>
+<ul>
+<li>get: 查找制定索引的链表元素</li>
+<li>addAtHead: 头部插入元素</li>
+<li>addAtTail: 尾部插入元素</li>
+<li>addAtIndex: 指定索引插入</li>
+<li>deleteAtIndex: 指定索引删除</li>
+</ul>
+<h2 id="新链表"><a href="#新链表" class="headerlink" title="新链表"></a>新链表</h2><p>做链表的<strong>反转</strong>、<strong>交换</strong>等操作时，不建议直接在原来的链表上进行操作。一种可取的思路是，把这些操作想象成要生成新的链表。</p>
+<h3 id="反转"><a href="#反转" class="headerlink" title="反转"></a>反转</h3><p>列表反转(<code>LeetCode 201</code>)：可以新建一个有头节点的新链表，遍历旧链表。将每个元素采用<strong>头部插入</strong>的方法放到新链表中</p>
+<h3 id="删除元素"><a href="#删除元素" class="headerlink" title="删除元素"></a>删除元素</h3><p>根据<strong>一些条件</strong>判断来删除元素</p>
+<ul>
+<li>移除链表指定元素(<code>LeetCode 203</code>)：同样创建一个新链表。遍历旧链表，相同元素跳过，不同元素加入新链表</li>
+<li>删除链表重复元素：判断当前遍历的元素与新链表中最后的元素是否相等。</li>
+<li>删除链表所有重复过的元素：</li>
+</ul>
+<h3 id="合并"><a href="#合并" class="headerlink" title="合并"></a>合并</h3><ul>
+<li>合并两个有序链表(<code>LeetCode 21</code>)</li>
+<li>合并K个升序链表(<code>LeetCode 23</code>)</li>
+</ul>
+<p>这两道题页都是生成 dummy 新链表，然后<strong>选择结点</strong>往新链表尾部追加数据</p>
+<ul>
+<li>升序： 选择最小的</li>
+<li>降序：选择最大的</li>
+</ul>
+<p><strong>考点</strong>：在选择最小或最大时，可以使用堆（优先队列）来优化</p>
+<h3 id="交换"><a href="#交换" class="headerlink" title="交换"></a>交换</h3><p>交换链表中的结点(<code>LeetCode 24</code>)：两两反转即奇偶位置元素交换</p>
+<ul>
+<li>先拆分：按照奇偶拆成两个链表</li>
+<li>再合并：奇数位对应原来偶数位，偶数位对应原来奇数位</li>
+</ul>
+<p>K 个一组翻转链表(<code>LeetCode 25</code>)：每k的元素一组交换(k=2就等价于上一题)</p>
+<ul>
+<li>准备两个链表——temp和result</li>
+<li>遍历链表，将节点插入temp，满k个就反转并插入result中</li>
+<li>最终将剩余的节点（不满k个）插入result</li>
+</ul>
+<p>逆向k个一组：上一题翻着来</p>
+<ul>
+<li>先将链表反转</li>
+<li>再沿用上题的方法</li>
+</ul>
+<h2 id="双指针"><a href="#双指针" class="headerlink" title="双指针"></a>双指针</h2><p>链表的双指针有两种：</p>
+<ol>
+<li>间隔指针：前面的指针先走一步，然后后面的指针再一起走；前面的指针先走 k 步，后面的指针再一起走。</li>
+<li>快慢指针：两个指针的速度一快一慢前进，比如一个每次走一步，一个每次走两步。</li>
+</ol>
+<p><code>LeetCode[19]</code> 删除链表倒数第K个节点</p>
+<ul>
+<li>采用间隔指针back,front   front先走k布</li>
+<li>back，front再一起走直到front到最后一个节点</li>
+<li>边界情况：删除的是第一个节点</li>
+</ul>
+<p>将链表从中间拆分成两半</p>
+<ul>
+<li>采用快慢指针back,front</li>
+<li>front每次走2步，back每次走1步</li>
+<li>边界<ul>
+<li>奇数个节点时，front正好是最后一个节点</li>
+<li>偶数个节点时，front为空，应返回back的前驱</li>
+</ul>
+</li>
+</ul>
+<p><code>LeetCode[143]</code> 重排链表</p>
+<ul>
+<li>先把链表平分</li>
+<li>把后半部分逆置</li>
+<li>再把逆置的后半部分插入到前半部分的偶数位上</li>
+</ul>
+<p><code>LeetCode[141]</code> 环形链表</p>
+<ul>
+<li>采用快慢指针back,front</li>
+<li>front每次走2步，back每次走1步</li>
+<li>如果有环，back和front必定相遇</li>
+</ul>
+<p>找出环形链表成环的节点</p>
+<ul>
+<li>记住一个结论：快慢指针分别从头节点和相遇节点出发，最终一定会再成环节点相遇</li>
+<li>先都从头节点出发，找到相遇节点</li>
+<li>分别从头节点和相遇节点出发，最后相遇的节点即成环节点</li>
+</ul>
+<p><code>LeetCode[148]</code> 链表排序：给定一个单向链表，如何给这个链表排序，要求复杂度达到 O(nlogn)。</p>
+<ul>
+<li>采用归并排序的思想来解</li>
+<li>递推过程：两两分解——用快慢将链表不断二分</li>
+<li>回归过程：两两合并——利用新建头尖点来不断合并两个有序链表</li>
+</ul>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/4ed68d4d.html">https://zxffan.github.io/posts/4ed68d4d.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/JavaScript/"># JavaScript</a>
+                    
+                        <a href="/tags/TypeScript/"># TypeScript</a>
+                    
+                        <a href="/tags/Algorithm/"># Algorithm</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/4ed68d4d.html">二叉树遍历问题梳理</a>
+            
+            
+            <a class="next" rel="next" href="/posts/9a6a2aee.html">js中的数值类型</a>
+            
+        </section>
+
+
+    </article>
+</div>
+</div>
+      <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
+</html>

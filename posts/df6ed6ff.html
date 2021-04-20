@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>XSS攻击与防御 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
+    <div class="wrapper">
+      <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+      <div class="main"><div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">XSS攻击与防御</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">四月 16, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Security/">Security</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p><code>xss(cross-site script)</code>指<strong>网站对用户输入数据未做有效过滤，攻击者可以将恶意脚本注入网站页面中，达到执行恶意代码的目的</strong></p>
+<p>攻击者只需要诱使受害者打开特定的网址，就可以在受害者的浏览器中执行被注入的恶意代码，从而窃取用户身份，执行一些敏感操作</p>
+<h2 id="XSS攻击类型"><a href="#XSS攻击类型" class="headerlink" title="XSS攻击类型"></a>XSS攻击类型</h2><p>XSS攻击可以分成三种类型：</p>
+<ul>
+<li><p>反射型XSS</p>
+</li>
+<li><p>存储型XSS</p>
+</li>
+<li><p>DOM型XSS</p>
+</li>
+</ul>
+<h3 id="反射型"><a href="#反射型" class="headerlink" title="反射型"></a>反射型</h3><p>反射型指的是<strong>将攻击代码存放在URL参数中</strong>，例如<code>http://localhost/home?name=&lt;script&gt;alert(1)&lt;/script&gt;</code>。</p>
+<p>如果服务端直接去url中的name参数，并当作html返回给客户端。攻击代码就会执行。</p>
+<h3 id="存储型"><a href="#存储型" class="headerlink" title="存储型"></a>存储型</h3><p>存储型是指<strong>将恶意代码存储到服务器上</strong>，只要诱使受害者访问被插入恶意代码的页面即可触发。存储型 XSS 经常出现在一些可以发表评论的地方，如帖子、博客</p>
+<p>当用户在评论中输入一段攻击代码，网站又没有过滤。这段代码会存储到数据库中。当其它用户访问评论时，这段攻击代码被当作html内容输出就会引发攻击代码的执行</p>
+<h3 id="DOM型"><a href="#DOM型" class="headerlink" title="DOM型"></a>DOM型</h3><p><strong>前两种都是服务端的XSS，DOM型是客户端的XSS</strong></p>
+<p>JavaScript 能够操作DOM。通过JavaScript控制获取<strong>源数据（内含攻击代码）</strong>，又未进行处理。直接<strong>当作HTML输出（innerHTML）或脚本执行</strong></p>
+<p>就会发生DOM型XSS攻击</p>
+<p>常见的源数据有：<code>document</code> <code>location</code> <code>localStorage</code> <code>sessionStorage</code>等</p>
+<p>常见的触发攻击的点：<code>document.write</code> <code>eval</code> <code>innerHTML</code> <code>a的href属性</code>等</p>
+<h2 id="XSS常见的攻击方式"><a href="#XSS常见的攻击方式" class="headerlink" title="XSS常见的攻击方式"></a>XSS常见的攻击方式</h2><h3 id="窃取cookie"><a href="#窃取cookie" class="headerlink" title="窃取cookie"></a>窃取cookie</h3><p>许多网站都使用<code>cookie</code>来存放用户登陆信息。</p>
+<p>攻击者利用<code>xss</code>漏洞来注入脚本。<code>document.cookie</code>就可以获取到cookie。然后再将获取到的cookie上报。之后就可以本地修改 Cookie 来登录受害者的账号</p>
+<h3 id="蠕虫攻击"><a href="#蠕虫攻击" class="headerlink" title="蠕虫攻击"></a>蠕虫攻击</h3><p>以微博XSS蠕虫攻击为例：</p>
+<ul>
+<li><p>利用 XSS 漏洞插入恶意 JS 代码；</p>
+</li>
+<li><p>利用 XMLHttpRequest 发送请求去发表微博、关注用户、获取关注者列表并向其发送私信；</p>
+</li>
+<li><p>微博消息和私信都包含有恶意攻击链接，等于实现了攻击代码的自我复制和传播。</p>
+</li>
+</ul>
+<h3 id="获取用户键盘记录"><a href="#获取用户键盘记录" class="headerlink" title="获取用户键盘记录"></a>获取用户键盘记录</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">keys = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="built_in">document</span>.onkeypress = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  keys += <span class="built_in">String</span>.fromCharCode(<span class="built_in">window</span>.event.keyCode);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="获取剪贴板内容"><a href="#获取剪贴板内容" class="headerlink" title="获取剪贴板内容"></a>获取剪贴板内容</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">document</span>.addEventListener(<span class="string">&#x27;paste&#x27;</span>, <span class="function"><span class="keyword">function</span> (<span class="params">evt</span>) </span>&#123;</span><br><span class="line">  clipdata = evt.clipboardData || <span class="built_in">window</span>.clipboardData;</span><br><span class="line">  <span class="built_in">console</span>.log(clipdata.getData(<span class="string">&#x27;text/plain&#x27;</span>));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="钓鱼欺骗用户输入账号、密码"><a href="#钓鱼欺骗用户输入账号、密码" class="headerlink" title="钓鱼欺骗用户输入账号、密码"></a>钓鱼欺骗用户输入账号、密码</h3><p>弹个弹窗，让用户输入账号密码</p>
+<h2 id="XSS漏洞挖掘"><a href="#XSS漏洞挖掘" class="headerlink" title="XSS漏洞挖掘"></a>XSS漏洞挖掘</h2><h4 id="收集用例"><a href="#收集用例" class="headerlink" title="收集用例"></a>收集用例</h4><p>人工测试的主要思路就是在一切可输入数据的地方输入“XSS payload”（测试用例），这些地方包括所有的 GET、POST、Cookie、HTTP 头。提交数据之后，看网站的输出是否解析了前面输入的 XSS payload。</p>
+<p>我常用的 XSS payload 有以下几个。搜索“XSS cheat sheet”，也可以找到很多这种测试用例。</p>
+<p><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/cheat-sheet">Cross-site scripting (XSS) cheat sheet</a></p>
+<p><a target="_blank" rel="noopener" href="https://owasp.org/www-community/xss-filter-evasion-cheatsheet">XSS Filter Evasion Cheat Sheet</a></p>
+<p><a target="_blank" rel="noopener" href="http://html5sec.org/">HTML5 Security Cheatsheet</a></p>
+<h4 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h4><p>这一步可以手动测试也可以采用自动测试工具。</p>
+<p>手动：可以先一次性批量输入测试，如果无效，再输入一些特殊字符看过滤情况，根据返回数据作相应的调整测试。</p>
+<p>自动：<a target="_blank" rel="noopener" href="https://github.com/s0md3v/XSStrike">XSStrike</a>，它内置了很多测试用例，也可以添加自定义测试用例</p>
+<h2 id="XSS防御"><a href="#XSS防御" class="headerlink" title="XSS防御"></a>XSS防御</h2><h3 id="做好检查"><a href="#做好检查" class="headerlink" title="做好检查"></a>做好检查</h3><h4 id="输入检查"><a href="#输入检查" class="headerlink" title="输入检查"></a>输入检查</h4><p>检查攻击者所有可能的输入的地方</p>
+<ul>
+<li><code>URL</code>参数</li>
+<li>（富）文本框</li>
+<li>接口返回的数据</li>
+</ul>
+<blockquote>
+<p>服务端也需要进行检查，前端是可以绕过去的</p>
+</blockquote>
+<h4 id="输出检查"><a href="#输出检查" class="headerlink" title="输出检查"></a>输出检查</h4><p>从前端角度来看，有两个地方可能导致恶意代码执行——<code>HTML</code>和<code>JavaScript</code></p>
+<ul>
+<li><p>HTML：<code>innerHTML</code> <code>outerHTML</code> <code>document.write()</code> <code>v-html</code> <code>danderousSetInnerHTML</code></p>
+<p>将原数据当作HTML输出，极容易导致XSS攻击。尽量避免这么做，使用<code>textContent</code>来代替。如果必须输出（如评论内容），需要进行<strong>转义</strong>。通常使用<strong>白名单</strong>的方式进行转义。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.npmjs.com/package/xss">xss</a>是npm上的一个不错的HTML转义库</p>
+</blockquote>
+</li>
+<li><p>JavaScript：</p>
+<ul>
+<li>内联事件监听器：<code>location</code> <code>onclick</code> <code>onerror</code> <code>onload</code> <code>onmousemove</code>等等等</li>
+<li>a标签的href属性使用伪协议：<code>&lt;a href=&quot;javascript:alert(&#39;attack&#39;)&quot; /&gt;</code></li>
+<li><code>eval</code> <code>setTimeout</code> <code>setInterval</code>都能够把字符串当作js执行</li>
+</ul>
+<p>这些api的不恰当使用会导致XSS攻击，所以使用时要格外注意。好在它们大多都有可替代方案。</p>
+</li>
+</ul>
+<h3 id="HttpOnly禁止cookie访问"><a href="#HttpOnly禁止cookie访问" class="headerlink" title="HttpOnly禁止cookie访问"></a>HttpOnly禁止cookie访问</h3><p>如果给某个 cookie 设置了 <code>HttpOnly</code> 属性，则无法通过 JS 脚本 读取到该 cookie 的信息，但还是能通过 Application 中手动修改 cookie，所以只是在一定程度上可以防止 XSS 攻击，不是绝对的安全</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Set-Cookie: Name=Value; expires=Wednesday, 01-May-2014 12:45:10 GMT; HttpOnly</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>cookie由服务端创建返回给浏览器的（响应头：<code>Set-Cookie</code>）。之后的请求会自动携带cookie。默认情况下，它随着seesion的结束而结束。</p>
+<p>能不使用cookie就别使用了</p>
+</blockquote>
+<h3 id="CSP-内容安全策略"><a href="#CSP-内容安全策略" class="headerlink" title="CSP 内容安全策略"></a>CSP 内容安全策略</h3><p>内容安全策略（Content Security Policy，CSP）也是减少 XSS 攻击的一种方式 ，是浏览器提供一种防御机制。它采用的是白名单机制，告诉浏览器可以加载和执行哪些外部资源，这样就能防止被一些第三方恶意脚本注入执行。</p>
+<p>开启 CSP 有两种方式：</p>
+<ol>
+<li><p>通过 HTTP 头信息的 Content-Security-Policy 的字段：(在返回html文件的请求的响应头上加)</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-Security-Policy: script-src &#x27;self&#x27;; object-src &#x27;none&#x27;;style-src cdn.example.org third-party.org; child-src https:（2）通过网页的&lt;meta&gt;标签设置：</span><br></pre></td></tr></table></figure></li>
+<li><p>通过网页的<code>&lt;meta&gt;</code>标签设置</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;meta</span><br><span class="line">  http-equiv=&quot;Content-Security-Policy&quot;</span><br><span class="line">  content=&quot;script-src &#x27;self&#x27;; object-src &#x27;none&#x27;; style-src cdn.example.org third-party.org; child-src https:&quot;</span><br><span class="line">/&gt;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>如何指定csp：<strong>指令 策略</strong></p>
+<p>指令字段含义：</p>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>策略示例</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>default-src</code></td>
+<td><code>&#39;self&#39; www.aaa.com</code></td>
+<td>默认资源加载策略，没有指定策略的指令使用本策略</td>
+</tr>
+<tr>
+<td><code>script-src</code></td>
+<td><code>&#39;selft&#39; js.a.com</code></td>
+<td>针对js文件的策略</td>
+</tr>
+<tr>
+<td><code>style-src</code></td>
+<td><code>&#39;selft&#39; css.a.com</code></td>
+<td>针对css文件的策略</td>
+</tr>
+<tr>
+<td><code>img-src</code></td>
+<td><code>&#39;selft&#39; img.a.com</code></td>
+<td>针对img图片资源的策略</td>
+</tr>
+<tr>
+<td><code>connect-src</code></td>
+<td><code>&#39;selft&#39;</code></td>
+<td>针对ajax、websocket的策略，不允许会返回400</td>
+</tr>
+<tr>
+<td><code>font-src</code></td>
+<td><code>font.a.com</code></td>
+<td>针对字体的加载策略</td>
+</tr>
+<tr>
+<td><code>media-src</code></td>
+<td><code>media.a.com</code></td>
+<td>针对video和audio引入资源的策略</td>
+</tr>
+<tr>
+<td><code>frame-src</code></td>
+<td><code>&#39;self&#39;</code></td>
+<td>针对frame的加载策略</td>
+</tr>
+<tr>
+<td><code>sandbox</code></td>
+<td><code>allow-forms</code></td>
+<td>对请求资源启用<code>sandbox</code></td>
+</tr>
+<tr>
+<td><code>report-uri</code></td>
+<td><code>/report-uri</code></td>
+<td>告知浏览器，当请求资源不被策略允许时，往那个接口提交信息</td>
+</tr>
+</tbody></table>
+<p>指令值字段含义：</p>
+<ul>
+<li><code>none</code> 表示不执行任何匹配。</li>
+<li> <code>self</code>表示与当前来源（而不是其子域）匹配。</li>
+<li> <code>unsafe-inline</code>表示允许使用内联 JavaScript 和 CSS。</li>
+<li> <code>unsafe-eval</code> 表示允许使用类似 eval 的 text-to-JavaScript 机制。</li>
+<li><code>www.aasd.com</code>允许加载指定域名的资源</li>
+</ul>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/df6ed6ff.html">https://zxffan.github.io/posts/df6ed6ff.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/FrontEnd/"># FrontEnd</a>
+                    
+                        <a href="/tags/%E5%AE%89%E5%85%A8/"># 安全</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/posts/88f2a5b3.html">排序问题梳理</a>
+            
+        </section>
+
+
+    </article>
+</div>
+</div>
+      <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
+</html>

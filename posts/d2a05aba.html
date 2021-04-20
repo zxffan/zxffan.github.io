@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>Vue3任务调度-vue3源码 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
+    <div class="wrapper">
+      <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+      <div class="main"><div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Vue3任务调度-vue3源码</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">四月 4, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Vue/">Vue</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>在vue3中，修改一个响应式对象，像是这样：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;span <span class="class"><span class="keyword">class</span></span>=<span class="string">&quot;my-name&quot;</span>&gt;name: &#123;&#123; name &#125;&#125;&lt;/span&gt;</span><br><span class="line">&lt;/template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script lang=<span class="string">&quot;ts&quot;</span> setup&gt;</span><br><span class="line"><span class="keyword">import</span> &#123; ref, watchEffect &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> name = ref(<span class="string">&quot;zxfan&quot;</span>)</span><br><span class="line"></span><br><span class="line">name.value += <span class="string">&#x27; yes!&#x27;</span></span><br><span class="line"></span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>当执行<code>name.value += &#39; yes!&#39;</code>，<code>vue3</code>并不会立即触发当前组件的更新。而是将更新任务放到任务队列中。这一点与vue2一致。</p>
+<h2 id="任务队列"><a href="#任务队列" class="headerlink" title="任务队列"></a>任务队列</h2><p>调度相关的源码位于<code>runtime-core/src/schduler.ts</code>中</p>
+<p>在任务调度过程中，任务会被放入三类任务队列中：</p>
+<ul>
+<li><p>preFlushCbs：要在执行queue之前执行的队列</p>
+</li>
+<li><p>queue：任务队列</p>
+</li>
+<li><p>postFlush：要在执行queue之后执行的队列</p>
+</li>
+</ul>
+<p>每一次flush的过程（或者说一个<code>Tick</code>），都是按照<strong>清空preFlushCbs队列-&gt;清空queue队列-&gt;清空postFlush队列</strong>的顺序</p>
+<blockquote>
+<p>flush 指刷新任务队列，或者说 执行完任务队列中所有的任务</p>
+</blockquote>
+<h2 id="入队queue的时机"><a href="#入队queue的时机" class="headerlink" title="入队queue的时机"></a>入队queue的时机</h2><p><code>queue</code>存放的都是组件渲染任务</p>
+<h3 id="组件更新"><a href="#组件更新" class="headerlink" title="组件更新"></a>组件更新</h3><p>先提一下vue中的响应式：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;effect, ref&#125; <span class="keyword">from</span> <span class="string">&#x27;@vue/reactivity&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> age = ref(<span class="number">20</span>)</span><br><span class="line"></span><br><span class="line">effect(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(age.value) <span class="comment">// 会输出两次，分别是 20 和 21</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">age.value = <span class="number">21</span></span><br></pre></td></tr></table></figure>
+
+<p><code>effect</code>的回调函数会被响应式得重写触发执行。</p>
+<p>那么回到本文最开始的例子中，当执行<code>name.value += &#39; yes!&#39;</code>。响应式数据变化了，触发（<code>trigger</code>）其关联到的<code>effect</code>重新执行。那么需要重新执行的<code>effect</code>在哪里声明的呢？</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtie-core/src/renderer.ts</span></span><br><span class="line"><span class="keyword">const</span> setupRenderEffect: SetupRenderEffectFn = (</span><br><span class="line">  instance,</span><br><span class="line">  initialVNode,</span><br><span class="line">  container,</span><br><span class="line">  anchor,</span><br><span class="line">  parentSuspense,</span><br><span class="line">  isSVG,</span><br><span class="line">  optimized</span><br><span class="line">) =&gt; &#123;</span><br><span class="line">  <span class="comment">// create reactive effect for rendering</span></span><br><span class="line">  instance.update = effect(<span class="function"><span class="keyword">function</span> <span class="title">componentEffect</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 省略。。。创建或更新 VNode</span></span><br><span class="line">  &#125;, __DEV__ ? createDevEffectOptions(instance) : prodEffectOptions)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>setupRenderEffect</code>给组件套上了个<code>effect</code>。这个函数是组件实例创建的时候调用的。</p>
+<p>当修改组件内的响应式数据时，会触发该<code>effect</code>重新执行。</p>
+<p>当然不会直接就执行了，注意到了吗，effect还有第二个参数。第二个参数的类型如下：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">interface</span> ReactiveEffectOptions &#123;</span><br><span class="line">  lazy?: <span class="built_in">boolean</span> <span class="comment">// 该effect是否</span></span><br><span class="line">  scheduler?: <span class="function">(<span class="params">job: ReactiveEffect</span>) =&gt;</span> <span class="built_in">void</span> <span class="comment">// 调度</span></span><br><span class="line">  onTrack?: <span class="function">(<span class="params">event: DebuggerEvent</span>) =&gt;</span> <span class="built_in">void</span></span><br><span class="line">  onTrigger?: <span class="function">(<span class="params">event: DebuggerEvent</span>) =&gt;</span> <span class="built_in">void</span></span><br><span class="line">  onStop?: <span class="function">() =&gt;</span> <span class="built_in">void</span></span><br><span class="line">  allowRecurse?: <span class="built_in">boolean</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其它先不关注，我们只看<code>scheduler</code>属性。</p>
+<p>如果有这个属性，就不会直接执行<code>effect</code>，而是调用这个<code>scheduler</code>函数，并且将<code>effect</code>作为参数传给它</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">trigger</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  target: <span class="built_in">object</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">type</span>: TriggerOpTypes,</span></span></span><br><span class="line"><span class="function"><span class="params">  key?: unknown,</span></span></span><br><span class="line"><span class="function"><span class="params">  newValue?: unknown,</span></span></span><br><span class="line"><span class="function"><span class="params">  oldValue?: unknown,</span></span></span><br><span class="line"><span class="function"><span class="params">  oldTarget?: <span class="built_in">Map</span>&lt;unknown, unknown&gt; | <span class="built_in">Set</span>&lt;unknown&gt;</span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 省略...</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">const</span> run = <span class="function">(<span class="params">effect: ReactiveEffect</span>) =&gt;</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 有scheduler 调用 scheduler</span></span><br><span class="line">    <span class="keyword">if</span> (effect.options.scheduler) &#123;</span><br><span class="line">      effect.options.scheduler(effect)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 否则直接执行 effect</span></span><br><span class="line">      effect()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  effects.forEach(run)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么在给组件实例套上<code>effect</code>的时候，传给<code>effect</code>的第二个参数是什么呢？</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtie-core/src/renderer.ts</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> prodEffectOptions = &#123;</span><br><span class="line">  scheduler: queueJob,</span><br><span class="line">  <span class="comment">// #1801, #2043 component render effects should allow recursive updates</span></span><br><span class="line">  allowRecurse: <span class="literal">true</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createDevEffectOptions</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  instance: ComponentInternalInstance</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">ReactiveEffectOptions</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    scheduler: queueJob,</span><br><span class="line">    allowRecurse: <span class="literal">true</span>,</span><br><span class="line">    onTrack: instance.rtc ? <span class="function"><span class="params">e</span> =&gt;</span> invokeArrayFns(instance.rtc!, e) : <span class="built_in">void</span> <span class="number">0</span>,</span><br><span class="line">    onTrigger: instance.rtg ? <span class="function"><span class="params">e</span> =&gt;</span> invokeArrayFns(instance.rtg!, e) : <span class="built_in">void</span> <span class="number">0</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>__DEV__ ? createDevEffectOptions(instance) : prodEffectOptions)</code>根据不同的环境传递的参数有一些差异性。但是我们只关注scheduler，<code>scheduler</code>的值都是<code>queueJob</code>这个函数</p>
+<p><code>queueJob</code>的作用就是将<code>effect</code>放入<code>queue</code>任务队列。</p>
+<p>稍后在讨论<code>queueJob</code>具体都做了些什么，先总结一下组件更新的调度流程</p>
+<ol>
+<li><p>组件实例创建时，套上了effect方法</p>
+</li>
+<li><p>修改响应式数据，触发effect重新执行（先调用trigger函数）</p>
+</li>
+<li><p>effect的第二个参数中有<code>scheduler</code>属性，所以不会直接执行effect方法，而是将调用<code>scheduler</code>方法即<code>queueJob</code></p>
+</li>
+<li><p>将组件更新effect放入<code>queue</code>队列中</p>
+</li>
+</ol>
+<h3 id="调用forceUpdate"><a href="#调用forceUpdate" class="headerlink" title="调用forceUpdate"></a>调用forceUpdate</h3><p>在<code>vue2</code>中可以使用<code>this.$forceUpdate</code>强制组件重新渲染。这一API在vue3 Options API中保留了下来</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtime-core/src/componentPublicInstance.ts</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> publicPropertiesMap: PublicPropertiesMap = extend(<span class="built_in">Object</span>.create(<span class="literal">null</span>), &#123;</span><br><span class="line">  <span class="comment">// 省略...</span></span><br><span class="line">  </span><br><span class="line">  $forceUpdate: <span class="function"><span class="params">i</span> =&gt;</span> <span class="function">() =&gt;</span> queueJob(i.update),</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 省略...</span></span><br><span class="line">&#125; <span class="keyword">as</span> PublicPropertiesMap)</span><br></pre></td></tr></table></figure>
+
+<p>可以观察到，<code>forceUpdate</code>就是直接调用<code>queueJob</code>，并将<code>effect</code>(i.update就是effect)传入。</p>
+<h3 id="hmr"><a href="#hmr" class="headerlink" title="hmr"></a>hmr</h3><p>开发环境下，热更新也会触发组件重新渲染。也是调用<code>queueJob</code>将更新任务加入任务队列</p>
+<h2 id="入队preFlushCbs和postFlushCbs的时机"><a href="#入队preFlushCbs和postFlushCbs的时机" class="headerlink" title="入队preFlushCbs和postFlushCbs的时机"></a>入队preFlushCbs和postFlushCbs的时机</h2><p><code>preFlushCbs</code>存放的是组件渲染前需要完成的任务</p>
+<p><code>postFlushCbs</code>存放的是组件渲染完成后要完成的任务</p>
+<h3 id="watchEffect和watch"><a href="#watchEffect和watch" class="headerlink" title="watchEffect和watch"></a>watchEffect和watch</h3><p>以<code>watchEffect</code>为例，看一下它的类型声明：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">watchEffect</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  effect: (onInvalidate: InvalidateCbRegistrator) =&gt; <span class="built_in">void</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  options?: WatchEffectOptions</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">StopHandle</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">interface</span> <span class="title">WatchEffectOptions</span> </span>&#123;</span><br><span class="line">  flush?: <span class="string">&#x27;pre&#x27;</span> | <span class="string">&#x27;post&#x27;</span> | <span class="string">&#x27;sync&#x27;</span> <span class="comment">// 默认：&#x27;pre&#x27;</span></span><br><span class="line">  onTrack?: <span class="function">(<span class="params">event: DebuggerEvent</span>) =&gt;</span> <span class="built_in">void</span></span><br><span class="line">  onTrigger?: <span class="function">(<span class="params">event: DebuggerEvent</span>) =&gt;</span> <span class="built_in">void</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>watchEffect</code>的第二个参数中有个<code>flush</code>属性，有三种取值</p>
+<ul>
+<li><code>pre</code>（默认）：在组件渲染前异步调用，会将任务放入<code>preFlushCbs</code>队列中</li>
+<li><code>post</code>：在组件渲染后异步调用，会将任务放入<code>postFlushCbs</code>队列中</li>
+<li><code>sync</code>：同步调用</li>
+</ul>
+<p>分析源码，来看一下具体放入队列的操作：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">watchEffect</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  effect: WatchEffect,</span></span></span><br><span class="line"><span class="function"><span class="params">  options?: WatchOptionsBase</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">WatchStopHandle</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 调用doWatch方法</span></span><br><span class="line">  <span class="keyword">return</span> doWatch(effect, <span class="literal">null</span>, options)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">doWatch</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  source: WatchSource | WatchSource[] | WatchEffect | <span class="built_in">object</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  cb: WatchCallback | <span class="literal">null</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  &#123; immediate, deep, flush, onTrack, onTrigger &#125;: WatchOptions = EMPTY_OBJ,</span></span></span><br><span class="line"><span class="function"><span class="params">  instance = currentInstance</span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">WatchStopHandle</span> </span>&#123;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 省略...</span></span><br><span class="line">    </span><br><span class="line">  <span class="keyword">const</span> job: SchedulerJob = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 省略</span></span><br><span class="line">    <span class="comment">// 会执行传入的回调 cb</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 赋值scheduler</span></span><br><span class="line">  <span class="keyword">let</span> scheduler: ReactiveEffectOptions[<span class="string">&#x27;scheduler&#x27;</span>]</span><br><span class="line">  <span class="keyword">if</span> (flush === <span class="string">&#x27;sync&#x27;</span>) &#123;</span><br><span class="line">    scheduler = job</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (flush === <span class="string">&#x27;post&#x27;</span>) &#123;</span><br><span class="line">    scheduler = <span class="function">() =&gt;</span> queuePostRenderEffect(job, instance &amp;&amp; instance.suspense)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// default: &#x27;pre&#x27;</span></span><br><span class="line">    scheduler = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (!instance || instance.isMounted) &#123;</span><br><span class="line">        queuePreFlushCb(job)</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 第一次执行，组件未渲染的话，同步执行</span></span><br><span class="line">        job()</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 创建effect</span></span><br><span class="line">  <span class="keyword">const</span> runner = effect(getter, &#123;</span><br><span class="line">    lazy: <span class="literal">true</span>, <span class="comment">// true的话， effect第一次不会自动执行，而是直接返回effect</span></span><br><span class="line">    onTrack,</span><br><span class="line">    onTrigger,</span><br><span class="line">    scheduler</span><br><span class="line">  &#125;)</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 省略...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>总结一下：</p>
+<ol>
+<li><p>响应式都是通过<code>effect</code>来实现的</p>
+</li>
+<li><p>先赋值<code>sheduler</code>，有三种情况</p>
+<ul>
+<li><code>flush: sync</code>：直接赋值<code>job</code>，也就是直接触发effect执行</li>
+<li><code>flush: post</code>：赋值一个函数，函数会执行<code>queuePostRenderEffect</code>，即将<code>job</code>放入<code>postFlushCbs</code>队列</li>
+<li><code>flush: pre</code>：赋值一个函数，函数会执行<code>queuePreRenderEffect</code>，即将<code>job</code>放入<code>preFlushCbs</code>队列</li>
+</ul>
+</li>
+<li><p>创建<code>effect</code>，以实现响应式 并将<code>scheduler</code>传入。当响应式数据发生变化，就会调用<code>scheduler</code>函数</p>
+</li>
+</ol>
+<p>除此之外，在Vnode创建、更新和销毁的过程中，许多环节需要在组件更新完之后再去执行相应操作。vue调用了<code>queuePostFlushCb</code>。</p>
+<h2 id="任务调度"><a href="#任务调度" class="headerlink" title="任务调度"></a>任务调度</h2><p>现在来具体看一下这些<strong>任务</strong>进入任务队列中都做了什么：</p>
+<h3 id="queueJob"><a href="#queueJob" class="headerlink" title="queueJob"></a>queueJob</h3><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtime-core/src/schduler.ts</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">queueJob</span>(<span class="params">job: SchedulerJob</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 判断队列中是否已有该job，没有才会添加到任务队列中</span></span><br><span class="line">  <span class="keyword">if</span> (</span><br><span class="line">    (!queue.length ||</span><br><span class="line">      !queue.includes(</span><br><span class="line">        job,</span><br><span class="line">        isFlushing &amp;&amp; job.allowRecurse ? flushIndex + <span class="number">1</span> : flushIndex</span><br><span class="line">      )) &amp;&amp;</span><br><span class="line">    job !== currentPreFlushParentJob</span><br><span class="line">  ) &#123;</span><br><span class="line">    <span class="comment">// 找的任务在任务队列中合适的位置</span></span><br><span class="line">    <span class="keyword">const</span> pos = findInsertionIndex(job)</span><br><span class="line">    <span class="keyword">if</span> (pos &gt; -<span class="number">1</span>) &#123;</span><br><span class="line">      queue.splice(pos, <span class="number">0</span>, job)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      queue.push(job)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 清空任务队列</span></span><br><span class="line">    queueFlush()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先进行重复判断。<strong>这是确保任务队列中不会出现多个相同组件的effect，防止组件重复渲染</strong>。</p>
+<p>最终调用<code>queueFlush</code>来执行清空任务队列（执行完所有任务）</p>
+<h3 id="queuePreFlushCb"><a href="#queuePreFlushCb" class="headerlink" title="queuePreFlushCb"></a>queuePreFlushCb</h3><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtime-core/src/schduler.ts</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">queueCb</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  cb: SchedulerCbs,</span></span></span><br><span class="line"><span class="function"><span class="params">  activeQueue: SchedulerCb[] | <span class="literal">null</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  pendingQueue: SchedulerCb[],</span></span></span><br><span class="line"><span class="function"><span class="params">  index: <span class="built_in">number</span></span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!isArray(cb)) &#123;</span><br><span class="line">    <span class="keyword">if</span> (</span><br><span class="line">      !activeQueue ||</span><br><span class="line">      !activeQueue.includes(</span><br><span class="line">        cb,</span><br><span class="line">        (cb <span class="keyword">as</span> SchedulerJob).allowRecurse ? index + <span class="number">1</span> : index</span><br><span class="line">      )</span><br><span class="line">    ) &#123;</span><br><span class="line">      pendingQueue.push(cb)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    pendingQueue.push(...cb)</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 清空任务队列</span></span><br><span class="line">  queueFlush()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">queuePreFlushCb</span>(<span class="params">cb: SchedulerCb</span>) </span>&#123;</span><br><span class="line">  queueCb(cb, activePreFlushCbs, pendingPreFlushCbs, preFlushIndex)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">queuePostFlushCb</span>(<span class="params">cb: SchedulerCbs</span>) </span>&#123;</span><br><span class="line">  queueCb(cb, activePostFlushCbs, pendingPostFlushCbs, postFlushIndex)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>queuePreFlushCb</code>和<code>queuePostFlushCb</code>都会再去调用<code>queueCb</code>函数，这个函数做两件事</p>
+<ol>
+<li>将任务放入响应的任务队列（当然 先判断重复）</li>
+<li>执行<code>queueFlush</code>，来清空任务队列</li>
+</ol>
+<h3 id="queueFlush"><a href="#queueFlush" class="headerlink" title="queueFlush"></a>queueFlush</h3><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtime-core/src/schduler.ts</span></span><br><span class="line"><span class="keyword">const</span> resolvedPromise: <span class="built_in">Promise</span>&lt;<span class="built_in">any</span>&gt; = <span class="built_in">Promise</span>.resolve()</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">queueFlush</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!isFlushing &amp;&amp; !isFlushPending) &#123;</span><br><span class="line">    isFlushPending = <span class="literal">true</span></span><br><span class="line">    currentFlushPromise = resolvedPromise.then(flushJobs)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">flushJobs</span>(<span class="params">seen?: CountMap</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 省略...</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 1. 清空preFlushCb队列</span></span><br><span class="line">  flushPreFlushCbs(seen)</span><br><span class="line">  </span><br><span class="line">	<span class="comment">// 省略...</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 2. 清空queue队列</span></span><br><span class="line">    <span class="keyword">for</span> (flushIndex = <span class="number">0</span>; flushIndex &lt; queue.length; flushIndex++) &#123;</span><br><span class="line">      <span class="keyword">const</span> job = queue[flushIndex]</span><br><span class="line">      <span class="keyword">if</span> (job) &#123;</span><br><span class="line">        <span class="comment">// 执行job，也就是前面传入的effect</span></span><br><span class="line">        callWithErrorHandling(job, <span class="literal">null</span>, ErrorCodes.SCHEDULER)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略...</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 3. 清空postFlushCbs队列</span></span><br><span class="line">    flushPostFlushCbs(seen)</span><br><span class="line">		<span class="comment">// 省略...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>清空队列主要流程：</p>
+<ol>
+<li>异步执行<code>flushJob</code>，这里使用了<code>resolvedPromise.then(flushJobs)</code>。将清空队列的操作变成了异步。</li>
+<li>清空preFlushCb队列</li>
+<li>清空queue队列</li>
+<li>清空postFlushCbs队列</li>
+</ol>
+<p>这里的“清空”是执行队列中所有任务的意思</p>
+<h2 id="nextTick原理？"><a href="#nextTick原理？" class="headerlink" title="nextTick原理？"></a>nextTick原理？</h2><p>先看一段demo：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;span class&#x3D;&quot;my-name&quot;&gt;name: &#123;&#123;name&#125;&#125;&lt;&#x2F;span&gt;</span><br><span class="line">&lt;&#x2F;template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script lang&#x3D;&quot;ts&quot; setup&gt;</span><br><span class="line">import &#123; nextTick, onMounted, ref &#125; from &#39;vue&#39;</span><br><span class="line"></span><br><span class="line">const name &#x3D; ref(&quot;zxfan&quot;)</span><br><span class="line"></span><br><span class="line">onMounted(() &#x3D;&gt; &#123;</span><br><span class="line">  name.value +&#x3D; &#39; yes!&#39;</span><br><span class="line">  const dom &#x3D; document.querySelector(&quot;.my-name&quot;)</span><br><span class="line">  </span><br><span class="line">  console.log(dom?.innerHTML); &#x2F;&#x2F; 输出：name: zxfan</span><br><span class="line">  nextTick(() &#x3D;&gt; &#123;</span><br><span class="line">    console.log(dom?.innerHTML); &#x2F;&#x2F; 输出：name: zxfan yes!</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br><span class="line">&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>由于修改响应式数据，不会立即触发组件重渲染，所以第一个<code>console.log</code>输出的内容是上一次渲染的内容。而<code>nexTick</code>注册的回调会等到在渲染完毕后执行。</p>
+<p>我们看一下<code>nextTick</code>是如何实现的</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// runtime-core/src/schduler.ts</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">nextTick</span>(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="built_in">this</span>: ComponentPublicInstance | <span class="built_in">void</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  fn?: () =&gt; <span class="built_in">void</span></span></span></span><br><span class="line"><span class="function"><span class="params"></span>): <span class="title">Promise</span>&lt;<span class="title">void</span>&gt; </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> p = currentFlushPromise || resolvedPromise</span><br><span class="line">  <span class="keyword">return</span> fn ? p.then(<span class="built_in">this</span> ? fn.bind(<span class="built_in">this</span>) : fn) : p</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意到，它是等promise执行完毕后在去执行回调函数。那么这个promise是什么呢？</p>
+<ul>
+<li><code>currentFlushPromise</code>：这个promise我们刚刚遇到过，是在<code>queueFlush</code>中赋值的。这个promise会在本轮任务队列全部清空后才会变成<code>fullfilled</code>。这是再去调用nextTick的回调，就能获取到最新的dom</li>
+<li><code>resolvedPromise</code>：说明现在任务队列为空，那就包装一层promise并返回</li>
+</ul>
+<p>要理解nextTick，还需要结合浏览器的<strong>事件循环</strong>来分析，我们先明确几个知识点：</p>
+<ol>
+<li>浏览器的事件循环将事件放到两个队列——<strong>宏任务队列</strong>和**微任务队列</li>
+<li>每一次事件循环，会优先先清空微任务队列</li>
+<li>promise属于微任务</li>
+</ol>
+<p>以下面的demo为例，解释一下从修改响应式数据到<code>nextTick</code>中回调执行的过程</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">name.value += <span class="string">&#x27; yes!&#x27;</span></span><br><span class="line">nextTick(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(dom?.innerHTML); <span class="comment">// 输出：name: zxfan yes!</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>当执行<code>name.value += &#39; yes!&#39;</code>时，响应式数据发生了改变。<ul>
+<li>触发Proxy的setter，将<strong>更新组件任务的effect</strong>放入vue任务队列中（调用queueJob）</li>
+<li>调用queueFlush，这里调用了<code>promise.resolve</code>，所以将<strong>flushJobs</strong>放入微任务队列</li>
+<li>此时微任务队列= [flushJobs]</li>
+</ul>
+</li>
+<li>接着执行<code>nextTick</code>。等待<code>currentFlushPromise</code>执行完毕</li>
+<li>开始清空微任务队列。先执行flushJobs，执行<strong>更新组件任务的effect</strong>，这个过程会操作DOM，一旦操作DOM。浏览器会进行线程切换。由<strong>JS线程</strong>切换到<strong>渲染线程</strong>，浏览器去更新DOM。当DOM更新完毕，在切换回<strong>JS线程</strong>。回到JS线程后，<code>currentFlushPromise</code>状态变成<code>fullfilled</code>。将nextTick的回调<code>cb</code>放入微任务队列。此时微任务队列= [cb]</li>
+<li>继续清空微任务队列，执行cb。此时如果在cb中访问dom，就是渲染完成后的dom内容。</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><img src="../../images/Vue/vue%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6.png" alt="vue任务调度.png"></p>
+<h2 id="Vue2中的表现"><a href="#Vue2中的表现" class="headerlink" title="Vue2中的表现"></a>Vue2中的表现</h2><h3 id="任务调度-1"><a href="#任务调度-1" class="headerlink" title="任务调度"></a>任务调度</h3><p>vu2的任务调度原理也是类似。</p>
+<ol>
+<li>组件的响应式数据发生改变，会触发setter方法。</li>
+<li>触发<code>dep.notify()</code>。</li>
+<li>遍历dep对象上的<code>watcher</code>，逐一调用其<code>update</code>方法，（Watcher对象是在渲染组件时创建的，用来更新组件）</li>
+<li>update再调用<code>queueWatcher</code>，将更新任务加入任务队列</li>
+<li>调用<code>nextTick(flushSchedulerQueue)</code>，用来清空任务队列。<code>nextTick</code>是为了让组件更新变成异步。</li>
+</ol>
+<h3 id="nextTick"><a href="#nextTick" class="headerlink" title="nextTick"></a>nextTick</h3><p>vue2中的nextTick比vue3多了些内容。</p>
+<p>nextTick也模拟了一个回调任务队列<code>callbacks</code>（注意这不是调度的任务队列）</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">nextTick</span> (<span class="params">cb?: <span class="built_in">Function</span>, ctx?: <span class="built_in">Object</span></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> _resolve</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 将回调加入队列中</span></span><br><span class="line">  callbacks.push(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (cb) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        cb.call(ctx)</span><br><span class="line">      &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">        handleError(e, ctx, <span class="string">&#x27;nextTick&#x27;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (_resolve) &#123;</span><br><span class="line">      _resolve(ctx)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 如果队列没有正在执行（flush），就去清空队列</span></span><br><span class="line">  <span class="keyword">if</span> (!pending) &#123;</span><br><span class="line">    pending = <span class="literal">true</span></span><br><span class="line">    timerFunc() <span class="comment">// 清空队列</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// $flow-disable-line</span></span><br><span class="line">  <span class="keyword">if</span> (!cb &amp;&amp; <span class="keyword">typeof</span> <span class="built_in">Promise</span> !== <span class="string">&#x27;undefined&#x27;</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">      _resolve = resolve</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>nextTick调用了<code>timeFunc</code>来清空队列</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">flushCallbacks</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 省略... 就是清空callbakcs任务队列</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> timerFunc</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 1 支持promise，就用promise来模拟异步</span></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">typeof</span> <span class="built_in">Promise</span> !== <span class="string">&#x27;undefined&#x27;</span> &amp;&amp; isNative(<span class="built_in">Promise</span>)) &#123;</span><br><span class="line">  <span class="keyword">const</span> p = <span class="built_in">Promise</span>.resolve()</span><br><span class="line">  timerFunc = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    p.then(flushCallbacks)</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">if</span> (isIOS) <span class="built_in">setTimeout</span>(noop)</span><br><span class="line">  &#125;</span><br><span class="line">  isUsingMicroTask = <span class="literal">true</span></span><br><span class="line">&#125; </span><br><span class="line"><span class="comment">// 2. 不支持promise 就用MutationObserver来模拟异步</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (!isIE &amp;&amp; <span class="keyword">typeof</span> MutationObserver !== <span class="string">&#x27;undefined&#x27;</span> &amp;&amp; (</span><br><span class="line">  isNative(MutationObserver) ||</span><br><span class="line">  <span class="comment">// PhantomJS and iOS 7.x</span></span><br><span class="line">  MutationObserver.toString() === <span class="string">&#x27;[object MutationObserverConstructor]&#x27;</span></span><br><span class="line">)) &#123;</span><br><span class="line">  <span class="comment">// Use MutationObserver where native Promise is not available,</span></span><br><span class="line">  <span class="comment">// e.g. PhantomJS, iOS7, Android 4.4</span></span><br><span class="line">  <span class="comment">// (#6466 MutationObserver is unreliable in IE11)</span></span><br><span class="line">  <span class="keyword">let</span> counter = <span class="number">1</span></span><br><span class="line">  <span class="keyword">const</span> observer = <span class="keyword">new</span> MutationObserver(flushCallbacks)</span><br><span class="line">  <span class="keyword">const</span> textNode = <span class="built_in">document</span>.createTextNode(<span class="built_in">String</span>(counter))</span><br><span class="line">  observer.observe(textNode, &#123;</span><br><span class="line">    characterData: <span class="literal">true</span></span><br><span class="line">  &#125;)</span><br><span class="line">  timerFunc = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    counter = (counter + <span class="number">1</span>) % <span class="number">2</span></span><br><span class="line">    textNode.data = <span class="built_in">String</span>(counter)</span><br><span class="line">  &#125;</span><br><span class="line">  isUsingMicroTask = <span class="literal">true</span></span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="comment">// 3.用setImmediate来模拟异步</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">typeof</span> setImmediate !== <span class="string">&#x27;undefined&#x27;</span> &amp;&amp; isNative(setImmediate)) &#123;</span><br><span class="line"></span><br><span class="line">  timerFunc = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    setImmediate(flushCallbacks)</span><br><span class="line">  &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="comment">// Fallback to setTimeout.</span></span><br><span class="line">  timerFunc = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(flushCallbacks, <span class="number">0</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了更多的兼容浏览器，timerFunc模拟异步判断了三种情况</p>
+<ol>
+<li>支持Promise，就直接用Promise来模拟异步。Promise属于微任务</li>
+<li>不支持Promise，支持MutationObserver。MutationObserver也属于微任务<ul>
+<li>创建一个空的文本节点，监听这个文本节点的字符变化。变化了就调用<code>flushCallbacks</code>来清空回调任务队列</li>
+<li>调用<code>timerFunc</code>，会修改文本节点的内容，从而触发<code>flushCallbacks</code>函数的执行</li>
+</ul>
+</li>
+<li><code>MutationObserver</code>和<code>Promise</code>都不支持，就用<code>setImmediate</code>来模拟异步，后者属于宏任务</li>
+<li>最后方案就是使用setTimeout来模拟异步</li>
+</ol>
+<p>可见<code>vue2</code>为了兼容性，下足了功夫。而<code>vue3</code>直接就使用了<code>Promise</code></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/d2a05aba.html">https://zxffan.github.io/posts/d2a05aba.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Vue/"># Vue</a>
+                    
+                        <a href="/tags/sc-vue3/"># sc-vue3</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/631e9859.html">队列问题梳理</a>
+            
+            
+            <a class="next" rel="next" href="/posts/1f4ac2fb.html">栈的考点</a>
+            
+        </section>
+
+
+    </article>
+</div>
+</div>
+      <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
+</html>

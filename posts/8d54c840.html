@@ -457,7 +457,14 @@
 <p><code>110</code> &amp; <code>100</code> = <code>100</code>， 表示<strong>有</strong>读的权限 </p>
 <p>只有&amp;后的结果等于所需判断的权限，就表示有该权限</p>
 <h2 id="权限数的限制"><a href="#权限数的限制" class="headerlink" title="权限数的限制"></a>权限数的限制</h2><p>每增加一位权限，就需要多一位二进制位。</p>
-<p><code>JavaScript</code>中的位运算只支持<code>32</code>位，第32位是符号为，所有js中最多能配置32种权限。</p>
+<p>JavaScript 将数字存储为 64 位浮点数，但所有按位运算都以 32 位二进制数执行。</p>
+<ul>
+<li><p>在执行位运算之前，JavaScript 将数字转换为 32位有符号整数。</p>
+</li>
+<li><p>执行按位操作后，结果将转换回 64 位 JavaScript 数。</p>
+</li>
+</ul>
+<p>所以，js中最多能配置32种权限(<code>1</code> <code>1 &lt;&lt; 1</code>….<code>1 &lt;&lt; 31</code>)。<code>1 &lt;&lt; 32</code>等于<code>1</code></p>
 <p>使用<code>BigInt</code>能够表示更多的权限。</p>
 <p><code>1n &lt;&lt; 33n =&gt; 8589934592n</code></p>
 

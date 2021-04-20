@@ -472,7 +472,7 @@
 <h3 id="浮点数公式"><a href="#浮点数公式" class="headerlink" title="浮点数公式"></a>浮点数公式</h3><p>js中的任何一个二进制浮点数可以由以下公式来表示：<br>$$<br>V = (-1)^{S} * M * 2^{E}<br>$$</p>
 <ul>
 <li>V：表示二进制浮点数</li>
-<li>S：指数位，1位。为0正数，1为负数</li>
+<li>S：符号位，1位。为0正数，1为负数</li>
 <li>M：有效数字，52位。</li>
 <li>E：指数位，11位</li>
 </ul>
@@ -487,7 +487,7 @@
 <li><strong>E全为1</strong> 此时如果有效数字M全为0，那么就表示+∞或者-∞，取决于第一位符号位。<strong>但是如果有效数字M不全为0，则表示这不是一个数(NaN)</strong></li>
 </ol>
 <h2 id="JavaScript中的IEEE-754"><a href="#JavaScript中的IEEE-754" class="headerlink" title="JavaScript中的IEEE 754"></a>JavaScript中的IEEE 754</h2><h3 id="最大安全整数"><a href="#最大安全整数" class="headerlink" title="最大安全整数"></a>最大安全整数</h3><p>$$<br>Number.MAX_SAFE_INTEGER = 2^{53} - 1<br>$$</p>
-<p>S为0，53位(包含首位1)有效数字都为1。减去1是排除首位0的情况。</p>
+<p>有效数字只有52位，<code>2^53</code>和<code>2^53+1</code>以及后面的数在js中都相等。所以js能够表示的最大安全整数是<code>2^53 - 1</code>。</p>
 <h3 id="0-1-0-2-0-3"><a href="#0-1-0-2-0-3" class="headerlink" title="0.1 + 0.2 !== 0.3 ?"></a>0.1 + 0.2 !== 0.3 ?</h3><p>计算机进行数值运算是，是将十进制转成二进制补码再进行计算</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0.1D = (-1)^0 * 1.1001..(1001循环13次)1010B * 2^-4</span><br><span class="line">0.2D = (-1)^0 * 1.1001..(1001循环13次)1010B * 2^-3</span><br><span class="line">0.3D = (-1)^0 * 1.0011..(0011循环13次)0011B * 2^-2</span><br></pre></td></tr></table></figure>
 
@@ -545,6 +545,8 @@
             </div>
         </section>
         <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/4ed68d4d.html">链表问题梳理</a>
             
             
             <a class="next" rel="next" href="/posts/8d54c840.html">js位运算和权限</a>
