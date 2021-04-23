@@ -16,7 +16,7 @@
     <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
 
 
-<title>XSS攻击与防御 | zxfan</title>
+<title>知识串联：JavaScript执行机制 | zxfan</title>
 
 
 
@@ -402,7 +402,7 @@
     
     <article class="post-wrap">
         <header class="post-header">
-            <h1 class="post-title">XSS攻击与防御</h1>
+            <h1 class="post-title">知识串联：JavaScript执行机制</h1>
             
                 <div class="post-meta">
                     
@@ -411,7 +411,7 @@
 
                     
                         <span class="post-time">
-                        Date: <a href="#">四月 16, 2021&nbsp;&nbsp;
+                        Date: <a href="#">四月 23, 2021&nbsp;&nbsp;
                         <!-- 0:00:00 -->
                         </a>
                         </span>
@@ -420,7 +420,7 @@
                         <span class="post-category">
                     Category:
                             
-                                <a href="/categories/Security/">Security</a>
+                                <a href="/categories/JavaScript/">JavaScript</a>
                             
                         </span>
                     
@@ -429,160 +429,103 @@
         </header>
 
         <div class="post-content">
-            <p><code>xss(cross-site script)</code>指<strong>网站对用户输入数据未做有效过滤，攻击者可以将恶意脚本注入网站页面中，达到执行恶意代码的目的</strong></p>
-<p>攻击者只需要诱使受害者打开特定的网址，就可以在受害者的浏览器中执行被注入的恶意代码，从而窃取用户身份，执行一些敏感操作</p>
-<h2 id="XSS攻击类型"><a href="#XSS攻击类型" class="headerlink" title="XSS攻击类型"></a>XSS攻击类型</h2><p>XSS攻击可以分成三种类型：</p>
+            <p>这篇文章将梳理JavaScript的执行机制，并且串联众多知识点：作用域、作用域链、闭包、变量提升、函数提升、<code>this</code>指向</p>
+<h2 id="JavaScript-执行的阶段"><a href="#JavaScript-执行的阶段" class="headerlink" title="JavaScript 执行的阶段"></a>JavaScript 执行的阶段</h2><p>在 V8 引擎中 JavaScript 代码的运行过程主要分成三个阶段。</p>
 <ul>
-<li><p>反射型XSS</p>
+<li><p>语法分析阶段。 该阶段会对代码进行语法分析，检查是否有语法错误（SyntaxError），如果发现语法错误，会在控制台抛出异常并终止执行。</p>
 </li>
-<li><p>存储型XSS</p>
+<li><p>编译阶段。 该阶段会进行全局执行上下文（Execution Context）的创建，这个过程也被称为预解析阶段。</p>
 </li>
-<li><p>DOM型XSS</p>
+<li><p>执行阶段。 将编译阶段中创建的执行上下文压入执行栈，并成为正在运行的执行上下文，代码执行结束后，将其出栈。在执行过程中，又可能会产生新的执行上下文（比如调用了函数）。再将新的执行上下文入栈，执行完出栈</p>
 </li>
 </ul>
-<h3 id="反射型"><a href="#反射型" class="headerlink" title="反射型"></a>反射型</h3><p>反射型指的是<strong>将攻击代码存放在URL参数中</strong>，例如<code>http://localhost/home?name=&lt;script&gt;alert(1)&lt;/script&gt;</code>。</p>
-<p>如果服务端直接去url中的name参数，并当作html返回给客户端。攻击代码就会执行。</p>
-<h3 id="存储型"><a href="#存储型" class="headerlink" title="存储型"></a>存储型</h3><p>存储型是指<strong>将恶意代码存储到服务器上</strong>，只要诱使受害者访问被插入恶意代码的页面即可触发。存储型 XSS 经常出现在一些可以发表评论的地方，如帖子、博客</p>
-<p>当用户在评论中输入一段攻击代码，网站又没有过滤。这段代码会存储到数据库中。当其它用户访问评论时，这段攻击代码被当作html内容输出就会引发攻击代码的执行</p>
-<h3 id="DOM型"><a href="#DOM型" class="headerlink" title="DOM型"></a>DOM型</h3><p><strong>前两种都是服务端的XSS，DOM型是客户端的XSS</strong></p>
-<p>JavaScript 能够操作DOM。通过JavaScript控制获取<strong>源数据（内含攻击代码）</strong>，又未进行处理。直接<strong>当作HTML输出（innerHTML）或脚本执行</strong></p>
-<p>就会发生DOM型XSS攻击</p>
-<p>常见的源数据有：<code>document</code> <code>location</code> <code>localStorage</code> <code>sessionStorage</code>等</p>
-<p>常见的触发攻击的点：<code>document.write</code> <code>eval</code> <code>innerHTML</code> <code>a的href属性</code>等</p>
-<h2 id="XSS常见的攻击方式"><a href="#XSS常见的攻击方式" class="headerlink" title="XSS常见的攻击方式"></a>XSS常见的攻击方式</h2><h3 id="窃取cookie"><a href="#窃取cookie" class="headerlink" title="窃取cookie"></a>窃取cookie</h3><p>许多网站都使用<code>cookie</code>来存放用户登陆信息。</p>
-<p>攻击者利用<code>xss</code>漏洞来注入脚本。<code>document.cookie</code>就可以获取到cookie。然后再将获取到的cookie上报。之后就可以本地修改 Cookie 来登录受害者的账号</p>
-<h3 id="蠕虫攻击"><a href="#蠕虫攻击" class="headerlink" title="蠕虫攻击"></a>蠕虫攻击</h3><p>以微博XSS蠕虫攻击为例：</p>
+<h2 id="三种执行上下文"><a href="#三种执行上下文" class="headerlink" title="三种执行上下文"></a>三种执行上下文</h2><p>执行上下文是对执行环境的抽象，它代表JavaScript执行时当前的执行环境，用于。JavaScript中一共有三种执行上下文</p>
 <ul>
-<li><p>利用 XSS 漏洞插入恶意 JS 代码；</p>
-</li>
-<li><p>利用 XMLHttpRequest 发送请求去发表微博、关注用户、获取关注者列表并向其发送私信；</p>
-</li>
-<li><p>微博消息和私信都包含有恶意攻击链接，等于实现了攻击代码的自我复制和传播。</p>
-</li>
+<li>全局执行上下文：有且仅有一个</li>
+<li>函数执行上下文</li>
+<li><code>eval</code>执行上下文：不讨论</li>
 </ul>
-<h3 id="获取用户键盘记录"><a href="#获取用户键盘记录" class="headerlink" title="获取用户键盘记录"></a>获取用户键盘记录</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">keys = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="built_in">document</span>.onkeypress = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  keys += <span class="built_in">String</span>.fromCharCode(<span class="built_in">window</span>.event.keyCode);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下代码:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> name = <span class="string">&quot;zxfan&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sayName</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(name)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">sayName()</span><br></pre></td></tr></table></figure>
 
-<h3 id="获取剪贴板内容"><a href="#获取剪贴板内容" class="headerlink" title="获取剪贴板内容"></a>获取剪贴板内容</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">document</span>.addEventListener(<span class="string">&#x27;paste&#x27;</span>, <span class="function"><span class="keyword">function</span> (<span class="params">evt</span>) </span>&#123;</span><br><span class="line">  clipdata = evt.clipboardData || <span class="built_in">window</span>.clipboardData;</span><br><span class="line">  <span class="built_in">console</span>.log(clipdata.getData(<span class="string">&#x27;text/plain&#x27;</span>));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<h3 id="钓鱼欺骗用户输入账号、密码"><a href="#钓鱼欺骗用户输入账号、密码" class="headerlink" title="钓鱼欺骗用户输入账号、密码"></a>钓鱼欺骗用户输入账号、密码</h3><p>弹个弹窗，让用户输入账号密码</p>
-<h2 id="XSS漏洞挖掘"><a href="#XSS漏洞挖掘" class="headerlink" title="XSS漏洞挖掘"></a>XSS漏洞挖掘</h2><h4 id="收集用例"><a href="#收集用例" class="headerlink" title="收集用例"></a>收集用例</h4><p>人工测试的主要思路就是在一切可输入数据的地方输入“XSS payload”（测试用例），这些地方包括所有的 GET、POST、Cookie、HTTP 头。提交数据之后，看网站的输出是否解析了前面输入的 XSS payload。</p>
-<p>我常用的 XSS payload 有以下几个。搜索“XSS cheat sheet”，也可以找到很多这种测试用例。</p>
-<p><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/cheat-sheet">Cross-site scripting (XSS) cheat sheet</a></p>
-<p><a target="_blank" rel="noopener" href="https://owasp.org/www-community/xss-filter-evasion-cheatsheet">XSS Filter Evasion Cheat Sheet</a></p>
-<p><a target="_blank" rel="noopener" href="http://html5sec.org/">HTML5 Security Cheatsheet</a></p>
-<h4 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h4><p>这一步可以手动测试也可以采用自动测试工具。</p>
-<p>手动：可以先一次性批量输入测试，如果无效，再输入一些特殊字符看过滤情况，根据返回数据作相应的调整测试。</p>
-<p>自动：<a target="_blank" rel="noopener" href="https://github.com/s0md3v/XSStrike">XSStrike</a>，它内置了很多测试用例，也可以添加自定义测试用例</p>
-<h2 id="XSS防御"><a href="#XSS防御" class="headerlink" title="XSS防御"></a>XSS防御</h2><h3 id="做好检查"><a href="#做好检查" class="headerlink" title="做好检查"></a>做好检查</h3><h4 id="输入检查"><a href="#输入检查" class="headerlink" title="输入检查"></a>输入检查</h4><p>检查攻击者所有可能的输入的地方</p>
-<ul>
-<li><code>URL</code>参数</li>
-<li>（富）文本框</li>
-<li>接口返回的数据</li>
-</ul>
+<p>编译时，首先创建一个全局执行上下文<code>GlobalContext</code>，并将其放入执行栈</p>
+<p>执行时，执行栈栈顶的执行上下文为当前正在执行的执行上下文，当执行到<code>sayName</code>函数时，又会创建一个函数执行上下文<code>FunctionContext</code>，并将其入栈。当函数执行上下文执行完毕，出栈。全局上下文也执行完毕，出栈。</p>
 <blockquote>
-<p>服务端也需要进行检查，前端是可以绕过去的</p>
+<p>全局执行上下文是编译时被创建的</p>
+<p>函数执行上下文是执行时被创建的</p>
 </blockquote>
-<h4 id="输出检查"><a href="#输出检查" class="headerlink" title="输出检查"></a>输出检查</h4><p>从前端角度来看，有两个地方可能导致恶意代码执行——<code>HTML</code>和<code>JavaScript</code></p>
+<h2 id="执行栈"><a href="#执行栈" class="headerlink" title="执行栈"></a>执行栈</h2><p>执行栈是用来存放执行上下文的。</p>
+<p>以函数为例，函数执行的时候创建函数执行上下文，并将其入栈，当函数执行完成后再出栈。全局执行上下文第一个入栈最后一个出栈。</p>
+<h2 id="执行上下文做了什么？"><a href="#执行上下文做了什么？" class="headerlink" title="执行上下文做了什么？"></a>执行上下文做了什么？</h2><p>执行上下文被创建时，做了三件事：</p>
 <ul>
-<li><p>HTML：<code>innerHTML</code> <code>outerHTML</code> <code>document.write()</code> <code>v-html</code> <code>danderousSetInnerHTML</code></p>
-<p>将原数据当作HTML输出，极容易导致XSS攻击。尽量避免这么做，使用<code>textContent</code>来代替。如果必须输出（如评论内容），需要进行<strong>转义</strong>。通常使用<strong>白名单</strong>的方式进行转义。</p>
-<blockquote>
-<p><a target="_blank" rel="noopener" href="https://www.npmjs.com/package/xss">xss</a>是npm上的一个不错的HTML转义库</p>
-</blockquote>
-</li>
-<li><p>JavaScript：</p>
-<ul>
-<li>内联事件监听器：<code>location</code> <code>onclick</code> <code>onerror</code> <code>onload</code> <code>onmousemove</code>等等等</li>
-<li>a标签的href属性使用伪协议：<code>&lt;a href=&quot;javascript:alert(&#39;attack&#39;)&quot; /&gt;</code></li>
-<li><code>eval</code> <code>setTimeout</code> <code>setInterval</code>都能够把字符串当作js执行</li>
+<li>确定<code>this</code>的指向</li>
+<li>创建环境记录<ul>
+<li>创建词法环境(LexicalEnvironment)</li>
+<li>创建变量环境(VariableEnvironment)</li>
 </ul>
-<p>这些api的不恰当使用会导致XSS攻击，所以使用时要格外注意。好在它们大多都有可替代方案。</p>
 </li>
 </ul>
-<h3 id="HttpOnly禁止cookie访问"><a href="#HttpOnly禁止cookie访问" class="headerlink" title="HttpOnly禁止cookie访问"></a>HttpOnly禁止cookie访问</h3><p>如果给某个 cookie 设置了 <code>HttpOnly</code> 属性，则无法通过 JS 脚本 读取到该 cookie 的信息，但还是能通过 Application 中手动修改 cookie，所以只是在一定程度上可以防止 XSS 攻击，不是绝对的安全</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Set-Cookie: Name=Value; expires=Wednesday, 01-May-2014 12:45:10 GMT; HttpOnly</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>cookie由服务端创建返回给浏览器的（响应头：<code>Set-Cookie</code>）。之后的请求会自动携带cookie。默认情况下，它随着seesion的结束而结束。</p>
-<p>能不使用cookie就别使用了</p>
-</blockquote>
-<h3 id="CSP-内容安全策略"><a href="#CSP-内容安全策略" class="headerlink" title="CSP 内容安全策略"></a>CSP 内容安全策略</h3><p>内容安全策略（Content Security Policy，CSP）也是减少 XSS 攻击的一种方式 ，是浏览器提供一种防御机制。它采用的是白名单机制，告诉浏览器可以加载和执行哪些外部资源，这样就能防止被一些第三方恶意脚本注入执行。</p>
-<p>开启 CSP 有两种方式：</p>
-<ol>
-<li><p>通过 HTTP 头信息的 Content-Security-Policy 的字段：(在返回html文件的请求的响应头上加)</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-Security-Policy: script-src &#x27;self&#x27;; object-src &#x27;none&#x27;;style-src cdn.example.org third-party.org; child-src https:（2）通过网页的&lt;meta&gt;标签设置：</span><br></pre></td></tr></table></figure></li>
-<li><p>通过网页的<code>&lt;meta&gt;</code>标签设置</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;meta</span><br><span class="line">  http-equiv=&quot;Content-Security-Policy&quot;</span><br><span class="line">  content=&quot;script-src &#x27;self&#x27;; object-src &#x27;none&#x27;; style-src cdn.example.org third-party.org; child-src https:&quot;</span><br><span class="line">/&gt;</span><br></pre></td></tr></table></figure></li>
-</ol>
-<p>如何指定csp：<strong>指令 策略</strong></p>
-<p>指令字段含义：</p>
-<table>
-<thead>
-<tr>
-<th>指令</th>
-<th>策略示例</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>default-src</code></td>
-<td><code>&#39;self&#39; www.aaa.com</code></td>
-<td>默认资源加载策略，没有指定策略的指令使用本策略</td>
-</tr>
-<tr>
-<td><code>script-src</code></td>
-<td><code>&#39;selft&#39; js.a.com</code></td>
-<td>针对js文件的策略</td>
-</tr>
-<tr>
-<td><code>style-src</code></td>
-<td><code>&#39;selft&#39; css.a.com</code></td>
-<td>针对css文件的策略</td>
-</tr>
-<tr>
-<td><code>img-src</code></td>
-<td><code>&#39;selft&#39; img.a.com</code></td>
-<td>针对img图片资源的策略</td>
-</tr>
-<tr>
-<td><code>connect-src</code></td>
-<td><code>&#39;selft&#39;</code></td>
-<td>针对ajax、websocket的策略，不允许会返回400</td>
-</tr>
-<tr>
-<td><code>font-src</code></td>
-<td><code>font.a.com</code></td>
-<td>针对字体的加载策略</td>
-</tr>
-<tr>
-<td><code>media-src</code></td>
-<td><code>media.a.com</code></td>
-<td>针对video和audio引入资源的策略</td>
-</tr>
-<tr>
-<td><code>frame-src</code></td>
-<td><code>&#39;self&#39;</code></td>
-<td>针对frame的加载策略</td>
-</tr>
-<tr>
-<td><code>sandbox</code></td>
-<td><code>allow-forms</code></td>
-<td>对请求资源启用<code>sandbox</code></td>
-</tr>
-<tr>
-<td><code>report-uri</code></td>
-<td><code>/report-uri</code></td>
-<td>告知浏览器，当请求资源不被策略允许时，往那个接口提交信息</td>
-</tr>
-</tbody></table>
-<p>指令值字段含义：</p>
+<h3 id="this的指向"><a href="#this的指向" class="headerlink" title="this的指向"></a>this的指向</h3><p>this的取值取决于具体的场景：</p>
 <ul>
-<li><code>none</code> 表示不执行任何匹配。</li>
-<li> <code>self</code>表示与当前来源（而不是其子域）匹配。</li>
-<li> <code>unsafe-inline</code>表示允许使用内联 JavaScript 和 CSS。</li>
-<li> <code>unsafe-eval</code> 表示允许使用类似 eval 的 text-to-JavaScript 机制。</li>
-<li><code>www.aasd.com</code>允许加载指定域名的资源</li>
+<li>全局执行上下文中：this取全局对象（浏览器是window对象，nodejs是global对象）</li>
+<li>函数执行上下文中：<ul>
+<li>构造函数中：指向创建的实例对象</li>
+<li>对象方法：this指向这个对象</li>
+<li>箭头函数：外层执行上下文的this</li>
+<li><code>call</code> <code>apply</code> <code>bind</code>：可以指定this</li>
+<li>其它情况：this为undefined（严格模式下）</li>
 </ul>
+</li>
+</ul>
+<h3 id="环境记录-Environment-Record"><a href="#环境记录-Environment-Record" class="headerlink" title="环境记录(Environment Record)"></a>环境记录(Environment Record)</h3><p>基于JavaScript这种嵌套的代码结构，环境记录用来记录特定的<strong>标识符</strong>和代码中所定义的<strong>变量和函数</strong>之间的关系。</p>
+<p>换句话说，环境记录就是记录一堆标识符，这些标识符指向具体代码中的数据。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> name = <span class="string">&quot;zxfan&quot;</span></span><br><span class="line"><span class="keyword">var</span> age = <span class="number">18</span></span><br><span class="line"></span><br><span class="line"><span class="function">function <span class="title">sayName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  console.log(name)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其环境记录</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Environment Record &#123;</span><br><span class="line">	name: &lt;uninitialized&gt; // 代码执行完后 name: &lt;&quot;zxfan&quot;&gt;</span><br><span class="line">  age: &lt;18&gt; // var 具有变量提升，所以这里不是uninitialized</span><br><span class="line">	sayName: &lt;function&gt; // function有函数提升，所以这里不是uninitialized</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>环境记录分类三种类型（声明环境记录又分为两种）：</p>
+<ul>
+<li>声明环境记录： 包含<code>var</code> <code>let</code> <code>const</code> <code>class</code> <code>function</code>  <code>import</code>声明的变量的标识符。<ul>
+<li>函数环境记录： <code>function</code></li>
+<li>模块环境记录：<code>import</code></li>
+</ul>
+</li>
+<li>对象环境记录：为对象创建一个环境记录，它有一个**关联的绑定对象[[BindingObject]]**。比如全局执行上下文会创建一个对象环境记录，其关联绑定的对象是全局对象（window或global）</li>
+<li>全局环境记录：最外层环境记录，包含声明环境记录和对象环境记录</li>
+</ul>
+<p><strong>词法环境和变量环境本质上都是环境记录</strong>，这么做是为了单独区分<code>var</code></p>
+<h4 id="词法环境（作用域）"><a href="#词法环境（作用域）" class="headerlink" title="词法环境（作用域）"></a>词法环境（作用域）</h4><p>词法环境可以理解为<strong>作用域</strong>，从词法环境的角度能更好地理解作用域。词法环境有两个成员：</p>
+<ul>
+<li>环境记录（Environment Record）：用于记录自身词法环境中的变量对象。</li>
+<li>外部词法环境引用（Outer Lexical Environment）：记录外层词法环境的引用。</li>
+</ul>
+<h5 id="环境记录"><a href="#环境记录" class="headerlink" title="环境记录"></a>环境记录</h5><p>词法环境的环境记录，会保存<strong>函数声明</strong>和<strong>变量声明</strong>(<code>let</code>和<code>const</code>声明的变量)，如</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sayFullName</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> firstName = <span class="string">&quot;Donald&quot;</span></span><br><span class="line">  <span class="keyword">const</span> lastName = <span class="string">&quot;Trump&quot;</span></span><br><span class="line">  <span class="built_in">console</span>.log(firstName, lastName)</span><br><span class="line">&#125;</span><br><span class="line">sayFullName()</span><br></pre></td></tr></table></figure>
+
+<p><code>sayFullNmae</code>的词法环境</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">LexicalEnciroment &#123;</span><br><span class="line">	Enviroment Record &#123;</span><br><span class="line">		firstName: &lt;uninitialize&gt;</span><br><span class="line">		lastName: &lt;uninitialize&gt;</span><br><span class="line">		arguments: &lt;&#123;&#125;&gt;</span><br><span class="line">	&#125;</span><br><span class="line">	outer: &lt;Global or outer function environment reference&gt;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意：<code>let</code>和<code>const</code>定义的变量初始都是<code>uninitialize</code>。当代码执行后才会赋值。</p>
+<h5 id="外部词法环境引用（作用域链）"><a href="#外部词法环境引用（作用域链）" class="headerlink" title="外部词法环境引用（作用域链）"></a>外部词法环境引用（作用域链）</h5><p>任何一个词法环境（全局词法环境除外）都有一个指向外层词法环境的引用。这构成了词法环境链即<strong>作用域链</strong>。当访问一个变量时，先会在当前词法环境中寻找，找不到就去外部词法环境中寻找。就这样，一直找到全局词法环境。</p>
+<h4 id="变量环境"><a href="#变量环境" class="headerlink" title="变量环境"></a>变量环境</h4><p>变量环境和词法环境的结构一致，区别是其环境记录所记录的数据不同。</p>
+<p>语法环境的环境记录，是记录<code>var</code>声明。</p>
+<blockquote>
+<p>环境记录 词法环境 作用域 其实都是一个概念，这么区分是为了针对不同场景方便理解。</p>
+</blockquote>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="解释作用域与作用域链"><a href="#解释作用域与作用域链" class="headerlink" title="解释作用域与作用域链"></a>解释作用域与作用域链</h3><p>JS的作用域时词法作用域，有词法结构决定。js代码编译时创建全局执行上下文，执行上下文又会创建当前环境的环境记录（分为词法环境和变量环境）。当执行js代码时（比如调用一个函数），又会创建函数执行上下文。随之函数环境的环境就又会创建。</p>
+<p>每个环境记录都有个outer引用，指向外层环境记录。外层再指向外层，一直到最外层。这便构成了作用域链。</p>
+<h3 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h3><p>解释闭包就是解释<strong>作用域</strong>和<strong>垃圾回收机制</strong></p>
+<p><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Closure_(computer_programming)">闭包</a> 是指内部函数总是可以访问其所在的外部函数中声明的变量和参数，即使在其外部函数被返回（寿命终结）了之后。</p>
+<p>正常情况下，代码执行完毕，其相应的执行上下文出栈，相应的内存空间会被回收。然而，闭包情况下，内层词法环境（作用域）可以访问到，所以外层词法环境不会被回收，仍然可以访问到，但仅限在内层词法环境访问。</p>
+<h3 id="变量提升和函数提升"><a href="#变量提升和函数提升" class="headerlink" title="变量提升和函数提升"></a>变量提升和函数提升</h3><p>环境记录创建时，会记录当前环境下所有变量，遇到：</p>
+<ul>
+<li><p>var变量声明：此时会给变量分配内存，并将其初始化为undefined（该过程只进行定义声明，执行阶段才执行赋值语句）。</p>
+</li>
+<li><p>函数声明：此时会在内存里创建函数对象，并且直接初始化为该函数对象。</p>
+</li>
+</ul>
+<h3 id="this指向"><a href="#this指向" class="headerlink" title="this指向"></a>this指向</h3><p>this指向是在执行上下文创建时才确定的，具体指向谁取决于具体场景。上文已讨论。</p>
 
         </div>
 
@@ -597,7 +540,7 @@
                 
                     <p class="copyright-item">
                         <span>Permalink:</span>
-                        <span><a href="https://zxffan.github.io/posts/df6ed6ff.html">https://zxffan.github.io/posts/df6ed6ff.html</a></span>
+                        <span><a href="https://zxffan.github.io/posts/1b8392cc.html">https://zxffan.github.io/posts/1b8392cc.html</a></span>
                     </p>
                 
                 
@@ -621,9 +564,7 @@
                 <span class="tag">
                     
                     
-                        <a href="/tags/FrontEnd/"># FrontEnd</a>
-                    
-                        <a href="/tags/%E5%AE%89%E5%85%A8/"># 安全</a>
+                        <a href="/tags/JavaScript/"># JavaScript</a>
                     
                         
                 </span>
@@ -636,10 +577,8 @@
         </section>
         <section class="post-nav">
             
-                <a class="prev" rel="prev" href="/posts/1b8392cc.html">知识串联：JavaScript执行机制</a>
             
-            
-            <a class="next" rel="next" href="/posts/88f2a5b3.html">排序问题梳理</a>
+            <a class="next" rel="next" href="/posts/df6ed6ff.html">XSS攻击与防御</a>
             
         </section>
 
