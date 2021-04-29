@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>JavaScript原型污染 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
+    <div class="wrapper">
+      <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+      <div class="main"><div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">JavaScript原型污染</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">四月 29, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/JavaScript/">JavaScript</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="原型污染"><a href="#原型污染" class="headerlink" title="原型污染"></a>原型污染</h2><blockquote>
+<p>原型污染就是，通过某种手段达到修改JavaScript原型的目的</p>
+</blockquote>
+<p>比如</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a = &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义了一个对象a，a有一个<code>constructor</code>属性指向a的构造器（<code>Object</code>）</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a.constructor === <span class="built_in">Object</span> <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p>Object很常用，比如：<code>Object.prototype.toString</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Object</span>.prototype.toString.call(a) <span class="comment">// &quot;[object Object]&quot; 获取类型</span></span><br></pre></td></tr></table></figure>
+
+<p>但是问题来了，通过a对象可以访问并修改Object对象</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a.constructor.prototype.toString = <span class="function">() =&gt;</span> <span class="built_in">console</span>.log(<span class="string">&quot;attack&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 再使用 toString</span></span><br><span class="line"><span class="built_in">Object</span>.prototype.toString.call(a) <span class="comment">// &quot;attack&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这就发生了<strong>原型污染</strong></p>
+<blockquote>
+<p>lodash发生过一次严重的原型污染bug，场景是两个对象合并<code>merge(a, b)</code>， </p>
+</blockquote>
+<h2 id="预防"><a href="#预防" class="headerlink" title="预防"></a>预防</h2><h3 id="过滤危险属性"><a href="#过滤危险属性" class="headerlink" title="过滤危险属性"></a>过滤危险属性</h3><p>两个对象合并，把<code>constructor</code>属性和<code>__proto__</code>这样的敏感过滤掉。</p>
+<h3 id="Object-freeze"><a href="#Object-freeze" class="headerlink" title="Object.freeze"></a>Object.freeze</h3><p><code>Object.freeze</code>可以冻结一个对象，这个对象不能被修改。</p>
+<p>原理就是修改对象的<code>descriptor</code>中的<code>writable:false</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Object</span>.freeze(<span class="built_in">Object</span>.prototype);</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.prototype.toString = <span class="string">&quot;attack&quot;</span></span><br><span class="line"></span><br><span class="line">consoel.log(<span class="built_in">Object</span>.prototype.toString) <span class="comment">// ƒ toString() &#123; [native code] &#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Object-create-null"><a href="#Object-create-null" class="headerlink" title="Object.create(null)"></a>Object.create(null)</h3><p>创建一个原型对象为null的对象，这样就不存在污染原型的情况</p>
+<h3 id="Map代替对象字面量"><a href="#Map代替对象字面量" class="headerlink" title="Map代替对象字面量"></a>Map代替对象字面量</h3><p><code>map.set(&quot;__proto__&quot;, xx)</code>并不会修改原型对象</p>
+<h2 id="提醒"><a href="#提醒" class="headerlink" title="提醒"></a>提醒</h2><p>深合并和深拷贝算法注意<strong>原型污染</strong></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/54b3fc67.html">https://zxffan.github.io/posts/54b3fc67.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/JavaScript/"># JavaScript</a>
+                    
+                        <a href="/tags/Promise/"># Promise</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/posts/aef11e42.html">Webpack构建流程源码解析</a>
+            
+        </section>
+
+
+    </article>
+</div>
+</div>
+      <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
+</html>

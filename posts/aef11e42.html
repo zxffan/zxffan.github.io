@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>Webpack构建流程源码解析 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
+    <div class="wrapper">
+      <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+      <div class="main"><div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Webpack构建流程源码解析</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">四月 28, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Webpack/">Webpack</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>webpack的构建分为3个阶段：</p>
+<ul>
+<li>准备阶段：生成 <code>compiler</code>和<code>compilation</code>对象</li>
+<li>编译阶段：递归生成模块依赖图</li>
+<li>产出阶段：优化modules，生成chunks。最终输出文件</li>
+</ul>
+<p>本文讨论的是<code>webpack@5.34.0</code></p>
+<h2 id="准备阶段"><a href="#准备阶段" class="headerlink" title="准备阶段"></a>准备阶段</h2><h3 id="创建compiler"><a href="#创建compiler" class="headerlink" title="创建compiler"></a>创建compiler</h3><p>对于每一个wepback的构建配置，都会创建一个<code>compiler</code>对象，记录着整个 Webpack 的生命周期</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> webpack <span class="keyword">from</span> <span class="string">&quot;webpack&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> compiler = webpack(options)</span><br><span class="line"><span class="comment">// webpack(options, () =&gt; &#123;&#125;)</span></span><br></pre></td></tr></table></figure>
+
+<p>调用webpack函数会返回<code>compiler</code>对象，其内部大致逻辑如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> webpack = <span class="function">(<span class="params">options, callback</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 1. 创建compiler</span></span><br><span class="line">  <span class="keyword">let</span> compiler;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">Array</span>.isArray(options)) compiler = createMultiCompiler(options, options);</span><br><span class="line">  <span class="keyword">else</span> compiler = createCompiler(options);</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 2.</span></span><br><span class="line">  <span class="comment">// 有callback参数就会自动执行compiler.run</span></span><br><span class="line">  <span class="comment">// options中watch为true就会自动调用compiler.watch</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 3. 返回compiler</span></span><br><span class="line">  <span class="keyword">return</span> compiler</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>示例代码并非是webpack中的源码。只是将源码中的核心逻辑提炼出来的伪代码，这样更方便理解webpack的主流程。下同。</p>
+</blockquote>
+<p><code>createCompiler</code>和<code>createMultiCompiler</code>才是真正创建<code>compiler</code>的逻辑</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> createCompiler = <span class="function"><span class="params">rawOptions</span> =&gt;</span> &#123;</span><br><span class="line">	<span class="comment">// 1. normalize options</span></span><br><span class="line">  <span class="comment">// 就是对传入的options做些初始化，添加默认参数之类的工作</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 2. 他来了，创建compiler对象</span></span><br><span class="line">	<span class="keyword">const</span> compiler = <span class="keyword">new</span> Compiler(options.context);</span><br><span class="line">	compiler.options = options;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 2. 新建NodeEvniromentPlugin，这是wepback启用的第一个plugin</span></span><br><span class="line">  <span class="comment">// 主要作用是 </span></span><br><span class="line">  <span class="comment">// - 创建日志（方便webpack输出构建日志）</span></span><br><span class="line">  <span class="comment">// - 设置compiler的文件系统 inputFileSystem...</span></span><br><span class="line">	<span class="keyword">new</span> NodeEnvironmentPlugin(&#123;</span><br><span class="line">		infrastructureLogging: options.infrastructureLogging</span><br><span class="line">	&#125;).apply(compiler);</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 3. 执行所有plugin</span></span><br><span class="line">  <span class="comment">// - 函数plugin，执行函数</span></span><br><span class="line">  <span class="comment">// - class plugin，执行其apply方法</span></span><br><span class="line">	<span class="keyword">if</span> (<span class="built_in">Array</span>.isArray(options.plugins)) &#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">const</span> plugin <span class="keyword">of</span> options.plugins) &#123;</span><br><span class="line">			<span class="keyword">if</span> (<span class="keyword">typeof</span> plugin === <span class="string">&quot;function&quot;</span>) &#123;</span><br><span class="line">				plugin.call(compiler, compiler);</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				plugin.apply(compiler);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">  </span><br><span class="line">  applyWebpackOptionsDefaults(options);</span><br><span class="line">	compiler.hooks.environment.call(); <span class="comment">// hook</span></span><br><span class="line">	compiler.hooks.afterEnvironment.call(); <span class="comment">// hook</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 5.添加默认内置plugin</span></span><br><span class="line">  <span class="comment">// 根据options的设置来配置响应内置plugin</span></span><br><span class="line">	<span class="keyword">new</span> WebpackOptionsApply().process(options, compiler); </span><br><span class="line">	compiler.hooks.initialize.call();</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> compiler</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> createMultiCompiler = <span class="function">(<span class="params">childOptions, options</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 给每一个option创建一个compiler</span></span><br><span class="line">	<span class="keyword">const</span> compilers = childOptions.map(<span class="function"><span class="params">options</span> =&gt;</span> createCompiler(options));</span><br><span class="line">  <span class="comment">// 创建MultiCompiler对象</span></span><br><span class="line">	<span class="keyword">const</span> compiler = <span class="keyword">new</span> MultiCompiler(compilers, options);</span><br><span class="line">	</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  </span><br><span class="line">	<span class="keyword">return</span> compiler;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这里注意一点：在<code>compiler</code>对象创建后：</p>
+<ol>
+<li>逐一执行<code>options.plugins</code>中所有的plugin。</li>
+<li>根据options的内容，添加webpack内置的plugin。比如<code>EntryOptionPlugin</code>。针对不同环境(node electron browser)会设置不同的plugin。</li>
+</ol>
+<blockquote>
+<p>webpack有大量的内置plugin，这都是在<code>WebpackOptionsApply</code>中的<code>process</code>来设置的。可以说webpack的所有功能(resolve optimization module解析…)都是由相应的plugin完成的。</p>
+</blockquote>
+<p>获得<code>compiler</code>对象后，下一步就时进行构建，这是通过<code>compiler.run</code>方法实现的。</p>
+<p><code>run</code>方法主要做了2件事：</p>
+<ul>
+<li>执行compiler的hook <code>beforeRun</code> <code>run</code> <code>readRecords</code>。在创建compiler对象时会执行所有plugin。如果在这三个hook绑定的了事件，在此时会被执行。（这三个hook时串行执行的，代码是嵌套的）</li>
+<li>执行<code>compiler.compile</code>方法进行构建</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">this</span>.hooks.beforeRun.callAsync(<span class="built_in">this</span>, <span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (err) <span class="keyword">return</span> finalCallback(err);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">this</span>.hooks.run.callAsync(<span class="built_in">this</span>, <span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (err) <span class="keyword">return</span> finalCallback(err);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">this</span>.readRecords(<span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (err) <span class="keyword">return</span> finalCallback(err);</span><br><span class="line"></span><br><span class="line">      <span class="built_in">this</span>.compile(onCompiled);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建Compilation"><a href="#创建Compilation" class="headerlink" title="创建Compilation"></a>创建Compilation</h3><p><code>compilation</code>对象属于<code>compiler</code>。每一次构建，<code>compiler</code>都会创建一个<code>compilation</code>对象</p>
+<p><code>compiler.compile</code>方法会真正地创建<code>compilation</code>对象</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ./lib/Compiler.js</span></span><br><span class="line"><span class="comment">// compile</span></span><br><span class="line"><span class="keyword">const</span> params = <span class="built_in">this</span>.newCompilationParams();</span><br><span class="line"><span class="built_in">this</span>.hooks.beforeCompile.callAsync(params, <span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (err) <span class="keyword">return</span> callback(err);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">this</span>.hooks.compile.call(params);</span><br><span class="line">	</span><br><span class="line">  <span class="comment">// 创建compilation对象</span></span><br><span class="line">  <span class="keyword">const</span> compilation = <span class="built_in">this</span>.newCompilation(params);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="comment">// 执行compiler的各种hook</span></span><br><span class="line">  <span class="comment">// 以及执行compilation的 finish 和 seal方法</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>代码很长，主要流程如下:</p>
+<ol>
+<li><code>compiler.hooks.beforeCompile</code> </li>
+<li>创建<code>compilation</code>对象。这里调用了<code>compiler.newCompilation</code>方法，该方法做了以下几件事<ol>
+<li>创建<code>compilation</code>，会先清理上一次构建的<code>compilation</code>对象</li>
+<li><code>compiler.hooks.thisCompilation</code></li>
+<li><code>compiler.hooks.compilation</code></li>
+</ol>
+</li>
+<li><code>compiler.hooks.make</code> </li>
+<li> <code>compiler.hooks.finishMake</code></li>
+<li><code>compilation.finish</code></li>
+<li><code>compilation.seal</code></li>
+<li><code>compiler.hooks.afterCompile</code></li>
+</ol>
+<p>这些hooks都是串行执行的。<code>afterCompile</code>这个hook的执行表示一次构建已经完成。那么从compilation对象创建完成到<code>afterCompile</code>触发之前，包含了<strong>编译阶段</strong>和<strong>产出阶段</strong></p>
+<h2 id="编译阶段"><a href="#编译阶段" class="headerlink" title="编译阶段"></a>编译阶段</h2><p><code>compiler.hooks.make</code>这个hook被触发执行，就代表了编译开始。</p>
+<p>在<code>compiler</code>创建时(<code>new WebpackOptionsApply().process(options, compiler); </code>)，这里给compiler添加了许多并绑定了许多内置plugin。其中有一个<code>EntryOptionsPlugin</code>，他是用于解析入口(entry)配置。根据entry字段类型再选择不同的plugin</p>
+<ul>
+<li>entry为function：<code>DynamicEntryPlugin</code></li>
+<li>entry不为function：<code>EntryPlugin</code></li>
+</ul>
+<p>编译阶段的开始就是从<code>entry</code>文件开始解析<code>module</code>。</p>
+<p>以<code>EntryPlugin</code>为例，其apply方法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">compiler.hooks.make.tapAsync(<span class="string">&quot;EntryPlugin&quot;</span>, <span class="function">(<span class="params">compilation, callback</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; entry, options, context &#125; = <span class="built_in">this</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> dep = EntryPlugin.createDependency(entry, options);</span><br><span class="line">  compilation.addEntry(context, dep, options, <span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">    callback(err);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>EntryPlugin</code>在<code>compile.make</code>这个hook上注册了一个事件。<code>compiler.hooks.make</code>这个hook被触发执行时，hook上注册的事件全都会被执行。</p>
+<p><code>EntryPlugin</code>会调用<code>compilation.addEntry</code>方法。</p>
+<p>接下看就看<code>compilation</code>的表演：</p>
+<ol>
+<li>addEntry添加入口文件</li>
+<li>将资源文件转成<code>NormalModule</code>对象（简称module对象），一个文件(js css img)都是一个module</li>
+<li>调用<code>module.build</code>方法</li>
+<li>调用<code>runLoaders</code>，找到相应的loader处理该module</li>
+<li>对于js module，会通过<code>acorn</code>转成<code>AST</code>。分析模块依赖关系，如果有依赖模块 调用<code>compilation.addEntry</code>（第1步）</li>
+<li>最终获取所有module</li>
+</ol>
+<blockquote>
+<p>编译阶段是一个递归的过程</p>
+<p>每一个module build完成都会触发<code>compilation.hooks.succeedModule</code>，并传入当前module对象</p>
+</blockquote>
+<h2 id="产出阶段"><a href="#产出阶段" class="headerlink" title="产出阶段"></a>产出阶段</h2><p>调用<code>compilation.seal</code>方法，封存文件就是处理文件生成chunk。</p>
+<h3 id="Seal"><a href="#Seal" class="headerlink" title="Seal"></a>Seal</h3><p>首先触发<code>compilation.hooks.optimizeDependencies</code>这个hook上的所有事件。对module做一些优化操作（比如<code>tree-shaking</code>）</p>
+<p>根据入口生成chunk，有几个入口就会有几个chunk。</p>
+<p>然后就是递归分析chunk，如果有动态导入(<code>import()</code>)就会单独拆分出chunk</p>
+<blockquote>
+<p>这个过程还有一堆hooks，这些可以在这些hooks上做些优化操作。比如<code>optimizeModules</code>和<code>optimizeChunks</code></p>
+</blockquote>
+<p>生成chunck的<code>hash</code></p>
+<p>生成chunk的<code>sourceMap</code></p>
+<h3 id="Assets"><a href="#Assets" class="headerlink" title="Assets"></a>Assets</h3><p><code>createChunkAssets</code>生成assets ，会将生成的Assets存放到<code>compilation.assets</code>数组中</p>
+<p><code>emitAsset</code>将文件输出</p>
+<h2 id="Watch模式"><a href="#Watch模式" class="headerlink" title="Watch模式"></a>Watch模式</h2><p>当调用<code>compiler.watch</code>，会启用watch模式。当文件发生更改是，会自动重新构建.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="function"><span class="title">watch</span>(<span class="params">watchOptions, handler</span>)</span> &#123;</span><br><span class="line">		<span class="comment">// ...</span></span><br><span class="line">		<span class="built_in">this</span>.watching = <span class="keyword">new</span> Watching(<span class="built_in">this</span>, watchOptions, handler);</span><br><span class="line">    </span><br><span class="line">		<span class="keyword">return</span> <span class="built_in">this</span>.watching;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>watch方法创建了一个<code>Watching</code>实例。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Watch</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">contstructor</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="built_in">this</span>._invalidate()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="title">_invalidate</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="comment">// 防止重复构建</span></span><br><span class="line">    <span class="built_in">this</span>._go()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="title">_go</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="comment">// 构建逻辑</span></span><br><span class="line">    compiler.compile() <span class="comment">// 调用compiler的compile方法进行构建</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="title">_done</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="comment">// 构建完成了</span></span><br><span class="line">    <span class="comment">// 获取构建完后的依赖</span></span><br><span class="line">    <span class="built_in">this</span>.watch() <span class="comment">// 监听这些依赖</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="title">watch</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="comment">// 监听文件变化</span></span><br><span class="line">    <span class="built_in">this</span>.compiler.watchFileSystem.watch()</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 文件发生变化 监听的回调会被调用</span></span><br><span class="line">    <span class="built_in">this</span>._invalidate() <span class="comment">// 进行下一轮构建</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>监听文件是通过<code>this.compiler.watchFileSystem.watch()</code>方法来实现的。这个<code>watchFileSystem</code>是在创建<code>compiler</code>对象时，初始化的。</p>
+<p>创建<code>compiler</code>时，执行了<code>NodeEvniromentPlugin</code>。这个plugin会设置文件系统。将<code>watchFleSystem</code>设置成<code>NodeWatchFileSystem</code>，而其内部又会创建一个<code>watchpack</code>对象来监听文件变化。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NodeEnvironmentPlugin</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="title">apply</span>(<span class="params">compiler</span>)</span> &#123;</span><br><span class="line">		<span class="comment">//...</span></span><br><span class="line">		compiler.inputFileSystem = <span class="keyword">new</span> CachedInputFileSystem(fs, <span class="number">60000</span>);</span><br><span class="line">		<span class="comment">// ...</span></span><br><span class="line">		compiler.watchFileSystem = <span class="keyword">new</span> NodeWatchFileSystem(</span><br><span class="line">			compiler.inputFileSystem</span><br><span class="line">		);</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>值得一提的是，当文件短时间变化多次，会触发多次构建吗？</p>
+<p>其实是不会的，<code>watchpack</code>添加了防抖机制。只会触发最后一次。</p>
+</blockquote>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>一张图总结流程</p>
+<p><img src="../../images/framework/webpack%E6%9E%84%E5%BB%BA%E6%B5%81%E7%A8%8B.svg" alt="webpack构建流程"></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/aef11e42.html">https://zxffan.github.io/posts/aef11e42.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/webpack/"># webpack</a>
+                    
+                        <a href="/tags/%E6%9E%B6%E6%9E%84/"># 架构</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/54b3fc67.html">JavaScript原型污染</a>
+            
+            
+            <a class="next" rel="next" href="/posts/bdeefbce.html">Vue2从创建到页面渲染</a>
+            
+        </section>
+
+
+    </article>
+</div>
+</div>
+      <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
+</html>

@@ -16,7 +16,7 @@
     <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
 
 
-<title>算法——数组去重 | zxfan</title>
+<title>数组去重 | zxfan</title>
 
 
 
@@ -402,7 +402,7 @@
     
     <article class="post-wrap">
         <header class="post-header">
-            <h1 class="post-title">算法——数组去重</h1>
+            <h1 class="post-title">数组去重</h1>
             
                 <div class="post-meta">
                     
@@ -473,7 +473,7 @@
 
 <h3 id="无序数组"><a href="#无序数组" class="headerlink" title="无序数组"></a>无序数组</h3><p>无序数组去重，</p>
 <ol>
-<li>第一种思想：先排序，再用上面的方法（不可取）</li>
+<li>第一种思想：先排序，再用上面的方法</li>
 <li>遍历+删除</li>
 </ol>
 <figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">unique</span>(<span class="params">nums: <span class="built_in">number</span>[]</span>): <span class="title">void</span> </span>&#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; nums.length; i++) &#123;</span><br><span class="line">    <span class="keyword">const</span> target = nums[i];</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (nums.indexOf(target) !== i) &#123;</span><br><span class="line">      <span class="comment">// 说明原数组 有不止一个当前元素</span></span><br><span class="line">      <span class="comment">// 那就 删除当前元素（多余的）</span></span><br><span class="line">      nums.splice(i, <span class="number">1</span>);</span><br><span class="line">      i--; <span class="comment">// 调整索引</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>

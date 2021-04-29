@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>Webpack之SplitChunks | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
+    <div class="wrapper">
+      <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+      <div class="main"><div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Webpack之SplitChunks</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">四月 26, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Webpack/">Webpack</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="SplitChunks"><a href="#SplitChunks" class="headerlink" title="SplitChunks"></a>SplitChunks</h2><p><code>splitChunks</code>可以指定<code>webpack</code>打包的拆分规则。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  optimization: &#123;</span><br><span class="line">    splitChunks: &#123;</span><br><span class="line">      chunks: <span class="string">&quot;async&quot;</span>, <span class="comment">// 三选一： &quot;initial&quot; | &quot;all&quot; | &quot;async&quot; (默认)</span></span><br><span class="line">      minSize: <span class="number">30000</span>, <span class="comment">// 最小尺寸，30K，development 下是10k，越大那么单个文件越大，chunk 数就会变少（针对于提取公共 chunk的时候，不管再大也不会把动态加载的模块合并到初始化模块中）当这个值很大的时候就不会做公共部分的抽取了</span></span><br><span class="line">      maxSize: <span class="number">0</span>, <span class="comment">// 文件的最大尺寸，0为不限制，优先级：maxInitialRequest/maxAsyncRequests &lt; maxSize &lt; minSize</span></span><br><span class="line">      minChunks: <span class="number">1</span>, <span class="comment">// 默认1，被提取的一个模块至少需要在几个 chunk 中被引用，这个值越大，抽取出来的文件就越小</span></span><br><span class="line">      maxAsyncRequests: <span class="number">5</span>, <span class="comment">// 在做一次按需加载的时候最多有多少个异步请求，为 1 的时候就不会抽取公共 chunk 了</span></span><br><span class="line">      maxInitialRequests: <span class="number">3</span>, <span class="comment">// 针对一个 entry 做初始化模块分隔的时候的最大文件数，优先级高于 cacheGroup，所以为 1 的时候就不会抽取 initial common 了</span></span><br><span class="line">      automaticNameDelimiter: <span class="string">&quot;~&quot;</span>, <span class="comment">// 打包文件名分隔符</span></span><br><span class="line">      name: <span class="literal">true</span>, <span class="comment">// 拆分出来文件的名字，默认为 true，表示自动生成文件名，如果设置为固定的字符串那么所有的 chunk 都会被合并成一个</span></span><br><span class="line">      cacheGroups: &#123;</span><br><span class="line">        vendors: &#123;</span><br><span class="line">          test: <span class="regexp">/[\\/]node_modules[\\/]/</span>, <span class="comment">// 正则规则，如果符合就提取 chunk</span></span><br><span class="line">          priority: -<span class="number">10</span>, <span class="comment">// 缓存组优先级，当一个模块可能属于多个 chunkGroup，这里是优先级</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="keyword">default</span>: &#123;</span><br><span class="line">          minChunks: <span class="number">2</span>,</span><br><span class="line">          priority: -<span class="number">20</span>, <span class="comment">// 优先级</span></span><br><span class="line">          reuseExistingChunk: <span class="literal">true</span>, <span class="comment">// 如果该chunk包含的modules都已经另一个被分割的chunk中存在，那么直接引用已存在的chunk，不会再重新产生一个</span></span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>使用动态导入<code>import()</code>或者<code>requre.ensure()</code>，就会根据</p>
+<h2 id="SplitChunks参数"><a href="#SplitChunks参数" class="headerlink" title="SplitChunks参数"></a>SplitChunks参数</h2><h3 id="chunks"><a href="#chunks" class="headerlink" title="chunks"></a>chunks</h3><p>有三个值——<code>async</code> <code>all</code> <code>initial</code></p>
+<h4 id="async-默认"><a href="#async-默认" class="headerlink" title="async(默认)"></a>async(默认)</h4><p>只会将异步模块（<code>import()</code>导入的模块）提出出来</p>
+<h4 id="initial"><a href="#initial" class="headerlink" title="initial"></a>initial</h4><p>提取同步模块和异步模块。如果一个模块在moduleA中是同步导入，在moduleB中是异步导入。那么由于导入方式不同，这个模块会被抽离出不同的文件。</p>
+<h4 id="all"><a href="#all" class="headerlink" title="all"></a>all</h4><p>提取同步模块和异步模块，无论是同步import还是异步import。都会抽离到一个文件中。<code>all</code>会最大程度复用文件。</p>
+<h3 id="maxInitialRequests和maxAsyncRequests"><a href="#maxInitialRequests和maxAsyncRequests" class="headerlink" title="maxInitialRequests和maxAsyncRequests"></a>maxInitialRequests和maxAsyncRequests</h3><p>浏览器对相同域名的并法请求是有限制的。比如chrome 限制6个相同域名的请求。如果同一时间发送10个请求。则另外4个就会被阻塞</p>
+<p>所以，<code>splitChunks</code>把文件拆得太碎，反而会影响加载时间。</p>
+<p><code>maxInitialRequests</code>设置为<code>3</code>，表示浏览器初始最多发送3个请求。它会将入口文件拆成&lt;3份。</p>
+<p><code>maxAsyncRequests</code>是用来限制异步模块并行最大请求数的。</p>
+<blockquote>
+<p>前者是限定入口的文件的拆分，后者是限定异步模块的拆分</p>
+</blockquote>
+<h3 id="minSize和maxSize"><a href="#minSize和maxSize" class="headerlink" title="minSize和maxSize"></a>minSize和maxSize</h3><p><code>minSize</code>：满足拆分的最小体积（单位字节）。大于这个大小并满足拆分规则就会被拆分</p>
+<p><code>maxSize</code>：默认为0表示不作限制。如果非0。待拆分模块大小大于<code>maxSize</code>时就会拆分</p>
+<blockquote>
+<p>规则优先级：maxInitialRequest/maxAsyncRequests &lt; maxSize &lt; minSize</p>
+</blockquote>
+<h3 id="cacheGroups"><a href="#cacheGroups" class="headerlink" title="cacheGroups"></a>cacheGroups</h3><p>这是<code>splitChunks</code>最重要的部分。它定义了拆分规则。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cacheGroups: &#123;</span><br><span class="line">  vendors: &#123;</span><br><span class="line">    test: <span class="regexp">/[\\/]node_modules[\\/]/</span>, <span class="comment">// 正则规则，如果符合就提取 chunk</span></span><br><span class="line">    priority: -<span class="number">10</span>, <span class="comment">// 缓存组优先级，当一个模块可能属于多个 chunkGroup，这里是优先级</span></span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>test</code>表示匹配规则，可以是一个正则。<code>/[\\/]node_modules[\\/]</code>表示匹配<code>/node_modules/</code>或着<code>\node_modules\</code></p>
+<p><code>priority</code>：缓存组优先级，当一个模块可能属于多个 chunkGroup时，取优先级高的</p>
+<p><code>reuseExistingChunk</code>: true表示复用其他chunk内已拥有的模块 当chunks引用了已经存在的被抽离的chunks时不会新创建一个chunk而是复用chunk。</p>
+<p>其它属性：<code>chunks</code> <code>maxInitialRequests</code> <code>maxAsyncRequests</code> <code>minSize</code>…….</p>
+<blockquote>
+<p>cacheGroups下找不到<code>chunks</code>等属性，就会去splitChunks中的配置。</p>
+</blockquote>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/110bf707.html">https://zxffan.github.io/posts/110bf707.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/javascript/"># javascript</a>
+                    
+                        <a href="/tags/webpack/"># webpack</a>
+                    
+                        <a href="/tags/%E6%9E%B6%E6%9E%84/"># 架构</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/bdeefbce.html">Vue2从创建到页面渲染</a>
+            
+            
+            <a class="next" rel="next" href="/posts/1b8392cc.html">知识串联：JavaScript执行机制</a>
+            
+        </section>
+
+
+    </article>
+</div>
+</div>
+      <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
+</html>

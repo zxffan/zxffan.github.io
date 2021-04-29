@@ -16,7 +16,7 @@
     <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
 
 
-<title>Tag: sc-vue3 | zxfan</title>
+<title>Vue2从创建到页面渲染 | zxfan</title>
 
 
 
@@ -333,65 +333,201 @@
         }
     }
 </script>
-      <div class="main">
-
+      <div class="main"><div class="container">
     
-<div class="container">
-    <div class="post-wrap tags">
-        <h2 class="post-title">-&nbsp;Tag&nbsp;·&nbsp;sc-vue3-</h2>
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
     </div>
-    <div class="post-wrap archive">
-    
-    
-        
-
-        
-            <h3>2021</h3>
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/d2a05aba.html">Vue3任务调度-vue3源码</a>
-            <span class="archive-item-date">四月 4, 2021</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/f9d1a0d8.html">VNode生命周期图</a>
-            <span class="archive-item-date">三月 30, 2021</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/dafb6b4a.html">依赖注入-vu3源码</a>
-            <span class="archive-item-date">三月 8, 2021</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/c445157e.html">Vue指令-vue3源码</a>
-            <span class="archive-item-date">三月 7, 2021</span>
-        </article>
-    
-        
-
-        
-
-        <article class="archive-item">
-            <a class="archive-item-link" href="/posts/9c1e6144.html">Emit分析-vue3源码</a>
-            <span class="archive-item-date">二月 20, 2021</span>
-        </article>
-    
-    
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
 </div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Vue2从创建到页面渲染</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">四月 27, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Vue/">Vue</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="Vue2生命周期图"><a href="#Vue2生命周期图" class="headerlink" title="Vue2生命周期图"></a>Vue2生命周期图</h2><p><img src="../../images/Vue/vue2%E4%BB%8E%E5%88%9B%E5%BB%BA%E5%88%B0%E6%B8%B2%E6%9F%93.svg" alt="生命周期"></p>
+<h2 id="组件创建到页面渲染"><a href="#组件创建到页面渲染" class="headerlink" title="组件创建到页面渲染"></a>组件创建到页面渲染</h2><h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p><code>new Vue()</code>的执行，会创建一个组件实例（根组件）<code>vm</code>，然后进行各种初始化工作</p>
+<ol>
+<li>合并 options，也就是初始化组件的options选项</li>
+<li>初始化vm（组件实例）上的各个属性</li>
+<li>初始化绑定在当前组件上的listener(v-on)</li>
+<li>初始化render函数，在vm上绑定createElement方法</li>
+<li>**<code>beforeCreated</code>**钩子调用</li>
+<li>将inject定义为响应式</li>
+<li>.初始化, 定义响应式数据 <code>props</code>  <code>methods</code> <code>data</code> <code> computed</code> <code>watch</code></li>
+<li>初始化vm._provide属性</li>
+<li>**<code>creted</code>**钩子调用</li>
+</ol>
+<h3 id="渲染"><a href="#渲染" class="headerlink" title="渲染"></a>渲染</h3><p>如果<code>new Vue</code>传入了<code>el</code>属性，就会自动调用<code>vm.$mount</code>方法，渲染实例</p>
+<ol>
+<li>调用<code>mountComponent</code></li>
+<li>新建Watcher，传入<code>updateComponent</code>逻辑</li>
+<li>Watcher调用<code>updateComponent</code>逻辑</li>
+<li>进入<code>patch</code>逻辑</li>
+</ol>
+<h2 id="响应式"><a href="#响应式" class="headerlink" title="响应式"></a>响应式</h2><p>vue2的响应式涉及到三种角色——<code>reactiveObj(响应式对象)</code> <code>Watcher</code>  <code>Dep</code></p>
+<ul>
+<li>响应式对象通过<code>Object.defineProperty</code>拦截getter和setter</li>
+<li>Watcher用于触发组件更新</li>
+<li>每个响应式对象都有一个dep对象，它有一个subs的Watcher数组，用于记录依赖该响应式对象的所有watcher</li>
+</ul>
+<p>当组件开始渲染时：</p>
+<ul>
+<li>会创建一个<code>Watcher</code>对象。将组件更新的逻辑（<code>updateComponent</code>）记录到Watcher</li>
+<li>将Dep.target设置为 创建的 <code>Watcher</code>对象</li>
+</ul>
+<p>随即执行render方法，会触发响应式对象的getter。将<code>Dep.target</code>添加到<code>dep.subs</code>中，即依赖收集</p>
+<p>在修改响应式对象，会触发setter。</p>
+<ul>
+<li>执行<code>dep.notify</code>，触发<code>dpe.subs</code>中所有<code>watcher</code>的<code>update</code>方法</li>
+<li><code>watcher.update()</code>会触发<code>updateComponent</code>，从而使得组件更新</li>
+</ul>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/bdeefbce.html">https://zxffan.github.io/posts/bdeefbce.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Vue/"># Vue</a>
+                    
+                        <a href="/tags/sc-vue/"># sc-vue</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/aef11e42.html">Webpack构建流程源码解析</a>
+            
+            
+            <a class="next" rel="next" href="/posts/110bf707.html">Webpack之SplitChunks</a>
+            
+        </section>
+
+
+    </article>
 </div>
 </div>
       <footer id="footer" class="footer">
