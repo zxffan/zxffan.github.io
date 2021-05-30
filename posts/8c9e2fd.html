@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="zxfan">
+
+
+    <meta name="subtitle" content="zxfan's Blog">
+
+
+
+    <meta name="keywords" content="zxfan,blog,javascript,nodejs,electron">
+
+
+<title>网络知识梳理 | zxfan</title>
+
+
+
+    <link rel="icon" href="/image/avatar.jpeg">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/zooming.min.js"></script>
+    
+    <script src="/js/jquery.min.js"></script>
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+
+
+
+    <script>
+  function searchToggle() {
+    const width = $(document.body).width();
+    if (width > 479) {
+      return;
+    }
+    const search = $(".search");
+    const searchForm = $(".form-search");
+
+    if (!search.hasClass("mobile-search")) {
+      search.addClass("mobile-search");
+    } else {
+      search.removeClass("mobile-search");
+    }
+  }
+
+  function search(searchInputEl, formEl, flag) {
+    const path = "/" + "search.json"; // 可以在public 下查看这个search.json
+    $(formEl).submit(function (e) {
+      e.preventDefault();
+      let target = null;
+      if (searchInputEl == null) {
+        const screenWidth = $(document.body).width();
+        target =
+          screenWidth > 479 ? $("#pc-search-input") : $("#mobile-search-input");
+        console.log(target);
+      } else {
+        target = $(searchInputEl);
+      }
+
+      if (!flag && target.val() === "") {
+        return;
+      }
+
+      $("#u-search").fadeIn(500, function () {
+        $("body > .wrapper").addClass("modal-active");
+
+        $.ajax({
+          url: path,
+          dataType: "json",
+          beforeSend: function (xhr) {
+            $input = target.val();
+            $(".form-input").val($input);
+            const loadingBar = $(".search-loading-bar");
+            loadingBar.css({
+              width: "100%",
+              display: "block",
+            });
+          },
+          success: function (datas) {
+            // console.log(datas);
+            const $resultPanel = $(".modal-body")[0];
+            let str = `<ul class="modal-results">`;
+            var keywords = $(".form-input")
+              .val()
+              .trim()
+              .toLowerCase()
+              .split(/[\s\-]+/);
+            $resultPanel.innerHTML = "";
+            let hasResult = false;
+            let text = `<div class="no-result">找不到与关键词相关的内容....</div>`;
+
+            if ($(".form-input").val().trim().length <= 0) {
+              // 没有结果
+              $resultPanel.innerHTML = text;
+              return;
+            }
+            datas.forEach(function (data) {
+              var isMatch = true;
+              if (!data.title || data.title.trim() === "") {
+                data.title = "Untitled";
+              }
+              var data_title = data.title.trim().toLowerCase();
+              var data_content = data.content
+                .trim()
+                .replace(/<[^>]+>/g, "")
+                .toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== "") {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    hasResult = true;
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // show search results
+              if (isMatch) {
+                str += `<li class='result-item'><a href='${data_url}' class='result-item-detail'> <span class="title">${data_title}</span>`;
+                var content = data.content.trim().replace(/<[^>]+>/g, "");
+                if (first_occur >= 0) {
+                  // cut out 200 characters
+                  var start = first_occur - 40;
+                  var end = first_occur + 160;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 200;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substring(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(
+                      regS,
+                      `<em class="search-keyword">${keyword}</em>`
+                    );
+                  });
+
+                  str += `<span class="content"> ${match_content} ...</span></a>`;
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (hasResult) {
+              $resultPanel.innerHTML = str;
+            } else {
+              $resultPanel.innerHTML = text;
+            }
+          },
+          complete: function () {
+            setTimeout(() => {
+              const loadingBar = $(".search-loading-bar");
+              loadingBar.css({
+                width: "0%",
+                display: "none",
+              });
+            }, 300);
+          },
+        });
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    $(".modal-close").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+
+    $(".modal-overlay").click(function () {
+      $("#u-search").fadeOut();
+      $("body > .wrapper").removeClass("modal-active");
+    });
+    search(null, ".form-search", false);
+    search("#u-search-modal-form .form-input", ".u-search-modal-form", true);
+  });
+</script>
+
+
+  <meta name="generator" content="Hexo 5.4.0"></head>
+  <body>
+    <div class="wrapper">
+      <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">ZXFAN BLOG</a></div>
+            <!-- 这里表示的是pc端搜索框 -->
+            
+            
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="pc-search-input"
+    />
+  </form>
+</div>
+
+
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">ZXFAN BLOG</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="navbar-mobile-right">
+                    
+                    
+<div class="search">
+  <div class="search-btn" onClick="searchToggle()">
+    <img src="/image/search.png" class="search-btn-img" />
+  </div>
+  <form class="form-search">
+    <input
+      class="input"
+      placeholder="搜索文章"
+      autocomplete="off"
+      id="mobile-search-input"
+    />
+  </form>
+</div>
+
+
+                    <div class="menu-toggle" onclick="mobileBtn()">&#9776; 目录</div>
+                </div>
+                <!-- <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div> -->
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">文章</a>
+                
+                    <a class="menu-item" href="/categories">分类</a>
+                
+                    <a class="menu-item" href="/tags">标签</a>
+                
+                    <a class="menu-item" href="/source-code">源码</a>
+                
+                    <a class="menu-item" href="/about">我</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+      <div class="main"><div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">网络知识梳理</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">zxfan</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">四月 30, 2021&nbsp;&nbsp;
+                        <!-- 0:00:00 -->
+                        </a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/NetWork/">NetWork</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="HTTP演进"><a href="#HTTP演进" class="headerlink" title="HTTP演进"></a>HTTP演进</h2><h3 id="HTTP-0-9"><a href="#HTTP-0-9" class="headerlink" title="HTTP/0.9"></a>HTTP/0.9</h3><p>第一版HTTP协议，只能传输文本，请求报文内容只有 1 行。</p>
+<ul>
+<li>客户端：请求报文：<code>GET/index.html</code></li>
+<li>服务端：返回一个以 ASCII 字符流编码的 HTML 文档。</li>
+</ul>
+<h3 id="HTTP-1-0"><a href="#HTTP-1-0" class="headerlink" title="HTTP/1.0"></a>HTTP/1.0</h3><p>HTTP 可以用来传输脚本、样式、图片、音频和视频等不同类型的文件</p>
+<p>增加了头部的设定，<code>Accept</code>和<code>Content-Type</code></p>
+<h3 id="HTTP-1-1"><a href="#HTTP-1-1" class="headerlink" title="HTTP/1.1"></a>HTTP/1.1</h3><p>解决了<code>HTTP/1.0</code>的连接问题，支持TCP连接复用</p>
+<ul>
+<li><code>HTTP/1.0</code>：每次请求都会建立连接、传输数据和断开连接三个阶段</li>
+<li><code>HTTP/1.1</code>：第二次请求会复用第一次请求的TCP连接</li>
+</ul>
+<p>长连接可以在请求头中加上<code>Connection: keep-alive</code>。<code>HTTP/1.1</code>默认开启<code>keep-alive</code>，不加这个请求头也可以使用长连接的。</p>
+<h3 id="HTTP-2"><a href="#HTTP-2" class="headerlink" title="HTTP/2"></a>HTTP/2</h3><p><code>HTTP/2</code>增强了并发能力</p>
+<ul>
+<li><strong>二进制传输</strong>：<code>http/1.1</code>传输的是文本，<code>http/2</code>传输的是二进制流</li>
+<li><strong>多路复用</strong>：<code>http/2</code>有两个概念——<strong>帧</strong>和<strong>流</strong>。<code>http/2</code>将数据报文分成一个个二进制<strong>帧（Frame）</strong>，在一个TCP连接中，不同的帧组合在一起发送（<strong>二进制分帧</strong>）形成<strong>流（Stream）</strong>。在接收方根据帧首部信息在组合起来。<code>HTTP/1.1</code>只能一个个请求报文排队发送（容易发生<strong>队头阻塞</strong>）。</li>
+<li><strong>header压缩</strong>：http请求有这繁多冗长的首部，<code>http/2</code>会对首部进行压缩</li>
+<li><strong>服务端推送</strong>：能够主动给客户端推送资源<ul>
+<li><code>http/1.1</code>加载网页的顺序：请求html，解析html，再请求js、css等文件</li>
+<li><code>http/2</code>：当服务端收到html请求时，服务端就主动吧html、css、js以及图片等资源发送给客户端</li>
+</ul>
+</li>
+</ul>
+<h3 id="HTTP-3"><a href="#HTTP-3" class="headerlink" title="HTTP/3"></a>HTTP/3</h3><p><code>HTTP/1.x</code>、<code>HTTPS</code>以及<code>HTTP/2.0</code>都离不开底层的<code>TCP</code>协议。</p>
+<p><code>HTTP/2.0</code>采用多路复用，多个数据包使用一个<code>TCP</code>连接。<code>TCP</code>是可靠连接，但发生丢包时，会进行重传。所以网络状态差的情况下，某些数据包频繁重传，从而导致拥塞，后面的HTTP包都穿不出去。这叫做<strong>头部阻塞（Head of line Blocking）</strong></p>
+<p><code>HTTP/3.0</code>就开始考虑放弃<code>TCP</code>转向<code>UDP</code>协议。起初<code>Google</code>搞出来个<code>QUIC</code>协议，后来<code>IETF</code>标准化了<code>QUIC</code>协议形成<code>HTTP/3</code>。其底层采用<code>UDP</code>，基于<code>UDP</code>实现做了众多增强：</p>
+<ul>
+<li>0RTT：<code>TPC</code>建立连接每次都需要三次握手，就存在数据包的三次往返即<strong>3RTT</strong>。而<code>QUIC</code>首次建立连接只需要<code>1RTT</code>。其后的连接可以直接复用，只需要<strong>0RTT</strong></li>
+<li>连接迁移：当<code>源IP</code>、<code>源端口</code>、<code>目的IP</code>、<code>目的端口</code>其中一个发生变化就需要重新建立TCP连接。只要<strong>Connection ID</strong>没有变化。<code>HTTP/3</code>可以继续复用连接</li>
+<li>头部阻塞：由于使用<code>UDP</code>，发生丢包时，也不会立即重传，阻塞连接。</li>
+<li>拥塞控制</li>
+<li>前向纠错</li>
+<li>更多特性 请参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/143464334">文章</a></li>
+</ul>
+<p>chrome只支持 <code>Google QUIC</code>。对<code>IETF QUIC</code>的支持处于<code>WIP</code>状态</p>
+<h2 id="HTTPS"><a href="#HTTPS" class="headerlink" title="HTTPS"></a>HTTPS</h2><p>HTTP(超文本传输协议)，有着一个致命的缺陷，那就是内容是<strong>明文传输</strong>的，没有经过任何加密，而这些明文数据会经过<strong>WiFi、路由器、运营商、机房</strong>等多个物理设备节点，如果在这中间任意一个节点被监听，传输的内容就会完全暴露，这一攻击手法叫做MITM（Man In The Middle）<strong>中间人攻击</strong>。</p>
+<p>HTTPS = HTTP + TLS/SSL。HTTPS就是在HTTP（应用层）与TCP（传输层）之间加上了一层<code>TLS/SSL</code>协议</p>
+<h3 id="对称加密和非对称加密"><a href="#对称加密和非对称加密" class="headerlink" title="对称加密和非对称加密"></a>对称加密和非对称加密</h3><p>区别：</p>
+<ul>
+<li>加解密方式不同：<ul>
+<li>对称加密使用同一个密钥加解密</li>
+<li>非对称加密使用不同的密钥加解密</li>
+</ul>
+</li>
+<li>性能：对称加密比非对称加密快</li>
+</ul>
+<h3 id="CA-Certification-Authority"><a href="#CA-Certification-Authority" class="headerlink" title="CA(Certification Authority)"></a>CA(Certification Authority)</h3><p>CA是为了保证密钥的正确性。具体来说就是把密钥放入一个证书中，该证书包含服务端的信息，比如颁发者、域名、有效期，为了保证证书是可信的，需要由一个可信的第三方来对证书进行签名。这个第三方一般是证书的颁发机构，也称 CA（Certification Authority，认证中心）。</p>
+<h3 id="HTTPS工作流程"><a href="#HTTPS工作流程" class="headerlink" title="HTTPS工作流程"></a>HTTPS工作流程</h3><p><img src="../../images/network/HTTP-process.webp" alt="https"></p>
+<ol>
+<li>客户端发送HTTPS请求（默认端口443）</li>
+<li>服务端有一套<code>CA数字证书</code>，证书含有一个<code>公钥public</code>。服务端接收到请求，会将这个证书发送给客户端。服务端还有一个<code>私钥private</code>，私钥是一直保存再服务端不公开的。</li>
+<li>客户端收到证书，校验合法性，主要包括是否在有效期内、证书的域名与请求的域名是否匹配，上一级证书是否有效（递归判断，直到判断到系统内置或浏览器配置好的根证书），如果不通过，则显示HTTPS警告信息，如果通过则继续。</li>
+<li>客户端先生成一段<code>随机key</code>，再利用证书中的<code>公钥public</code>加密这段<code>随机key</code>，并将这个<code>随机key密文</code>发送给服务端。</li>
+<li>服务端收到这个<code>随机key密文</code>文后，通过<code>私钥private</code>来解密，获取客户端真正的<code>随机key</code></li>
+<li>服务端使用<code>随机key</code>来加密需要传输的HTTP数据，并发送给客户端</li>
+<li>客户端再用<code>随机key</code>来解密服务端传输过来的密文，获取真正的数据</li>
+<li>后续HTTPS请求使用之前交换好的<code>随机Key</code>进行对称加解密。</li>
+</ol>
+<blockquote>
+<p> 由于随机key明文没有再网络上传输，所以”中间人”并不知道用于加密和解密的随机key，因此是安全的</p>
+</blockquote>
+<h2 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h2><p><code>SYN</code>报文：请求连接</p>
+<p><code>ACK</code>报文：应答</p>
+<p><code>FIN</code>报文：断开连接</p>
+<h4 id="三次握手"><a href="#三次握手" class="headerlink" title="三次握手"></a>三次握手</h4><p>三次握手就是建立TCP连接的过程，流程如下图：</p>
+<p><img src="../../images/network/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.png" alt="三次握手"></p>
+<p>一共分三步：</p>
+<ol>
+<li>客户端发送SYN消息给服务端（告知服务端要建立连接）</li>
+<li>服务端同时发送两个消息（SYN和ACK）给客户端<ul>
+<li>ACK表示收到了客户端的SYN</li>
+<li>SYN表示服务端也要连接客户端</li>
+</ul>
+</li>
+<li>客户端发送ACK给服务端（表示接受服务端的SYN）</li>
+</ol>
+<blockquote>
+<p> <strong>为什么要三次握手？</strong></p>
+<p>TCP是可靠传输，三次握手目的是确认双方的接收和发送能力。经过三次握手，服务端和客户端都确认了双方的接收和发送能力。</p>
+</blockquote>
+<h4 id="四次挥手"><a href="#四次挥手" class="headerlink" title="四次挥手"></a>四次挥手</h4><p>四次挥手是TCP断开连接的过程，流程如下图</p>
+<p><img src="../../images/network/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B.png" alt="四次挥手.png"></p>
+<p>一共分为四步：（客户端和服务端都可以断开请求，以服务端为例）</p>
+<ol>
+<li>服务端发送FIN请求，表示服务端要断开连接</li>
+<li>客户端发送ACK请求，表示收到了服务端的请求</li>
+<li>客户单发送FIN请求，表示客户端也要断开连接</li>
+<li>服务端发送ACK请求，表示收到了客户端的请求</li>
+</ol>
+<blockquote>
+<p>为什么2，3步骤不能一起发送</p>
+<p>ACK只是对FIN的应答，断开连接要处理的问题比较多，比如说服务端/客户端可能还有发送出去的消息没有得到 ACK；也有可能服务端自己有资源要释放。</p>
+</blockquote>
+<h2 id="webscoket"><a href="#webscoket" class="headerlink" title="webscoket"></a>webscoket</h2><p><code>websocket</code>的建立也是通过<code>http</code>实现的</p>
+<p>首先，客户端先发送一个HTTP请求，请求头携带以下信息</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">ws://websocket.example.com/</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>websocket.example.com</span><br><span class="line"><span class="attribute">Upgrade</span><span class="punctuation">: </span>websocket</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>Upgrade</span><br><span class="line"><span class="attribute">Origin</span><span class="punctuation">: </span>http://example.com</span><br><span class="line">Sec-WebSocket-Key:pAloKxsGSHtpIHrJdWLvzQ==</span><br><span class="line">Sec-WebSocket-Version:13</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>Connection: Upgrade</code>告知服务端，浏览器想要升级协议</li>
+<li><code>Upgrade: websocket</code>：升级到websocket协议</li>
+<li><code>Sec-WebSocket-Key</code>浏览器的随机key，用于娇艳</li>
+<li><code>Sec-WebSocket-Version</code>：websocket版本</li>
+</ul>
+<p>服务端收到请求，就开始升级协议，返回101。服务端收到。响应大概是这样的</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">HTTP/1.1</span> <span class="number">101</span> Switching Protocols</span><br><span class="line"><span class="attribute">Upgrade</span><span class="punctuation">: </span>websocket</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>Upgrade</span><br><span class="line"><span class="attribute">Sec-WebSocket-Accept</span><span class="punctuation">: </span>nRu4KAPUPjjWYrnzxDVeqOxCvlM=</span><br></pre></td></tr></table></figure>
+
+<p><code>Sec-WebSocket-Accept</code>是根据响应头中的key进行加密而来的</p>
+<p>客户端收到这个响应后，会校验这个<code>accept</code>。就是以同样的方式加密key，看key和accept是否相同。</p>
+<p>到这里，websocket的连接就建立完成了。随后的请求都是以websocket协议发送。</p>
+<h2 id="网络分层结构"><a href="#网络分层结构" class="headerlink" title="网络分层结构"></a>网络分层结构</h2><h3 id="TCP-IP-四层模型"><a href="#TCP-IP-四层模型" class="headerlink" title="TCP/IP 四层模型"></a>TCP/IP 四层模型</h3><p><code>TCP/IP</code>是互联网相关的各类协议族的总称<br><code>TCP/IP</code>具有分层结构，分为：应用层、传输层、网络层和数据链路层</p>
+<h4 id="应用层"><a href="#应用层" class="headerlink" title="应用层"></a>应用层</h4><p>应用层决定了向用户提供应用服务时通信的活动。<br>相关协议：<code>FTP</code>、<code>DNS</code>以及<code>HTTP</code></p>
+<h4 id="传输层"><a href="#传输层" class="headerlink" title="传输层"></a>传输层</h4><p>传输层提供处于网络连接中的两台计算机之间的数据传输<br>相关协议：<code>TCP</code>和<code>UDP</code></p>
+<h4 id="网络层"><a href="#网络层" class="headerlink" title="网络层"></a>网络层</h4><p>网络层规定了数据包通过怎样的传输线路到达对方计算机<br>相关协议：<code>IP</code></p>
+<h4 id="数据链路层"><a href="#数据链路层" class="headerlink" title="数据链路层"></a>数据链路层</h4><p>数据链路是用来处理连接网络的<strong>硬件部分</strong><br>例如：<code>NIC(网卡)</code>、<code>光纤</code>等物理可见部分</p>
+<h3 id="OSI七层模型"><a href="#OSI七层模型" class="headerlink" title="OSI七层模型"></a>OSI七层模型</h3><ul>
+<li>应用层</li>
+<li>表示层：负责数据格式的转换</li>
+<li>会话层：负责建立和断开通信连接</li>
+<li>传输层</li>
+<li>网络层</li>
+<li>数据链路层</li>
+<li>物理层</li>
+</ul>
+<p><img src="../../images/network/%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82%E7%BB%93%E6%9E%84.webp" alt="网络分层结构"></p>
+<h4 id="数据链路层-1"><a href="#数据链路层-1" class="headerlink" title="数据链路层"></a>数据链路层</h4><p>数据链路层主要有3种功能：</p>
+<ul>
+<li>封装成帧：将物理层上交的比特流封装成帧</li>
+<li>透明传输：封装成帧的时候，会给每个帧加上帧开始符（SOH）和帧结束符（EOT）。是指该层上传输的数据的内容、格式及编码没有限制，也没有必要解释信息结构的意义</li>
+<li>差错检测<ul>
+<li>比特差错</li>
+<li>帧 丢失/重复/失序</li>
+</ul>
+</li>
+</ul>
+<p>对于网络层，由于链路层的存在，而不需要关心物理层具体采用了那种传输介质和通信设备。</p>
+<blockquote>
+<p>网络层、数据链路层和物理层要关联理解。</p>
+<p>假如A与B通信（在不同的网段中），实际上AB之间还有很多的物理设备（交换机、路由器）。物理设备之间是通过传输介质相连接，比如光纤、同轴电缆（这属于物理层）。</p>
+<p>消息从A到B，需要经过一个个的网段，每个网段内都是通过mac地址来寻找下一个站点（数据链路层）。在公网上使用IP来寻找目的主机（网络层）</p>
+</blockquote>
+<h4 id="传输单元"><a href="#传输单元" class="headerlink" title="传输单元"></a>传输单元</h4><p>物理层的 数据传输单元是数据位（bit）<br>数据链路层的数据传输单元是数据帧（frame）<br>网络层的数据传输单元是数据包（packet）<br>传输层的 数据传输单元是数据段（segment）<br>其他更高层次的数据传输单元是数据（data）</p>
+<h3 id="TCP和UDP"><a href="#TCP和UDP" class="headerlink" title="TCP和UDP"></a>TCP和UDP</h3><table>
+<thead>
+<tr>
+<th align="left"></th>
+<th align="left">UDP</th>
+<th>TCP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">是否连接</td>
+<td align="left">无连接</td>
+<td>面向连接</td>
+</tr>
+<tr>
+<td align="left">是否可靠</td>
+<td align="left">不可靠传输，不使用流量控制和拥塞控制</td>
+<td>可靠传输，使用流量控制和拥塞控制</td>
+</tr>
+<tr>
+<td align="left">连接对象个数</td>
+<td align="left">支持一对一，一对多，多对一和多对多交互通信</td>
+<td>只能是一对一通信</td>
+</tr>
+<tr>
+<td align="left">传输方式</td>
+<td align="left">面向报文</td>
+<td>面向字节流</td>
+</tr>
+<tr>
+<td align="left">首部开销</td>
+<td align="left">首部开销小，仅8字节</td>
+<td>首部最小20字节，最大60字节</td>
+</tr>
+<tr>
+<td align="left">适用场景</td>
+<td align="left">适用于实时应用（IP电话、视频会议、直播等）</td>
+<td>适用于要求可靠传输的应用，例如文件传输</td>
+</tr>
+</tbody></table>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>zxfan</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://zxffan.github.io/posts/8c9e2fd.html">https://zxffan.github.io/posts/8c9e2fd.html</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/NetWork/"># NetWork</a>
+                    
+                        <a href="/tags/HTTP/"># HTTP</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/posts/22412f62.html">vue-router@4.x</a>
+            
+            
+            <a class="next" rel="next" href="/posts/54b3fc67.html">JavaScript原型污染</a>
+            
+        </section>
+
+
+    </article>
+</div>
+</div>
+      <footer id="footer" class="footer">
+  <div class="copyright">
+    <span>Copyright 2019-2020 © zxfan</span>
+  </div>
+</footer>
+
+    </div>
+
+    <div id="u-search">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="container">
+            <form id="u-search-modal-form" class="u-search-modal-form">
+              <button type="submit" class="form-submit-btn">
+                <img
+                  src="/image/search.png"
+                  class="search-btn-img"
+                />
+              </button>
+              <input
+                placeholder="搜索文章。。。"
+                class="form-input"
+                id="modal-form-input"
+              />
+            </form>
+            <a class="modal-close">x</a>
+          </div>
+          <div class="search-loading">
+            <div class="search-loading-bar"></div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- ul 格式如下 -->
+          <!-- <ul class="modal-results">
+                <li class="result-item">
+                    <a class="result-item-detail">
+                        <span class="title">页面配置</span>
+                        <span class="content">
+                            content
+                        </span>
+                    </a>
+                </li>
+            </ul> -->
+        </div>
+      </div>
+      <div class="modal-overlay"></div>
+    </div>
+  </body>
+</html>

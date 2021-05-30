@@ -547,6 +547,41 @@
 <figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">if ($time_iso8601 ~ &quot;^(\d&#123;4&#125;)-(\d&#123;2&#125;)-(\d&#123;2&#125;)&quot;) &#123;</span><br><span class="line">  <span class="attribute">set</span> $year <span class="variable">$1</span>;</span><br><span class="line">  <span class="attribute">set</span> $month <span class="variable">$2</span>;</span><br><span class="line">  <span class="attribute">set</span> $day <span class="variable">$3</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="attribute">access_log</span> /var/log/nginx/$year-$month-$dayaccess.log json;</span><br></pre></td></tr></table></figure>
 
 <p>上例是把同一天的日志放在一个日志文件中。</p>
+<h2 id="实现重定向"><a href="#实现重定向" class="headerlink" title="实现重定向"></a>实现重定向</h2><p>重定向分为两种</p>
+<ul>
+<li>301：永久重定向</li>
+<li>302：临时重定向</li>
+</ul>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">  <span class="attribute">listen</span> <span class="number">8080</span>;</span><br><span class="line">  </span><br><span class="line">  if($host != &#x27;www.aaa.com&#x27;) &#123;</span><br><span class="line">    <span class="attribute">rewrite</span><span class="regexp"> ^/(.*)$</span> <span class="string">&#x27;http://www.bbb.com&#x27;</span> <span class="literal">permanent</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>rewirte</code>命令可以实现重定向功能</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">rewrite</span> 正则 重定向地址 flag</span><br></pre></td></tr></table></figure>
+
+<p>flag有一下值</p>
+<table>
+<thead>
+<tr>
+<th>标记符号</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>last</td>
+<td>本条规则匹配完成后继续向下匹配新的location URI规则</td>
+</tr>
+<tr>
+<td>break</td>
+<td>本条规则匹配完成后终止，不在匹配任何规则</td>
+</tr>
+<tr>
+<td>redirect</td>
+<td>返回302临时重定向</td>
+</tr>
+<tr>
+<td>permanent</td>
+<td>返回301永久重定向</td>
+</tr>
+</tbody></table>
 
         </div>
 
