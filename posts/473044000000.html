@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>web-vitals源码解读 | Hexo</title>
+  <meta name="description" content="web-vitals简介web-vitals是google开源的一个测量web性能指标的工具。体积才1KB，它可以用来测量CLS、FID、LCP、FCP、TTFB。 可通过npm来安装npm install web-vitals 使用也十分简单 12345import &amp;#123;getLCP, getFID, getCLS&amp;#125; from &amp;#x27;web-vitals&amp;#x27;;ge">
+<meta property="og:type" content="article">
+<meta property="og:title" content="web-vitals源码解读">
+<meta property="og:url" content="https://zxffan.github.io/posts/473044000000.html">
+<meta property="og:site_name" content="zxfan">
+<meta property="og:description" content="web-vitals简介web-vitals是google开源的一个测量web性能指标的工具。体积才1KB，它可以用来测量CLS、FID、LCP、FCP、TTFB。 可通过npm来安装npm install web-vitals 使用也十分简单 12345import &amp;#123;getLCP, getFID, getCLS&amp;#125; from &amp;#x27;web-vitals&amp;#x27;;ge">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-04-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-29T14:07:46.726Z">
+<meta property="article:author" content="zxfan">
+<meta property="article:tag" content="web-vitals">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zxffan.github.io/posts/473044000000.html">
+  
+    <link rel="alternate" href="/atom.xml" title="zxfan" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="./images/avatar.jpeg" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+    <link href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.css" rel="stylesheet">
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://zxffan.github.io/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpeg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">ZXFFAN</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Beijing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zxffan" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://www.zhihu.com/people/zxffan" target="_blank" title="Zhihu" data-toggle=tooltip data-placement=top><i class="icon icon-zhihu"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Algorithm/" style="font-size: 13.63px;">Algorithm</a> <a href="/tags/C/" style="font-size: 13px;">C++</a> <a href="/tags/Electron/" style="font-size: 13.75px;">Electron</a> <a href="/tags/FrontEnd/" style="font-size: 13px;">FrontEnd</a> <a href="/tags/HTTP/" style="font-size: 13.25px;">HTTP</a> <a href="/tags/HTTP-Header/" style="font-size: 13px;">HTTP Header</a> <a href="/tags/JavaScript/" style="font-size: 13.88px;">JavaScript</a> <a href="/tags/NetWork/" style="font-size: 13.38px;">NetWork</a> <a href="/tags/Nginx/" style="font-size: 13px;">Nginx</a> <a href="/tags/Nodejs/" style="font-size: 13.5px;">Nodejs</a> <a href="/tags/Number/" style="font-size: 13px;">Number</a> <a href="/tags/Promise/" style="font-size: 13.13px;">Promise</a> <a href="/tags/Rust/" style="font-size: 13.38px;">Rust</a> <a href="/tags/Server/" style="font-size: 13px;">Server</a> <a href="/tags/Serverless/" style="font-size: 13px;">Serverless</a> <a href="/tags/TCP-IP/" style="font-size: 13px;">TCP/IP</a> <a href="/tags/TypeScript/" style="font-size: 13.63px;">TypeScript</a> <a href="/tags/Web/" style="font-size: 13px;">Web</a> <a href="/tags/WebRTC/" style="font-size: 13.13px;">WebRTC</a> <a href="/tags/animation/" style="font-size: 13px;">animation</a> <a href="/tags/audio/" style="font-size: 13px;">audio</a> <a href="/tags/browser/" style="font-size: 13px;">browser</a> <a href="/tags/crypto/" style="font-size: 13px;">crypto</a> <a href="/tags/css/" style="font-size: 13.13px;">css</a> <a href="/tags/functional-programing/" style="font-size: 13px;">functional programing</a> <a href="/tags/interview/" style="font-size: 13px;">interview</a> <a href="/tags/javascript/" style="font-size: 14px;">javascript</a> <a href="/tags/nodejs/" style="font-size: 13px;">nodejs</a> <a href="/tags/regExp/" style="font-size: 13px;">regExp</a> <a href="/tags/ssr/" style="font-size: 13px;">ssr</a> <a href="/tags/video/" style="font-size: 13px;">video</a> <a href="/tags/vue/" style="font-size: 13.75px;">vue</a> <a href="/tags/vue2/" style="font-size: 13px;">vue2</a> <a href="/tags/web-vitals/" style="font-size: 13px;">web-vitals</a> <a href="/tags/webpack/" style="font-size: 13.63px;">webpack</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13px;">云计算</a> <a href="/tags/%E4%BD%8D%E8%BF%90%E7%AE%97/" style="font-size: 13px;">位运算</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13px;">前端</a> <a href="/tags/%E5%AE%89%E5%85%A8/" style="font-size: 13px;">安全</a> <a href="/tags/%E6%9C%8D%E5%8A%A1/" style="font-size: 13px;">服务</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 13.63px;">架构</a> <a href="/tags/%E6%A1%8C%E9%9D%A2%E7%AB%AF/" style="font-size: 13px;">桌面端</a> <a href="/tags/%E6%A1%8C%E9%9D%A2%E7%AB%AF%E8%BD%AF%E4%BB%B6/" style="font-size: 13.63px;">桌面端软件</a> <a href="/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.38px;">网络</a> <a href="/tags/%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0/" style="font-size: 13.25px;">语言学习</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">二月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">十二月 2020</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">十一月 2020</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">十月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">九月 2020</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a><span class="archive-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled ">
+        
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/6f842db3.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/experience/">experience</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/6f842db3.html" class="title">Crypto</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-06-19T16:00:00.000Z" itemprop="datePublished">2021-06-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/33f3fd9d.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/self/">self</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/33f3fd9d.html" class="title">字节跳动面试</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-06-04T16:00:00.000Z" itemprop="datePublished">2021-06-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/d8bddba6.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/CSS/">CSS</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/d8bddba6.html" class="title">clear 清除浮动</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-30T16:00:00.000Z" itemprop="datePublished">2021-05-31</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/616f4683.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/experience/">experience</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/616f4683.html" class="title">前端性能优化</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-17T16:00:00.000Z" itemprop="datePublished">2021-05-18</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/340f0a10.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/340f0a10.html" class="title">Vuex@4.x</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-12T16:00:00.000Z" itemprop="datePublished">2021-05-13</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<aside class="sidebar sidebar-toc collapse" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#web-vitals%E7%AE%80%E4%BB%8B"><span class="toc-number">1.</span> <span class="toc-text">web-vitals简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E7%BB%93%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">源码结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83"><span class="toc-number">3.</span> <span class="toc-text">代码规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Eslint"><span class="toc-number">3.1.</span> <span class="toc-text">Eslint</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#husky"><span class="toc-number">3.2.</span> <span class="toc-text">husky</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rollup-plugin-eslint"><span class="toc-number">3.3.</span> <span class="toc-text">@rollup&#x2F;plugin-eslint</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E5%BB%BA%E9%85%8D%E7%BD%AE"><span class="toc-number">4.</span> <span class="toc-text">构建配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E5%90%8C%E7%9A%84%E4%BA%A7%E5%87%BA%E6%96%87%E4%BB%B6"><span class="toc-number">4.1.</span> <span class="toc-text">不同的产出文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#tree-shaking"><span class="toc-number">4.2.</span> <span class="toc-text">tree-shaking</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TypeScript"><span class="toc-number">4.3.</span> <span class="toc-text">TypeScript</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E6%BA%90%E5%8D%8F%E8%AE%AE"><span class="toc-number">5.</span> <span class="toc-text">开源协议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95"><span class="toc-number">6.</span> <span class="toc-text">测试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%B5%81%E7%A8%8B"><span class="toc-number">6.1.</span> <span class="toc-text">测试流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sendBeacon"><span class="toc-number">6.2.</span> <span class="toc-text">sendBeacon</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">7.</span> <span class="toc-text">代码实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#PerformanceObserver"><span class="toc-number">7.1.</span> <span class="toc-text">PerformanceObserver</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LCP%E3%80%81FID%E3%80%81CLS"><span class="toc-number">7.2.</span> <span class="toc-text">LCP、FID、CLS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TTFB"><span class="toc-number">7.3.</span> <span class="toc-text">TTFB</span></a></li></ol></li></ol>
+    </nav>
+  </div>
+</aside>
+
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-sourcecode/webVitals源码解读" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      web-vitals源码解读
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/posts/473044000000.html" class="article-date">
+	  <time datetime="2021-04-25T16:00:00.000Z" itemprop="datePublished">2021-04-26</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/web-vitals/" rel="tag">web-vitals</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/posts/473044000000.html#comments" class="article-comment-link">评论</a></span>
+        
+	
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2.8k(字)</span>
+	
+	
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 14(分)</span>
+	
+
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="web-vitals简介"><a href="#web-vitals简介" class="headerlink" title="web-vitals简介"></a>web-vitals简介</h2><p><a target="_blank" rel="noopener" href="https://www.npmjs.com/package/web-vitals#overview">web-vitals</a>是<code>google</code>开源的一个测量web性能指标的工具。体积才<strong>1KB</strong>，它可以用来测量<code>CLS</code>、<code>FID</code>、<code>LCP</code>、<code>FCP</code>、<code>TTFB</code>。</p>
+<p>可通过npm来安装<code>npm install web-vitals</code></p>
+<p>使用也十分简单</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;getLCP, getFID, getCLS&#125; <span class="keyword">from</span> <span class="string">&#x27;web-vitals&#x27;</span>;</span><br><span class="line"></span><br><span class="line">getCLS(<span class="built_in">console</span>.log);</span><br><span class="line">getFID(<span class="built_in">console</span>.log);</span><br><span class="line">getLCP(<span class="built_in">console</span>.log);</span><br></pre></td></tr></table></figure>
+
+<h2 id="源码结构"><a href="#源码结构" class="headerlink" title="源码结构"></a>源码结构</h2><p><code>web-vitals</code>整个项目不是很复杂，目录结构如下</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">├─.git</span><br><span class="line">├─docs</span><br><span class="line">├─src # 源码</span><br><span class="line">├─test # 测试代码</span><br><span class="line">├─.eslintrc </span><br><span class="line">├─.gitignore</span><br><span class="line">├─base.d.ts</span><br><span class="line">├─base.js</span><br><span class="line">├─CHANGELOG.md</span><br><span class="line">├─LICENSE # 开源协议</span><br><span class="line">├─package-lock.json</span><br><span class="line">├─package.json</span><br><span class="line">├─README.md</span><br><span class="line">├─rollup.config.js # rollup构建配置</span><br><span class="line">├─tsconfig.json # ts配置</span><br><span class="line">├─wdio.conf.js # e2e测试配置</span><br></pre></td></tr></table></figure>
+
+<h2 id="代码规范"><a href="#代码规范" class="headerlink" title="代码规范"></a>代码规范</h2><h3 id="Eslint"><a href="#Eslint" class="headerlink" title="Eslint"></a>Eslint</h3><p><code>web-vitals</code>通过配置eslint来约定代码规范。通常，<code>eslint</code>配置文件位于根目录下。这样对于整个项目都通用一套<code>eslint</code>配置。这往往是不满足需求的。可能src目录需要一套eslint配置，而test目录有需要另一套eslint配置。<code>web-vitals</code>是通过<code>eslintrc</code>下的<strong>overrides</strong>字段配置的</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;parser&quot;</span>: <span class="string">&quot;babel-eslint&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;env&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;browser&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">&quot;es6&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">&quot;node&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">&quot;mocha&quot;</span>: <span class="literal">true</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">&quot;parserOptions&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;sourceType&quot;</span>: <span class="string">&quot;module&quot;</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">&quot;overrides&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;files&quot;</span>: <span class="string">&quot;wdio.conf.js&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;extends&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;eslint:recommended&quot;</span>, <span class="string">&quot;google&quot;</span></span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">&quot;rules&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;max-len&quot;</span>: <span class="string">&quot;off&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;files&quot;</span>: [<span class="string">&quot;test/e2e/*.js&quot;</span>],</span><br><span class="line">      <span class="attr">&quot;globals&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;$&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="attr">&quot;browser&quot;</span>: <span class="literal">false</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">&quot;extends&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;eslint:recommended&quot;</span>, <span class="string">&quot;google&quot;</span></span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">&quot;rules&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;no-invalid-this&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;max-len&quot;</span>: [<span class="number">2</span>, &#123;</span><br><span class="line">          <span class="attr">&quot;ignorePattern&quot;</span>: <span class="string">&quot;^\\s*import|= require\\(|^\\s*it\\(|^\\s*describe\\(&quot;</span>,</span><br><span class="line">          <span class="attr">&quot;ignoreUrls&quot;</span>: <span class="literal">true</span></span><br><span class="line">        &#125;],</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;files&quot;</span>: <span class="string">&quot;src/**/*.ts&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;parser&quot;</span>: <span class="string">&quot;@typescript-eslint/parser&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;extends&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;plugin:@typescript-eslint/recommended&quot;</span></span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">&quot;rules&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;@typescript-eslint/no-non-null-assertion&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;@typescript-eslint/no-use-before-define&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;@typescript-eslint/explicit-function-return-type&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;@typescript-eslint/explicit-module-boundary-types&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;@typescript-eslint/ban-ts-comment&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;@typescript-eslint/camelcase&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;node/no-missing-import&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;node/no-unsupported-features/es-syntax&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;node/no-missing-require&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;node/shebang&quot;</span>: <span class="string">&quot;off&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;no-dupe-class-members&quot;</span>: <span class="string">&quot;off&quot;</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">&quot;parserOptions&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ecmaVersion&quot;</span>: <span class="number">2018</span>,</span><br><span class="line">        <span class="attr">&quot;sourceType&quot;</span>: <span class="string">&quot;module&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>overrides</code>字段对应的值是一个数组，该数组中的每个元素都是一条新的eslint规则，并覆盖全局配置</p>
+<h3 id="husky"><a href="#husky" class="headerlink" title="husky"></a>husky</h3><p><a target="_blank" rel="noopener" href="https://typicode.github.io/husky/"><code>husky</code></a>是一个<code>git</code>钩子工具，<code>package.json</code>文件下有个<code>husky</code>字段</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;scripts&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;lint&quot;</span>: <span class="string">&quot;eslint \&quot;*.js\&quot; \&quot;src/**/*.ts\&quot; \&quot;test/**/*.js\&quot;&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;lint:fix&quot;</span>: <span class="string">&quot;eslint --fix \&quot;*.js\&quot; \&quot;src/**/*.ts\&quot; \&quot;test/**/*.js\&quot;&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;husky&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;hooks&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;pre-commit&quot;</span>: <span class="string">&quot;npm run lint&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它的作用是，在每次<code>git commit</code>时，触发钩子并执行<code>npm run lint</code>，也就是进行Eslint检查。如果没有通过eslint，就会commit失败。</p>
+<h3 id="rollup-plugin-eslint"><a href="#rollup-plugin-eslint" class="headerlink" title="@rollup/plugin-eslint"></a>@rollup/plugin-eslint</h3><p><code>web-vitals</code>的<code>rollup</code>并没有配置<a target="_blank" rel="noopener" href="https://github.com/rollup/plugins/tree/master/packages/eslint">@rollup/plugin-eslint</a>。如果加上这个插件，会在构建时进行eslint检查，如果没有通过eslint，就会构建失败并给出相应的修复提示。</p>
+<h2 id="构建配置"><a href="#构建配置" class="headerlink" title="构建配置"></a>构建配置</h2><p><code>web-vitals</code>是通过<code>rollup</code>进行构建打包的。其配置也十分简单</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// rollup.config.js</span></span><br><span class="line"><span class="keyword">import</span> replace <span class="keyword">from</span> <span class="string">&#x27;@rollup/plugin-replace&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;terser&#125; <span class="keyword">from</span> <span class="string">&#x27;rollup-plugin-terser&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> babel <span class="keyword">from</span> <span class="string">&#x27;rollup-plugin-babel&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> configurePlugins = <span class="function">(<span class="params">&#123;<span class="built_in">module</span>, polyfill = <span class="literal">false</span>&#125;</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> [</span><br><span class="line">    babel(&#123;</span><br><span class="line">      presets: [[<span class="string">&#x27;@babel/preset-env&#x27;</span>, &#123;</span><br><span class="line">        targets: &#123;</span><br><span class="line">          browsers: [<span class="string">&#x27;ie 11&#x27;</span>],</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;]],</span><br><span class="line">    &#125;),</span><br><span class="line">    terser(&#123;</span><br><span class="line">      <span class="built_in">module</span>,</span><br><span class="line">      mangle: <span class="literal">true</span>,</span><br><span class="line">      compress: <span class="literal">true</span>,</span><br><span class="line">    &#125;),</span><br><span class="line">    replace(&#123;</span><br><span class="line">      <span class="string">&#x27;self.__WEB_VITALS_POLYFILL__&#x27;</span>: polyfill,</span><br><span class="line">    &#125;)</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> configs = [</span><br><span class="line">  &#123;</span><br><span class="line">    input: <span class="string">&#x27;dist/modules/index.js&#x27;</span>,</span><br><span class="line">    output: &#123;</span><br><span class="line">      format: <span class="string">&#x27;esm&#x27;</span>,</span><br><span class="line">      file: <span class="string">&#x27;./dist/web-vitals.js&#x27;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    plugins: configurePlugins(&#123;<span class="attr">module</span>: <span class="literal">true</span>, <span class="attr">polyfill</span>: <span class="literal">false</span>&#125;),</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    input: <span class="string">&#x27;dist/modules/index.js&#x27;</span>,</span><br><span class="line">    output: &#123;</span><br><span class="line">      format: <span class="string">&#x27;umd&#x27;</span>,</span><br><span class="line">      file: <span class="string">`./dist/web-vitals.umd.js`</span>,</span><br><span class="line">      name: <span class="string">&#x27;webVitals&#x27;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    plugins: configurePlugins(&#123;<span class="attr">module</span>: <span class="literal">false</span>, <span class="attr">polyfill</span>: <span class="literal">false</span>&#125;),</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    input: <span class="string">&#x27;dist/modules/index.js&#x27;</span>,</span><br><span class="line">    output: &#123;</span><br><span class="line">      format: <span class="string">&#x27;esm&#x27;</span>,</span><br><span class="line">      file: <span class="string">&#x27;./dist/web-vitals.base.js&#x27;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    plugins: configurePlugins(&#123;<span class="attr">module</span>: <span class="literal">true</span>, <span class="attr">polyfill</span>: <span class="literal">true</span>&#125;),</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    input: <span class="string">&#x27;dist/modules/index.js&#x27;</span>,</span><br><span class="line">    output: &#123;</span><br><span class="line">      format: <span class="string">&#x27;umd&#x27;</span>,</span><br><span class="line">      file: <span class="string">`./dist/web-vitals.base.umd.js`</span>,</span><br><span class="line">      name: <span class="string">&#x27;webVitals&#x27;</span>,</span><br><span class="line">      extend: <span class="literal">true</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    plugins: configurePlugins(&#123;<span class="attr">module</span>: <span class="literal">false</span>, <span class="attr">polyfill</span>: <span class="literal">true</span>&#125;),</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    input: <span class="string">&#x27;dist/modules/polyfill.js&#x27;</span>,</span><br><span class="line">    output: &#123;</span><br><span class="line">      format: <span class="string">&#x27;iife&#x27;</span>,</span><br><span class="line">      file: <span class="string">&#x27;./dist/polyfill.js&#x27;</span>,</span><br><span class="line">      name: <span class="string">&#x27;webVitals&#x27;</span>,</span><br><span class="line">      strict: <span class="literal">false</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    plugins: configurePlugins(&#123;<span class="attr">module</span>: <span class="literal">false</span>&#125;),</span><br><span class="line">  &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> configs;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="不同的产出文件"><a href="#不同的产出文件" class="headerlink" title="不同的产出文件"></a>不同的产出文件</h3><p>导出的<code>config</code>是一个数组。每个数组元素是一份rollup配置</p>
+<table>
+<thead>
+<tr>
+<th>产出文件名</th>
+<th>module</th>
+<th>polyfill</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>web-vitals.js</td>
+<td>esm</td>
+<td>不含</td>
+</tr>
+<tr>
+<td>web-vitals.umd.js</td>
+<td>umd</td>
+<td>不含</td>
+</tr>
+<tr>
+<td>web-vitals.base.js</td>
+<td>esm</td>
+<td>含</td>
+</tr>
+<tr>
+<td>web-vitals.base.umd.js</td>
+<td>umd</td>
+<td>含</td>
+</tr>
+<tr>
+<td>polyfill.js</td>
+<td>iife</td>
+<td>-</td>
+</tr>
+</tbody></table>
+<ul>
+<li><p><code>esm</code>：即 ES Module，在代码中直接<code>import</code>使用</p>
+</li>
+<li><p><code>iife</code>：立即执行函数，就是<code>(function() &#123;&#125;)(window)</code>这种形式</p>
+</li>
+<li><p><code>umd</code>：本质上也是iife，但是它将待执行的函数作为iife的参数传入</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a = <span class="number">2</span>;</span><br><span class="line">(<span class="function"><span class="keyword">function</span> <span class="title">IIFE</span>(<span class="params"> def </span>) </span>&#123;</span><br><span class="line">  def( <span class="built_in">window</span> );</span><br><span class="line">&#125;)(<span class="function"><span class="keyword">function</span> <span class="title">def</span>(<span class="params"> <span class="built_in">global</span> </span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">3</span>;</span><br><span class="line">  <span class="built_in">console</span>.log( a ); <span class="comment">// 3 </span></span><br><span class="line">  <span class="built_in">console</span>.log( <span class="built_in">global</span>.a ); <span class="comment">// 2</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><code>iife</code>和<code>umd</code>都是直接在浏览器中使用了</p>
+<h3 id="tree-shaking"><a href="#tree-shaking" class="headerlink" title="tree-shaking"></a>tree-shaking</h3><p>rolup使用了<code>@rollup/plugin-replace</code>，用于替换一些常量</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">replace(&#123;</span><br><span class="line">    <span class="string">&#x27;self.__WEB_VITALS_POLYFILL__&#x27;</span>: polyfill,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这会将代码中所有出现的<code>self.__WEB_VITALS_POLYFILL__</code>的地方替换成<code>polyfill</code>变量的对应的值（<code>true</code>或<code>false</code>）。在代码中出现大量的<code>self.__WEB_VITALS_POLYFILL__</code></p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/lib/getFirstHidden.ts </span></span><br><span class="line"></span><br><span class="line"><span class="comment">// function getFirstHidden</span></span><br><span class="line"><span class="keyword">if</span> (self.__WEB_VITALS_POLYFILL__) &#123;</span><br><span class="line">    firstHiddenTime = self.webVitals.firstHiddenTime;</span><br><span class="line">    <span class="keyword">if</span> (firstHiddenTime === <span class="literal">Infinity</span>) &#123;</span><br><span class="line">        trackChanges();</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    firstHiddenTime = initHiddenTime();</span><br><span class="line">    trackChanges();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果<code>self.__WEB_VITALS_POLYFILL__</code>是true，rollup在构建时，就会吧else的逻辑删掉。反之，会把if的逻辑给删掉。这样就实现了Tree Shaking——删除多余代码。</p>
+<h3 id="TypeScript"><a href="#TypeScript" class="headerlink" title="TypeScript"></a>TypeScript</h3><p><code>web-vitals</code>的源码是使用TS编写的，最终需要生成js文件。</p>
+<p><code>web-vitals</code>的构建过程：</p>
+<ul>
+<li>先通过tsc生成<strong>js文件</strong>和<strong>类型声明文件</strong>。</li>
+<li>再通过<strong>rollup</strong>进行对<strong>js文件</strong>打包构建</li>
+</ul>
+<p>类型声明需要再<code>package.json</code>中<code>typings</code>字段指定声明文件的位置</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;main&quot;</span>: <span class="string">&quot;dist/web-vitals.umd.js&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;module&quot;</span>: <span class="string">&quot;dist/web-vitals.js&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;typings&quot;</span>: <span class="string">&quot;dist/modules/index.d.ts&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;files&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;base.js&quot;</span>,</span><br><span class="line">        <span class="string">&quot;base.d.ts&quot;</span>,</span><br><span class="line">        <span class="string">&quot;dist&quot;</span>,</span><br><span class="line">        <span class="string">&quot;src&quot;</span></span><br><span class="line">    ],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>main</code>:  定义了 npm 包的入口文件，browser 环境和 node 环境均可使用</p>
+</li>
+<li><p><code>module</code>:  定义 npm 包的 ESM 规范的入口文件，browser 环境和 node 环境均可使用</p>
+</li>
+<li><p>好有个<code>browser</code> : 定义 npm 包在 browser 环境下的入口文件</p>
+</li>
+<li><p><code>files</code>：当<code>npm publish</code>是，指定需要上传的文件。</p>
+</li>
+</ul>
+<h2 id="开源协议"><a href="#开源协议" class="headerlink" title="开源协议"></a>开源协议</h2><p><code>web-vitals</code>采用<code>Apache-2.0</code>开源协议。该协议允许开发者修改代码，并且商业发布。但是对于改动部分必须提供一份声明。</p>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p><code>web-vitals</code>的测试需要真实的浏览器环境，即需要<strong>端到端测试（e2e test）</strong>。项目通过[wdio（webDriver.IO）](<a target="_blank" rel="noopener" href="https://webdriver.io/docs/gettingstarted">Getting Started | WebdriverIO</a>)来实现的。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;scripts&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;test&quot;</span>: <span class="string">&quot;npm-run-all build -p -r test:*&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;test:e2e&quot;</span>: <span class="string">&quot;wdio wdio.conf.js&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;test:server&quot;</span>: <span class="string">&quot;node test/server.js&quot;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="测试流程"><a href="#测试流程" class="headerlink" title="测试流程"></a>测试流程</h3><p>当执行<code>npm run test</code>时</p>
+<ul>
+<li>先构建打包项目</li>
+<li>启动一个HTTP服务，用于处理浏览器的资源请求</li>
+<li>启动wdio测试</li>
+</ul>
+<p>当执行test/e2e目录下的测试用例时，例如<code>getLCP-test.js</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">it(<span class="string">&#x27;reports the correct value on hidden (reportAllChanges === false)&#x27;</span>, <span class="keyword">async</span> <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 浏览器不支持就跳过这条用例</span></span><br><span class="line">    <span class="keyword">if</span> (!browserSupportsLCP) <span class="built_in">this</span>.skip();</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// 打开 /test/lcp这个网页，这是测试网页</span></span><br><span class="line">    <span class="keyword">await</span> browser.url(<span class="string">&#x27;/test/lcp&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 等待所有图片加载完成</span></span><br><span class="line">    <span class="keyword">await</span> imagesPainted();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 跳转到空白页，触发上一个页面的 hide状态</span></span><br><span class="line">    <span class="keyword">await</span> browser.url(<span class="string">&#x27;about:blank&#x27;</span>);</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// 检测是beacon.log中是否有数据，参数为数据条数</span></span><br><span class="line">    <span class="keyword">await</span> beaconCountIs(<span class="number">1</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 对 beacon数据进行断言</span></span><br><span class="line">    assertStandardReportsAreCorrect(<span class="keyword">await</span> getBeacons());</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>当输入<code>browser.url(&#39;/test/lcp&#39;)</code>其实访问的地址是<code>http://localhost:9090/test/lcp</code>(在wdio.config.js中配置的)。这条请求会发送给本地的HTTP服务上。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/test/server.js</span></span><br><span class="line"></span><br><span class="line">app.get(<span class="string">&#x27;/test/:view&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> data = &#123;</span><br><span class="line">    ...req.query,</span><br><span class="line">    modulePath: <span class="string">`/dist/web-vitals<span class="subst">$&#123;</span></span></span><br><span class="line"><span class="string"><span class="subst">        req.query.polyfill ? <span class="string">`.base`</span> : <span class="string">``</span>&#125;</span>.js`</span>,</span><br><span class="line">    webVitalsPolyfill: fs.readFileSync(<span class="string">&#x27;./dist/polyfill.js&#x27;</span>, <span class="string">&#x27;utf-8&#x27;</span>),</span><br><span class="line">  &#125;</span><br><span class="line">  res.send(nunjucks.render(<span class="string">`<span class="subst">$&#123;req.params.view&#125;</span>.njk`</span>, data));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>nunjucks</code>是一个模板引擎。data数据会插入到模板引擎内。当访问<code>/test/lcp</code>时，会将解析<code>lcp.njk</code>并将html返回给浏览器。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- src/test/view/lcp.njk --&gt;</span></span><br><span class="line">&#123;% extends &#x27;layout.njk&#x27; %&#125;</span><br><span class="line"></span><br><span class="line">&#123;% block content %&#125;</span><br><span class="line">  <span class="tag">&lt;<span class="name">h1</span>&gt;</span>LCP Test<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span></span><br><span class="line">    &#123;% if not imgDelay %&#125;</span><br><span class="line">      &#123;% set imgDelay = 500 %&#125;</span><br><span class="line">    &#123;% endif %&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="name">img</span> &#123;% <span class="attr">if</span> <span class="attr">imgHidden</span> %&#125;<span class="attr">hidden</span>&#123;% <span class="attr">endif</span> %&#125; <span class="attr">src</span>=<span class="string">&quot;/test/img/square.png?delay=&#123;&#123; imgDelay &#125;&#125;&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span>Text below the image<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span><span class="tag">&lt;<span class="name">a</span> <span class="attr">id</span>=<span class="string">&quot;navigate-away&quot;</span> <span class="attr">href</span>=<span class="string">&quot;https://example.com&quot;</span>&gt;</span>Navigate away<span class="tag">&lt;/<span class="name">a</span>&gt;</span><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- Include a tall element to ensure scrolling is possible. --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;height: 100vh&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">footer</span>&gt;</span>Text below the full-height element.<span class="tag">&lt;/<span class="name">footer</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span>&gt;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">import</span> &#123;getLCP&#125; <span class="keyword">from</span> <span class="string">&#x27;&#123;&#123; modulePath &#125;&#125;&#x27;</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">    getLCP(<span class="function">(<span class="params">lcp</span>) =&gt;</span> &#123;</span></span><br><span class="line"><span class="javascript">      <span class="comment">// Log for easier manual testing.</span></span></span><br><span class="line"><span class="javascript">      <span class="built_in">console</span>.log(lcp);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="comment">// Elements can&#x27;t be serialized, so we convert first.</span></span></span><br><span class="line">      lcp = &#123;</span><br><span class="line">        ...lcp,</span><br><span class="line"><span class="javascript">        entries: lcp.entries.map(<span class="function">(<span class="params">e</span>) =&gt;</span> (&#123;</span></span><br><span class="line">          element: e.element.nodeName.toLowerCase(),</span><br><span class="line">          size: e.size,</span><br><span class="line">          startTime: e.startTime,</span><br><span class="line">        &#125;)),</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="comment">// 发送统计数据</span></span></span><br><span class="line"><span class="javascript">      navigator.sendBeacon(<span class="string">`/collect`</span>, <span class="built_in">JSON</span>.stringify(lcp));</span></span><br><span class="line">    &#125;, self.__reportAllChanges);</span><br><span class="line">  <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure>
+
+<p>html中的最后一步调用了<code> navigator.sendBeacon(&quot;/collect&quot;, JSON.stringify(lcp));</code>，<code>/collect</code>这个请求也是发到本地的HTTP服务。服务端会将数据写入到<code>src/test/beacons.log</code>中。</p>
+<h3 id="sendBeacon"><a href="#sendBeacon" class="headerlink" title="sendBeacon"></a>sendBeacon</h3><p><code>navigator.sendBeacon</code>是专门用来发送异步统计数据的API。</p>
+<p>有一种需求：当页面跳转或关闭时，我们需要将当前页面的一些统计数据发送到服务端。往往这些数据不能提前发送。如果使用异步<code>XMLHttpRequest</code>的话，浏览器可能会忽略这个请求。如果使用同步<code>XMLHttpRequest</code>的话，会影响下个页面的加载速度。</p>
+<p>使用<code>navigator.sendBeacon</code>，会发送一个异步请求，并且不会被浏览器忽略。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">document</span>.addEventListener(<span class="string">&#x27;visibilitychange&#x27;</span>, <span class="function"><span class="keyword">function</span> <span class="title">logData</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">document</span>.visibilityState === <span class="string">&#x27;hidden&#x27;</span>) &#123;</span><br><span class="line">    navigator.sendBeacon(<span class="string">&#x27;/log&#x27;</span>, analyticsData);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>判断页面关闭与否，建议使用<code>visibilitychange</code>事件</p>
+<p>safari需要使用<code>pagehide</code>事件</p>
+</blockquote>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><h3 id="PerformanceObserver"><a href="#PerformanceObserver" class="headerlink" title="PerformanceObserver"></a>PerformanceObserver</h3><p>性能观察者(PerformanceObserver)用于获取性能数据。</p>
+<p><code>new PerformanceObserver(callback);</code> 接受一个callback作为参数</p>
+<p><code>observer</code>方法用于注册性能条目类型，type指所要观测的性能条目类型，取值情况通过<code>PerformanceObserver.supportedEntryTypes</code>属性查看。</p>
+<p><code>[&quot;element&quot;, &quot;event&quot;, &quot;first-input&quot;, &quot;largest-contentful-paint&quot;, &quot;layout-shift&quot;, &quot;longtask&quot;, &quot;mark&quot;, &quot;measure&quot;, &quot;navigation&quot;, &quot;paint&quot;, &quot;resource&quot;]</code></p>
+<p>其中:</p>
+<ul>
+<li><code>largest-contentful-paint</code>：LCP</li>
+<li><code>layout-shift</code>：CLS</li>
+<li><code>first-input</code>：FID</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 获取lcp时间</span></span><br><span class="line"><span class="keyword">const</span> callback = <span class="function">(<span class="params">entryList</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> entry <span class="keyword">of</span> entryList.getEntries()) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;LCP candidate:&#x27;</span>, entry.startTime, entry);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> observer = <span class="keyword">new</span> PerformanceObserver(callback)</span><br><span class="line"></span><br><span class="line">observer.observe(&#123;<span class="attr">type</span>: <span class="string">&#x27;largest-contentful-paint&#x27;</span>, <span class="attr">buffered</span>: <span class="literal">true</span>&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="LCP、FID、CLS"><a href="#LCP、FID、CLS" class="headerlink" title="LCP、FID、CLS"></a>LCP、FID、CLS</h3><p><code>web-vitals</code>中的<code>LCP</code>、<code>FID</code>和<code>CLS</code>都是通过<code>PerformanceObserver</code>来实现的。</p>
+<p>以LCP为例：</p>
+<p><code>getLCP</code>函数位于<code>src/getLCP.ts</code>文件中。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> getLCP = <span class="function">(<span class="params">onReport: ReportHandler, reportAllChanges?: <span class="built_in">boolean</span></span>) =&gt;</span> &#123;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 1 获取 第一次页面处于hidden状态的时间</span></span><br><span class="line">  <span class="keyword">const</span> firstHidden = getFirstHidden();</span><br><span class="line">  <span class="keyword">let</span> metric = initMetric(<span class="string">&#x27;LCP&#x27;</span>);</span><br><span class="line">  <span class="keyword">let</span> report: ReturnType&lt;<span class="keyword">typeof</span> bindReporter&gt;;</span><br><span class="line">	</span><br><span class="line">                         </span><br><span class="line">  <span class="comment">// 2. PerformanceObserver</span></span><br><span class="line">  <span class="keyword">const</span> entryHandler = <span class="function">(<span class="params">entry: PerformanceEntry</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> value = entry.startTime;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 过滤掉切换pagehide后的 性能数据</span></span><br><span class="line">    <span class="keyword">if</span> (value &lt; firstHidden.timeStamp) &#123;</span><br><span class="line">      metric.value = value;</span><br><span class="line">      metric.entries.push(entry);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    report();</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> po = observe(<span class="string">&#x27;largest-contentful-paint&#x27;</span>, entryHandler);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (po) &#123;</span><br><span class="line">    report = bindReporter(onReport, metric, reportAllChanges);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> stopListening = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (!finalMetrics.has(metric)) &#123;</span><br><span class="line">        po.takeRecords().map(entryHandler <span class="keyword">as</span> PerformanceEntryHandler);</span><br><span class="line">        po.disconnect();</span><br><span class="line">        finalMetrics.add(metric);</span><br><span class="line">        report();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 当用户点击页面时，立即触发 report</span></span><br><span class="line">    [<span class="string">&#x27;keydown&#x27;</span>, <span class="string">&#x27;click&#x27;</span>].forEach(<span class="function">(<span class="params"><span class="keyword">type</span></span>) =&gt;</span> &#123;</span><br><span class="line">      addEventListener(<span class="keyword">type</span>, stopListening, &#123;<span class="attr">once</span>: <span class="literal">true</span>, <span class="attr">capture</span>: <span class="literal">true</span>&#125;);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    onHidden(stopListening, <span class="literal">true</span>);</span><br><span class="line">		</span><br><span class="line">    <span class="comment">// 当pageshow时，报告metric</span></span><br><span class="line">    onBFCacheRestore(<span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">      metric = initMetric(<span class="string">&#x27;LCP&#x27;</span>);</span><br><span class="line">      report = bindReporter(onReport, metric, reportAllChanges);</span><br><span class="line">      requestAnimationFrame(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        requestAnimationFrame(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          metric.value = performance.now() - event.timeStamp;</span><br><span class="line">          finalMetrics.add(metric);</span><br><span class="line">          report();</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="TTFB"><a href="#TTFB" class="headerlink" title="TTFB"></a>TTFB</h3><p>TTFB时间直接取<code>performance.responseStart</code></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zxffan.github.io/posts/473044000000.html" title="web-vitals源码解读" target="_blank" rel="external">https://zxffan.github.io/posts/473044000000.html</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://zxffan.github.io/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpeg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://zxffan.github.io/" target="_blank"><span class="text-dark">ZXFFAN</span><small class="ml-1x">Web Developer &amp; Designer</small></a></h3>
+        <div>Nothing, just a coder。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/posts/110bf707.html" title="Webpack之SplitChunks"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/posts/1b8392cc.html" title="知识串联：JavaScript执行机制"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn collapsed" data-toggle="collapse" href="#collapseToc" aria-expanded="false" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zxffan" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://www.zhihu.com/people/zxffan" target="_blank" title="Zhihu" data-toggle=tooltip data-placement=top><i class="icon icon-zhihu"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 zxfan
+        
+        <!-- <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div> -->
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.js"></script>
+  <script>
+  //利用 FancyBox 实现点击图片放大
+  $(document).ready(function() {
+    $('article img').not('[hidden]').not('.panel-body img').each(function() {
+      var $image = $(this);
+      var imageCaption = $image.attr('alt');
+      var $imageWrapLink = $image.parent('a');
+      if ($imageWrapLink.length < 1) {
+        var src = this.getAttribute('src');
+        var idx = src.lastIndexOf('?');
+        if (idx != -1) {
+          src = src.substring(0, idx);
+        }
+        $imageWrapLink = $image.wrap('<a href="' + src + '"></a>').parent('a');
+      }
+      $imageWrapLink.attr('data-fancybox', 'images');
+      if (imageCaption) {
+        $imageWrapLink.attr('data-caption', imageCaption);
+      }
+    });
+    $().fancybox({
+      selector: '[data-fancybox="images"]',
+      hash: false,
+      loop: false,
+    });
+  });
+  </script>
+
+
+
+
+
+</body>
+</html>

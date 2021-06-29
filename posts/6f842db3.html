@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Crypto | Hexo</title>
+  <meta name="description" content="哈希哈希算法又称为散列算法。将一个任意长度的的数组作为输入，能够获得固定长度的输出。 123456789101112131415161718const crypto &#x3D; require(&quot;crypto&quot;);console.log(crypto.getHashes());&#x2F;*输出[  &amp;#x27;RSA-MD4&amp;#x27;,  &amp;#x27;RSA-MD5&amp;#x27;,  &amp;#x2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Crypto">
+<meta property="og:url" content="https://zxffan.github.io/posts/6f842db3.html">
+<meta property="og:site_name" content="zxfan">
+<meta property="og:description" content="哈希哈希算法又称为散列算法。将一个任意长度的的数组作为输入，能够获得固定长度的输出。 123456789101112131415161718const crypto &#x3D; require(&quot;crypto&quot;);console.log(crypto.getHashes());&#x2F;*输出[  &amp;#x27;RSA-MD4&amp;#x27;,  &amp;#x27;RSA-MD5&amp;#x27;,  &amp;#x2">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-19T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-29T14:01:39.716Z">
+<meta property="article:author" content="zxfan">
+<meta property="article:tag" content="Nodejs">
+<meta property="article:tag" content="crypto">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zxffan.github.io/posts/6f842db3.html">
+  
+    <link rel="alternate" href="/atom.xml" title="zxfan" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="./images/avatar.jpeg" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+    <link href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.css" rel="stylesheet">
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://zxffan.github.io/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpeg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">ZXFFAN</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Beijing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zxffan" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://www.zhihu.com/people/zxffan" target="_blank" title="Zhihu" data-toggle=tooltip data-placement=top><i class="icon icon-zhihu"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Algorithm/" style="font-size: 13.63px;">Algorithm</a> <a href="/tags/C/" style="font-size: 13px;">C++</a> <a href="/tags/Electron/" style="font-size: 13.75px;">Electron</a> <a href="/tags/FrontEnd/" style="font-size: 13px;">FrontEnd</a> <a href="/tags/HTTP/" style="font-size: 13.25px;">HTTP</a> <a href="/tags/HTTP-Header/" style="font-size: 13px;">HTTP Header</a> <a href="/tags/JavaScript/" style="font-size: 13.88px;">JavaScript</a> <a href="/tags/NetWork/" style="font-size: 13.38px;">NetWork</a> <a href="/tags/Nginx/" style="font-size: 13px;">Nginx</a> <a href="/tags/Nodejs/" style="font-size: 13.5px;">Nodejs</a> <a href="/tags/Number/" style="font-size: 13px;">Number</a> <a href="/tags/Promise/" style="font-size: 13.13px;">Promise</a> <a href="/tags/Rust/" style="font-size: 13.38px;">Rust</a> <a href="/tags/Server/" style="font-size: 13px;">Server</a> <a href="/tags/Serverless/" style="font-size: 13px;">Serverless</a> <a href="/tags/TCP-IP/" style="font-size: 13px;">TCP/IP</a> <a href="/tags/TypeScript/" style="font-size: 13.63px;">TypeScript</a> <a href="/tags/Web/" style="font-size: 13px;">Web</a> <a href="/tags/WebRTC/" style="font-size: 13.13px;">WebRTC</a> <a href="/tags/animation/" style="font-size: 13px;">animation</a> <a href="/tags/audio/" style="font-size: 13px;">audio</a> <a href="/tags/browser/" style="font-size: 13px;">browser</a> <a href="/tags/crypto/" style="font-size: 13px;">crypto</a> <a href="/tags/css/" style="font-size: 13.13px;">css</a> <a href="/tags/functional-programing/" style="font-size: 13px;">functional programing</a> <a href="/tags/interview/" style="font-size: 13px;">interview</a> <a href="/tags/javascript/" style="font-size: 14px;">javascript</a> <a href="/tags/nodejs/" style="font-size: 13px;">nodejs</a> <a href="/tags/regExp/" style="font-size: 13px;">regExp</a> <a href="/tags/ssr/" style="font-size: 13px;">ssr</a> <a href="/tags/video/" style="font-size: 13px;">video</a> <a href="/tags/vue/" style="font-size: 13.75px;">vue</a> <a href="/tags/vue2/" style="font-size: 13px;">vue2</a> <a href="/tags/web-vitals/" style="font-size: 13px;">web-vitals</a> <a href="/tags/webpack/" style="font-size: 13.63px;">webpack</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13px;">云计算</a> <a href="/tags/%E4%BD%8D%E8%BF%90%E7%AE%97/" style="font-size: 13px;">位运算</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13px;">前端</a> <a href="/tags/%E5%AE%89%E5%85%A8/" style="font-size: 13px;">安全</a> <a href="/tags/%E6%9C%8D%E5%8A%A1/" style="font-size: 13px;">服务</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 13.63px;">架构</a> <a href="/tags/%E6%A1%8C%E9%9D%A2%E7%AB%AF/" style="font-size: 13px;">桌面端</a> <a href="/tags/%E6%A1%8C%E9%9D%A2%E7%AB%AF%E8%BD%AF%E4%BB%B6/" style="font-size: 13.63px;">桌面端软件</a> <a href="/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.38px;">网络</a> <a href="/tags/%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0/" style="font-size: 13.25px;">语言学习</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">二月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">十二月 2020</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">十一月 2020</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">十月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">九月 2020</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a><span class="archive-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled ">
+        
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/6f842db3.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/experience/">experience</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/6f842db3.html" class="title">Crypto</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-06-19T16:00:00.000Z" itemprop="datePublished">2021-06-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/33f3fd9d.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/self/">self</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/33f3fd9d.html" class="title">字节跳动面试</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-06-04T16:00:00.000Z" itemprop="datePublished">2021-06-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/d8bddba6.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/CSS/">CSS</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/d8bddba6.html" class="title">clear 清除浮动</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-30T16:00:00.000Z" itemprop="datePublished">2021-05-31</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/616f4683.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/experience/">experience</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/616f4683.html" class="title">前端性能优化</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-17T16:00:00.000Z" itemprop="datePublished">2021-05-18</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/340f0a10.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/340f0a10.html" class="title">Vuex@4.x</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-12T16:00:00.000Z" itemprop="datePublished">2021-05-13</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-experience/Crypto" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Crypto
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/posts/6f842db3.html" class="article-date">
+	  <time datetime="2021-06-19T16:00:00.000Z" itemprop="datePublished">2021-06-20</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/experience/">experience</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Nodejs/" rel="tag">Nodejs</a>, <a class="article-tag-link-link" href="/tags/crypto/" rel="tag">crypto</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/posts/6f842db3.html#comments" class="article-comment-link">评论</a></span>
+        
+	
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 581(字)</span>
+	
+	
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
+	
+
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="哈希"><a href="#哈希" class="headerlink" title="哈希"></a>哈希</h2><p>哈希算法又称为散列算法。将一个任意长度的的数组作为输入，能够获得固定长度的输出。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> crypto = <span class="built_in">require</span>(<span class="string">&quot;crypto&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(crypto.getHashes());</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出</span></span><br><span class="line"><span class="comment">[</span></span><br><span class="line"><span class="comment">  &#x27;RSA-MD4&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;RSA-MD5&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;RSA-MDC2&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;RSA-RIPEMD160&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;RSA-SHA1&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;RSA-SHA1-2&#x27;,</span></span><br><span class="line"><span class="comment">  &#x27;RSA-SHA224&#x27;,</span></span><br><span class="line"><span class="comment">  ...</span></span><br><span class="line"><span class="comment">  ...</span></span><br><span class="line"><span class="comment">]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>以<code>md5</code>为例：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> crypto = <span class="built_in">require</span>(<span class="string">&quot;crypto&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> text = <span class="string">&quot;hello crypto!&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> md5 = crypto.createHash(<span class="string">&quot;md5&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> result = md5.update(text).digest(<span class="string">&quot;hex&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(result);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>createHash</code>：创建hash，参数为hash算法，具体见<code>crypto.getHashes()</code></li>
+<li><code>update</code>：对字符串进行hash</li>
+<li><code>digest</code>：获取信息摘要<ul>
+<li>不传参数，返回Buffer</li>
+<li>参数为字符编码，<code>hex</code>返回16进制</li>
+</ul>
+</li>
+</ul>
+<p>md5是不可逆的，破解md5也只能使用暴力的“碰撞破解”。所以一般会对文本进行多次md5哈希：<code>md5.update(text).update(text).update(text)</code></p>
+<blockquote>
+<p>哈希算法通常用作信息摘要算法，比如双发通信时，发送方将资源（数据，用户）的信息摘要进行加密，接收方再去验证比对</p>
+</blockquote>
+<h2 id="HMAC"><a href="#HMAC" class="headerlink" title="HMAC"></a>HMAC</h2><p><code>Hmac</code>被称为加盐算法，即 <code>Hmac = hash + 密钥</code>。比如<code>sha-1</code>算法</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> crypto = <span class="built_in">require</span>(<span class="string">&quot;crypto&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> text = <span class="string">&quot;hello crypto!&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> result = crypto.createHmac(<span class="string">&quot;sha1&quot;</span>, <span class="string">&quot;miyao&quot;</span>).update(text).digest(<span class="string">&quot;hex&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(result); <span class="comment">// 09ef939a42b909a48d8ea3803692ec88eedc4c04</span></span><br></pre></td></tr></table></figure>
+
+<p><code>createHmac</code>第二个参数密钥</p>
+<blockquote>
+<p>密钥可以通过<code>openssl</code>来创建</p>
+<p><code>openssl genrsa -out rsa_private.key 1024</code></p>
+</blockquote>
+<h2 id="对称加密"><a href="#对称加密" class="headerlink" title="对称加密"></a>对称加密</h2><p>对称加密指：利用同意个密钥来加密/解密数据。这有两个关键点：</p>
+<ul>
+<li>有加密也有解密，所以加密算法是可逆的</li>
+<li>同一个密钥</li>
+</ul>
+<p>以<code>aes192</code>为例：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> crypto = <span class="built_in">require</span>(<span class="string">&quot;crypto&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> text = <span class="string">&quot;hello crypto!&quot;</span>;</span><br><span class="line"><span class="keyword">const</span> key = crypto.scryptSync(<span class="string">&quot;woshimiyao&quot;</span>, <span class="string">&quot;yanzhi&quot;</span>, <span class="number">24</span>); <span class="comment">// 密钥</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 加密</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">encrypt</span>(<span class="params">data, iv</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> cipher = crypto.createCipheriv(<span class="string">&quot;aes192&quot;</span>, key, iv);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> cipher.update(data, <span class="string">&quot;utf-8&quot;</span>, <span class="string">&quot;hex&quot;</span>).final(<span class="string">&quot;hex&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解密</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">decrypt</span>(<span class="params">data, iv</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> decipher = crypto.createDecipheriv(<span class="string">&quot;aes192&quot;</span>, key, iv);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> decipher.update(data, <span class="string">&quot;hex&quot;</span>, <span class="string">&quot;utf-8&quot;</span>).final(<span class="string">&quot;utf-8&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> iv = Buffer.alloc(<span class="number">16</span>, <span class="number">0</span>); <span class="comment">// 初始化向量</span></span><br><span class="line"><span class="keyword">const</span> e = encrypt(text, iv);</span><br><span class="line"><span class="keyword">const</span> d = decrypt(e, iv);</span><br><span class="line"><span class="built_in">console</span>.log(e, d); <span class="comment">// 3e07418b2c1ed2b128943b005610f166 hello crypto!</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="非对称加密"><a href="#非对称加密" class="headerlink" title="非对称加密"></a>非对称加密</h2><p>非对称加密：利用两个密钥，一个用于加密另一个用于解密。这也有两个关键点：</p>
+<ul>
+<li>有加密也有解密，所以加密算法是可逆的</li>
+<li>两个密钥：<ul>
+<li>公钥：用于加密</li>
+<li>私钥：用于解密</li>
+</ul>
+</li>
+</ul>
+<h2 id="常见加密算法"><a href="#常见加密算法" class="headerlink" title="常见加密算法"></a>常见加密算法</h2>
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zxffan.github.io/posts/6f842db3.html" title="Crypto" target="_blank" rel="external">https://zxffan.github.io/posts/6f842db3.html</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://zxffan.github.io/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpeg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://zxffan.github.io/" target="_blank"><span class="text-dark">ZXFFAN</span><small class="ml-1x">Web Developer &amp; Designer</small></a></h3>
+        <div>Nothing, just a coder。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/posts/33f3fd9d.html" title="字节跳动面试"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zxffan" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://www.zhihu.com/people/zxffan" target="_blank" title="Zhihu" data-toggle=tooltip data-placement=top><i class="icon icon-zhihu"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 zxfan
+        
+        <!-- <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div> -->
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.js"></script>
+  <script>
+  //利用 FancyBox 实现点击图片放大
+  $(document).ready(function() {
+    $('article img').not('[hidden]').not('.panel-body img').each(function() {
+      var $image = $(this);
+      var imageCaption = $image.attr('alt');
+      var $imageWrapLink = $image.parent('a');
+      if ($imageWrapLink.length < 1) {
+        var src = this.getAttribute('src');
+        var idx = src.lastIndexOf('?');
+        if (idx != -1) {
+          src = src.substring(0, idx);
+        }
+        $imageWrapLink = $image.wrap('<a href="' + src + '"></a>').parent('a');
+      }
+      $imageWrapLink.attr('data-fancybox', 'images');
+      if (imageCaption) {
+        $imageWrapLink.attr('data-caption', imageCaption);
+      }
+    });
+    $().fancybox({
+      selector: '[data-fancybox="images"]',
+      hash: false,
+      loop: false,
+    });
+  });
+  </script>
+
+
+
+
+
+</body>
+</html>

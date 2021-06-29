@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>字节跳动面试 | Hexo</title>
+  <meta name="description" content="一面 自我介绍  网络模型：osi七层模型，每层干什么的？  http协议的理解。想到啥说啥。就是你随便说，面试官会顺着问  无状态 应用层协议，基于tcp 发展历史：从0.9到3.0 缓存 http状态吗：从1xx一直说到5xx   https？说了一下tls协商  es6相关，说一些用过哪些？面试官会顺着问。  var&#x2F;let&#x2F;const ， 面试官顺着问了它们的区别 字符串有哪些方法。这个问">
+<meta property="og:type" content="article">
+<meta property="og:title" content="字节跳动面试">
+<meta property="og:url" content="https://zxffan.github.io/posts/33f3fd9d.html">
+<meta property="og:site_name" content="zxfan">
+<meta property="og:description" content="一面 自我介绍  网络模型：osi七层模型，每层干什么的？  http协议的理解。想到啥说啥。就是你随便说，面试官会顺着问  无状态 应用层协议，基于tcp 发展历史：从0.9到3.0 缓存 http状态吗：从1xx一直说到5xx   https？说了一下tls协商  es6相关，说一些用过哪些？面试官会顺着问。  var&#x2F;let&#x2F;const ， 面试官顺着问了它们的区别 字符串有哪些方法。这个问">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-04T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-29T14:06:58.075Z">
+<meta property="article:author" content="zxfan">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="interview">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zxffan.github.io/posts/33f3fd9d.html">
+  
+    <link rel="alternate" href="/atom.xml" title="zxfan" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="./images/avatar.jpeg" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+    <link href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.css" rel="stylesheet">
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://zxffan.github.io/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpeg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">ZXFFAN</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Beijing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zxffan" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://www.zhihu.com/people/zxffan" target="_blank" title="Zhihu" data-toggle=tooltip data-placement=top><i class="icon icon-zhihu"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Algorithm/" style="font-size: 13.63px;">Algorithm</a> <a href="/tags/C/" style="font-size: 13px;">C++</a> <a href="/tags/Electron/" style="font-size: 13.75px;">Electron</a> <a href="/tags/FrontEnd/" style="font-size: 13px;">FrontEnd</a> <a href="/tags/HTTP/" style="font-size: 13.25px;">HTTP</a> <a href="/tags/HTTP-Header/" style="font-size: 13px;">HTTP Header</a> <a href="/tags/JavaScript/" style="font-size: 13.88px;">JavaScript</a> <a href="/tags/NetWork/" style="font-size: 13.38px;">NetWork</a> <a href="/tags/Nginx/" style="font-size: 13px;">Nginx</a> <a href="/tags/Nodejs/" style="font-size: 13.5px;">Nodejs</a> <a href="/tags/Number/" style="font-size: 13px;">Number</a> <a href="/tags/Promise/" style="font-size: 13.13px;">Promise</a> <a href="/tags/Rust/" style="font-size: 13.38px;">Rust</a> <a href="/tags/Server/" style="font-size: 13px;">Server</a> <a href="/tags/Serverless/" style="font-size: 13px;">Serverless</a> <a href="/tags/TCP-IP/" style="font-size: 13px;">TCP/IP</a> <a href="/tags/TypeScript/" style="font-size: 13.63px;">TypeScript</a> <a href="/tags/Web/" style="font-size: 13px;">Web</a> <a href="/tags/WebRTC/" style="font-size: 13.13px;">WebRTC</a> <a href="/tags/animation/" style="font-size: 13px;">animation</a> <a href="/tags/audio/" style="font-size: 13px;">audio</a> <a href="/tags/browser/" style="font-size: 13px;">browser</a> <a href="/tags/crypto/" style="font-size: 13px;">crypto</a> <a href="/tags/css/" style="font-size: 13.13px;">css</a> <a href="/tags/functional-programing/" style="font-size: 13px;">functional programing</a> <a href="/tags/interview/" style="font-size: 13px;">interview</a> <a href="/tags/javascript/" style="font-size: 14px;">javascript</a> <a href="/tags/nodejs/" style="font-size: 13px;">nodejs</a> <a href="/tags/regExp/" style="font-size: 13px;">regExp</a> <a href="/tags/ssr/" style="font-size: 13px;">ssr</a> <a href="/tags/video/" style="font-size: 13px;">video</a> <a href="/tags/vue/" style="font-size: 13.75px;">vue</a> <a href="/tags/vue2/" style="font-size: 13px;">vue2</a> <a href="/tags/web-vitals/" style="font-size: 13px;">web-vitals</a> <a href="/tags/webpack/" style="font-size: 13.63px;">webpack</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13px;">云计算</a> <a href="/tags/%E4%BD%8D%E8%BF%90%E7%AE%97/" style="font-size: 13px;">位运算</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13px;">前端</a> <a href="/tags/%E5%AE%89%E5%85%A8/" style="font-size: 13px;">安全</a> <a href="/tags/%E6%9C%8D%E5%8A%A1/" style="font-size: 13px;">服务</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 13.63px;">架构</a> <a href="/tags/%E6%A1%8C%E9%9D%A2%E7%AB%AF/" style="font-size: 13px;">桌面端</a> <a href="/tags/%E6%A1%8C%E9%9D%A2%E7%AB%AF%E8%BD%AF%E4%BB%B6/" style="font-size: 13.63px;">桌面端软件</a> <a href="/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.38px;">网络</a> <a href="/tags/%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0/" style="font-size: 13.25px;">语言学习</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">二月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">十二月 2020</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">十一月 2020</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">十月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">九月 2020</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a><span class="archive-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled ">
+        
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/6f842db3.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/experience/">experience</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/6f842db3.html" class="title">Crypto</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-06-19T16:00:00.000Z" itemprop="datePublished">2021-06-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/33f3fd9d.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/self/">self</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/33f3fd9d.html" class="title">字节跳动面试</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-06-04T16:00:00.000Z" itemprop="datePublished">2021-06-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/d8bddba6.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/CSS/">CSS</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/d8bddba6.html" class="title">clear 清除浮动</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-30T16:00:00.000Z" itemprop="datePublished">2021-05-31</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/616f4683.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/experience/">experience</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/616f4683.html" class="title">前端性能优化</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-17T16:00:00.000Z" itemprop="datePublished">2021-05-18</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-thumb">
+              <a href="/posts/340f0a10.html" class="thumb">
+    
+    
+        <span class="thumb-image thumb-none"></span>
+    
+</a>
+
+            </div>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>
+              </p>
+              <p class="item-title">
+                <a href="/posts/340f0a10.html" class="title">Vuex@4.x</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-12T16:00:00.000Z" itemprop="datePublished">2021-05-13</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<aside class="sidebar sidebar-toc collapse" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E9%9D%A2"><span class="toc-number">1.</span> <span class="toc-text">一面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E9%9D%A2"><span class="toc-number">2.</span> <span class="toc-text">二面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E9%9D%A2"><span class="toc-number">3.</span> <span class="toc-text">三面</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-self/byte dance" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      字节跳动面试
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/posts/33f3fd9d.html" class="article-date">
+	  <time datetime="2021-06-04T16:00:00.000Z" itemprop="datePublished">2021-06-05</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/self/">self</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/interview/" rel="tag">interview</a>, <a class="article-tag-link-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/posts/33f3fd9d.html#comments" class="article-comment-link">评论</a></span>
+        
+	
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1k(字)</span>
+	
+	
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 3(分)</span>
+	
+
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="一面"><a href="#一面" class="headerlink" title="一面"></a>一面</h2><ol>
+<li><p>自我介绍</p>
+</li>
+<li><p>网络模型：osi七层模型，每层干什么的？</p>
+</li>
+<li><p>http协议的理解。想到啥说啥。就是你随便说，面试官会顺着问</p>
+<ol>
+<li>无状态</li>
+<li>应用层协议，基于tcp</li>
+<li>发展历史：从0.9到3.0</li>
+<li>缓存</li>
+<li>http状态吗：从1xx一直说到5xx</li>
+</ol>
+</li>
+<li><p>https？说了一下tls协商</p>
+</li>
+<li><p>es6相关，说一些用过哪些？面试官会顺着问。</p>
+<ol>
+<li>var/let/const ， 面试官顺着问了它们的区别</li>
+<li>字符串有哪些方法。这个问题应该是问错了，他想问得是数组：map filter reduce sort…</li>
+<li>模块规范 esm cjs 区别</li>
+<li>promise，然后就开始手写。估计他最初是想让我实现数组相关的方法，但是发现自己问错了就跳过了。</li>
+</ol>
+</li>
+<li><p>3道题</p>
+<ol>
+<li>Promise.all</li>
+<li>快排、归并，dfs选一个写</li>
+<li>最小银币找零问题：现有[1,2,5,9,10]几种硬币，当有18面值的硬币时，如何找零使得硬币数量最少；答案是2——18 = 9+9</li>
+</ol>
+</li>
+<li><p>感受：一面还是非常基础的。问了挺多的网络相关的内容</p>
+</li>
+</ol>
+<h2 id="二面"><a href="#二面" class="headerlink" title="二面"></a>二面</h2><ol>
+<li><p>自我介绍？没让自我介绍直接开始。</p>
+</li>
+<li><p>看简历：</p>
+<ol>
+<li>问你是怎么优化（webpack）构建性能的？<ol>
+<li>缓存：如何根据js代码变化去修改缓存的？</li>
+<li>thread-loader 怎么选取进程数量的？</li>
+<li>如何去做chunk拆分，怎么考量的？</li>
+</ol>
+</li>
+<li>cli脚手架 怎么设计的？</li>
+</ol>
+</li>
+<li><p>vue的computed如何进行依赖收集？说了computed的实现机制。</p>
+</li>
+<li><p>vue3相对于vue2做了哪些改进？讲了响应式和compiler的优化（静态提升、pathFlag、BlockTree）</p>
+</li>
+<li><p>手写题目：类似vue中的渲染函数（render），让你生成dom元素（返回一个dom对象）</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> vnode = el(<span class="string">&quot;div&quot;</span>, &#123; <span class="attr">class</span>: <span class="string">&quot;container&quot;</span> &#125;, [</span><br><span class="line">  el(<span class="string">&quot;span&quot;</span>, &#123;&#125;, [<span class="string">&quot;hello world&quot;</span>]),</span><br><span class="line">]);</span><br><span class="line">vnode.render();</span><br></pre></td></tr></table></figure></li>
+<li><p>场景题：</p>
+<p>一个多语言应用，大概14种语言。假如每个语言都放在一个js文件中（中文的一个文件，英文的一个文件）。目前存在两个问题</p>
+<ul>
+<li>应用启动时，会加载这14种语言（js文件），但实际上只需要1种语言，问如何优化？</li>
+<li>随着开发，有一些语言的值不在使用了，但还是加载到内存中去了，如何优化？</li>
+</ul>
+</li>
+<li><p>感受：二面连自我介绍都省了，哈哈！！感觉面试官爱从编译的角度问问题，估计这和他的具体工作相关吧。总体感觉这位面试官还是不错的，问得都是比较实际的问题。</p>
+</li>
+</ol>
+<h2 id="三面"><a href="#三面" class="headerlink" title="三面"></a>三面</h2><p>三面聊得特别广，也挺深的。</p>
+<ol>
+<li><p>之前性能优化怎么做的，这个聊了很久</p>
+</li>
+<li><p>cdn为什么会快？</p>
+</li>
+<li><p>从url到页面渲染的过程</p>
+<ol>
+<li>知道http如何判断响应返回的吗？</li>
+<li>script 加载为什么会阻塞dom解析，既然有defer和async，为什么浏览器不默认defer/async?</li>
+</ol>
+</li>
+<li><p>js中函数是一等公民。js中函数可以返回一个函数（闭包），知道这个特性实现难点在哪吗？</p>
+</li>
+<li><p>你的项目（自己的开源项目）有做过设计吗？看过设计相关的书吗？</p>
+<ol>
+<li>设计模式</li>
+<li>函数式编程</li>
+</ol>
+</li>
+<li><p>你项目写了虚拟列表优化，怎么做的</p>
+<ol>
+<li>滚动得快的话，出现白屏怎么优化？</li>
+<li>如果高度不固定，怎么实现？</li>
+</ol>
+</li>
+<li><p>为什么会学习electron？</p>
+<ol>
+<li>electron的进程模型</li>
+<li>浏览器的进程模型</li>
+</ol>
+</li>
+<li><p>手写题：</p>
+<p>场景：根据ip判断ip所在范围，要求：尽可能高效</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 假如在这两个范围内的 是中国的ip</span></span><br><span class="line"><span class="keyword">const</span> db = [</span><br><span class="line">  [<span class="string">&quot;0.0.0.0&quot;</span>, <span class="string">&quot;10.0.0.0&quot;</span>],</span><br><span class="line">  [<span class="string">&quot;11.0.0.0&quot;</span>, <span class="string">&quot;200.0.0.0&quot;</span>],</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="comment">// ip: string，判断ip是否是中国ip</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">isInChain</span>(<span class="params">ip</span>) </span>&#123;&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>感觉三面的面试官的职责可能不仅仅是前端，喜欢问一些特别底层的问题。</p>
+<blockquote>
+<p>三轮技术面试都没有怎么考算法，就一面考了一道动态规划。飞书的面试官还是比较注重实际的开发能力的。</p>
+</blockquote>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zxffan.github.io/posts/33f3fd9d.html" title="字节跳动面试" target="_blank" rel="external">https://zxffan.github.io/posts/33f3fd9d.html</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://zxffan.github.io/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpeg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://zxffan.github.io/" target="_blank"><span class="text-dark">ZXFFAN</span><small class="ml-1x">Web Developer &amp; Designer</small></a></h3>
+        <div>Nothing, just a coder。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/posts/6f842db3.html" title="Crypto"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/posts/d8bddba6.html" title="clear 清除浮动"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn collapsed" data-toggle="collapse" href="#collapseToc" aria-expanded="false" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zxffan" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://www.zhihu.com/people/zxffan" target="_blank" title="Zhihu" data-toggle=tooltip data-placement=top><i class="icon icon-zhihu"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 zxfan
+        
+        <!-- <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div> -->
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.js"></script>
+  <script>
+  //利用 FancyBox 实现点击图片放大
+  $(document).ready(function() {
+    $('article img').not('[hidden]').not('.panel-body img').each(function() {
+      var $image = $(this);
+      var imageCaption = $image.attr('alt');
+      var $imageWrapLink = $image.parent('a');
+      if ($imageWrapLink.length < 1) {
+        var src = this.getAttribute('src');
+        var idx = src.lastIndexOf('?');
+        if (idx != -1) {
+          src = src.substring(0, idx);
+        }
+        $imageWrapLink = $image.wrap('<a href="' + src + '"></a>').parent('a');
+      }
+      $imageWrapLink.attr('data-fancybox', 'images');
+      if (imageCaption) {
+        $imageWrapLink.attr('data-caption', imageCaption);
+      }
+    });
+    $().fancybox({
+      selector: '[data-fancybox="images"]',
+      hash: false,
+      loop: false,
+    });
+  });
+  </script>
+
+
+
+
+
+</body>
+</html>
